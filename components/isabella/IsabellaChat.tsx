@@ -32,8 +32,10 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
   const presets = [
     '¿Qué es la Arquitectura Heptafederada YUN?',
     'Recomiéndame una ruta de minas y pastes en RDM',
+    '¿Cuándo es la Feria del Paste y la Semana Cornish?',
+    'Cuéntame la historia de los mineros de Cornualles de 1824',
+    'Dime un dicho tradicional de Real del Monte',
     '¿Cómo funciona la Criptografía Post-Cuántica Dilithium?',
-    'Historia de los mineros de Cornualles de 1824',
   ];
 
   const handleSend = async (textToSend?: string) => {
@@ -57,7 +59,15 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: promptText,
-          context: { territory: 'Real del Monte', status: 'Optimal' },
+          context: {
+            territory: 'Real del Monte, Hidalgo, México',
+            status: 'Optimal',
+            pois: 15,
+            nodes: 35,
+            geosite: 'Geoparque Mundial UNESCO Comarca Minera',
+            altitude: 2710,
+            center: [20.1398, -98.6738],
+          },
         }),
       });
 
@@ -76,7 +86,7 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
       const fallbackMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: 'isabella',
-        text: 'Conexión con Nodo Cero activa: Real del Monte cuenta hoy con clima fresco (13.8°C), 18 pastelerías certificadas operativas y el Gemelo Digital 3D totalmente sincronizado.',
+        text: 'Conexión con Nodo Cero activa: Real del Monte cuenta hoy con clima fresco (13.8°C), 15 puntos de interés turístico georreferenciados, 8 festivales anuales y 35 nodos YUN sincronizados. ¿Te recomiendo la Ruta de la Plata o la Ruta del Legado Inglés?',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages(prev => [...prev, fallbackMsg]);
@@ -89,10 +99,15 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  const handleSendRef = useRef(handleSend);
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
+
   useEffect(() => {
     if (initialPrompt) {
       const timer = setTimeout(() => {
-        handleSend(initialPrompt);
+        handleSendRef.current(initialPrompt);
       }, 50);
       return () => clearTimeout(timer);
     }
