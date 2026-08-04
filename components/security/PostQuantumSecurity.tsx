@@ -68,10 +68,31 @@ export default function PostQuantumSecurity() {
     <div className="space-y-6">
       
       {/* Security Status Header */}
-      <div className="p-6 rounded-2xl glass-panel border border-purple-500/40 bg-purple-950/20 shadow-[0_0_40px_rgba(168,85,247,0.15)] flex flex-wrap items-center justify-between gap-4">
+      <div className="relative overflow-hidden p-6 rounded-2xl glass-panel border border-purple-500/40 bg-purple-950/20 shadow-[0_0_40px_rgba(168,85,247,0.15)] flex flex-wrap items-center justify-between gap-4">
+        {/* Quantum Lattice Aurora Background */}
+        <svg
+          className="pointer-events-none absolute inset-0 w-full h-full opacity-20"
+          viewBox="0 0 800 200"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <defs>
+            <pattern id="lattice" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M28 0 L0 28 M0 0 L28 28" stroke="#a855f7" strokeWidth="0.6" fill="none" />
+            </pattern>
+          </defs>
+          <rect width="800" height="200" fill="url(#lattice)" />
+          <circle cx="120" cy="100" r="80" fill="none" stroke="#a855f7" strokeWidth="0.5" strokeDasharray="4 6" className="animate-spin-slow" style={{ transformOrigin: '120px 100px' }} />
+          <circle cx="120" cy="100" r="55" fill="none" stroke="#38bdf8" strokeWidth="0.5" strokeDasharray="2 5" className="animate-spin-slower" style={{ transformOrigin: '120px 100px' }} />
+        </svg>
+
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-purple-950 border border-purple-500/50 flex items-center justify-center text-purple-300 shadow-lg">
-            <ShieldCheck className="w-6 h-6 animate-pulse" />
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-purple-950 border border-purple-500/50 flex items-center justify-center text-purple-300 shadow-lg">
+              <ShieldCheck className="w-6 h-6 animate-pulse" />
+            </div>
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400" />
           </div>
 
           <div>
@@ -146,6 +167,41 @@ export default function PostQuantumSecurity() {
           </div>
         </div>
 
+      </div>
+
+      {/* Quantum Shield Strength Meters */}
+      <div className="p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            Nivel de Blindaje Soberano
+          </h3>
+          <span className="text-xs font-mono text-emerald-400">PERÍMETRO PQC ACTIVO</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {[
+            { label: 'Firma Digital Dilithium-5', value: 99, detail: 'Category 5 · 256-bit', color: 'from-cyan-400 to-blue-500' },
+            { label: 'Intercambio de Claves Kyber-1024', value: 98, detail: 'KEM NIST FIPS 203', color: 'from-purple-400 to-indigo-500' },
+            { label: 'Firma IoT Falcon-1024', value: 97, detail: '0.2ms por firma', color: 'from-amber-400 to-orange-500' },
+          ].map((meter, idx) => (
+            <div key={idx} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-mono text-slate-300">{meter.label}</span>
+                <span className="text-sm font-black text-white">{meter.value}%</span>
+              </div>
+              <div className="h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700/50">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${meter.color} relative overflow-hidden`}
+                  style={{ width: `${meter.value}%`, boxShadow: '0 0 14px rgba(168,85,247,0.6)' }}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_30%,rgba(255,255,255,0.35)_50%,transparent_70%)] bg-[length:200%_100%] animate-shimmer" />
+                </div>
+              </div>
+              <div className="text-[10px] font-mono text-slate-500">{meter.detail}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Ledger Block Explorer */}

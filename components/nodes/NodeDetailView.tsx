@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { YUNNode } from '@/lib/data/rdm-data';
-import { Cpu, ShieldCheck, Activity, Terminal, CheckCircle2, Play, RefreshCw, Zap, ExternalLink, ArrowLeft, Globe, Lock } from 'lucide-react';
+import { Cpu, ShieldCheck, Terminal, CheckCircle2, Play, ArrowLeft, Lock } from 'lucide-react';
 
 interface NodeDetailViewProps {
   node: YUNNode;
@@ -51,17 +51,27 @@ export default function NodeDetailView({ node, onBack, onOpenIsabella }: NodeDet
       </div>
 
       {/* Node Header Banner */}
-      <div className="p-8 rounded-3xl glass-panel border border-cyan-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/50 shadow-[0_0_50px_rgba(6,182,212,0.2)] space-y-4">
-        
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="relative overflow-hidden p-8 rounded-3xl glass-panel border border-cyan-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/50 shadow-[0_0_50px_rgba(6,182,212,0.2)] space-y-4">
+        {/* Animated Aurora Glow */}
+        <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl animate-pulse-glow" />
+        <div className="pointer-events-none absolute -bottom-32 -left-16 w-72 h-72 rounded-full bg-purple-500/15 blur-3xl animate-pulse-glow" />
+
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
           <span className="px-3 py-1 rounded-lg bg-cyan-900/60 border border-cyan-500/40 text-xs font-mono font-bold text-cyan-300">
             {node.category}
           </span>
 
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+            {/* Animated Status Signal */}
+            <div className="relative w-3.5 h-3.5">
+              <span className={`absolute inset-0 rounded-full ${node.status === 'Optimo' ? 'bg-emerald-400 animate-ping' : node.status === 'Cripto-Protegido' ? 'bg-amber-400 animate-ping' : 'bg-cyan-400 animate-ping'}`} />
+              <span className={`absolute inset-0 rounded-full ${node.status === 'Optimo' ? 'bg-emerald-400' : node.status === 'Cripto-Protegido' ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+            </div>
             <span className="text-xs font-mono font-bold text-emerald-400">{node.status}</span>
-            <span className="text-xs font-mono text-slate-400 ml-2">Latencia: {node.latency}</span>
+            <span className="text-xs font-mono text-slate-400 ml-2 flex items-center gap-1">
+              <Lock className="w-3 h-3 text-purple-400" />
+              Latencia: {node.latency}
+            </span>
           </div>
         </div>
 
@@ -78,12 +88,34 @@ export default function NodeDetailView({ node, onBack, onOpenIsabella }: NodeDet
         </p>
 
         {/* Live Metrics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-white/10">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-4 border-t border-white/10">
           {node.metrics.map((m, idx) => (
             <div key={idx} className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
               <div className="text-xs font-mono text-slate-400 uppercase">{m.label}</div>
               <div className="text-2xl font-black text-white mt-1">{m.value}</div>
               <div className="text-xs font-mono text-emerald-400 mt-0.5">{m.change}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Node Signal Gauge */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          {[
+            { label: 'Disponibilidad', value: 99.8, color: 'from-emerald-400 to-teal-500' },
+            { label: 'Sincronización YUN', value: 97.2, color: 'from-cyan-400 to-blue-500' },
+            { label: 'Cripto-Cobertura PQC', value: 100, color: 'from-purple-400 to-indigo-500' },
+          ].map((gauge, idx) => (
+            <div key={idx} className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-mono text-slate-400 uppercase">{gauge.label}</span>
+                <span className="text-xs font-black text-white">{gauge.value}%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${gauge.color} transition-all duration-1000`}
+                  style={{ width: `${gauge.value}%`, boxShadow: '0 0 12px rgba(34,211,238,0.5)' }}
+                />
+              </div>
             </div>
           ))}
         </div>

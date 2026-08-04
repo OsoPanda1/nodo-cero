@@ -12,8 +12,16 @@ interface CrystalHero3DProps {
 export default function CrystalHero3D({ onOpenIsabella, onSelectNode }: CrystalHero3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
-  const [isPlayingVideo, setIsPlayingVideo] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    if (!showTrailerModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowTrailerModal(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showTrailerModal]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -284,7 +292,7 @@ export default function CrystalHero3D({ onOpenIsabella, onSelectNode }: CrystalH
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
             <div>
               <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Nodos YUN Activos</div>
-              <div className="text-sm font-bold text-emerald-200">28 / 28 Operativos</div>
+              <div className="text-sm font-bold text-emerald-200">35 / 35 Operativos</div>
             </div>
           </div>
         </div>

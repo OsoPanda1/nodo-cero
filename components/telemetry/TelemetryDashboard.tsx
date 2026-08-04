@@ -173,6 +173,54 @@ export default function TelemetryDashboard() {
 
       </div>
 
+      {/* IoT Sensor Health Grid */}
+      <div className="p-6 rounded-2xl glass-panel border border-white/10 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-400" />
+            Salud de Sensores IoT Distribuidos
+          </h3>
+          <span className="text-xs font-mono text-emerald-400">12/12 ONLINE</span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {[
+            { id: 'MX-01', name: 'Mina Acosta', type: 'Temp · Ocup.', health: 100, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-02', name: 'La Dificultad', type: 'CO₂ · Estruct.', health: 98, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-03', name: 'Panteón Inglés', type: 'Humedad · Viento', health: 100, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-04', name: 'Plaza Principal', type: 'Aforo · Ruido', health: 96, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-05', name: 'Purísima Mirador', type: 'Niebla · Visib.', health: 92, color: 'text-amber-400 border-amber-500/30' },
+            { id: 'MX-06', name: 'Peñas Cargadas', type: 'Suelo · Precip.', health: 97, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-07', name: 'El Hiloche', type: 'Biomasa · Aire', health: 99, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-08', name: 'Zelontla', type: 'Seísmo · Vibra', health: 95, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-09', name: 'Zona Minas', type: 'Tráfico', health: 90, color: 'text-amber-400 border-amber-500/30' },
+            { id: 'MX-10', name: 'Portal del Paste', type: 'Aforo · Frescura', health: 100, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-11', name: 'Microgrid YUN', type: 'Energía', health: 100, color: 'text-emerald-400 border-emerald-500/30' },
+            { id: 'MX-12', name: 'Red Comunal', type: 'Edge · Lora', health: 99, color: 'text-emerald-400 border-emerald-500/30' },
+          ].map(sensor => (
+            <div
+              key={sensor.id}
+              className={`p-3 rounded-xl bg-slate-950/70 border ${sensor.color} space-y-1.5`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-slate-500">{sensor.id}</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="text-xs font-bold text-white truncate">{sensor.name}</div>
+              <div className="text-[9px] font-mono text-slate-500 truncate">{sensor.type}</div>
+              <div className="h-1 rounded-full bg-slate-800 overflow-hidden mt-1">
+                <div
+                  className={`h-full rounded-full ${
+                    sensor.health >= 98 ? 'bg-emerald-400' : sensor.health >= 94 ? 'bg-cyan-400' : 'bg-amber-400'
+                  }`}
+                  style={{ width: `${sensor.health}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }
