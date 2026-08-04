@@ -5,7 +5,8 @@ import { YUN_CORES, RDM_NODES_35, YUNNode } from '@/lib/data/rdm-data';
 import { 
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
   ChevronRight, ChevronDown, Search, Menu, X, Radio, Sparkles, 
-  Map, Database, Key, ShoppingBag, ArrowUpRight, Lock, Zap
+  Map, Database, Key, ShoppingBag, ArrowUpRight, Lock, Zap,
+  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users
 } from 'lucide-react';
 
 interface YUNLayoutProps {
@@ -180,6 +181,16 @@ export default function YUNLayout({
                 { id: 'marketplace', label: 'Marketplace Pastes & Plata', icon: <ShoppingBag className="w-4 h-4 text-rose-400" /> },
                 { id: 'telemetry', label: 'Telemetría y Sensores', icon: <Activity className="w-4 h-4 text-emerald-400" /> },
                 { id: 'security', label: 'Criptografía Post-Cuántica', icon: <Key className="w-4 h-4 text-purple-400" /> },
+                { id: 'art', label: 'Arte y Artesanos', icon: <Palette className="w-4 h-4 text-orange-400" /> },
+                { id: 'gastronomy', label: 'Gastronomía del Monte', icon: <UtensilsCrossed className="w-4 h-4 text-rose-400" /> },
+                { id: 'business', label: 'Portal de Comercios', icon: <Store className="w-4 h-4 text-amber-400" /> },
+                { id: 'media', label: 'Música y Podcast', icon: <Radio className="w-4 h-4 text-purple-400" /> },
+                { id: 'gamification', label: 'Gamificación del Nodo', icon: <Trophy className="w-4 h-4 text-amber-400" /> },
+                { id: 'legends', label: 'Mitos y Leyendas', icon: <Ghost className="w-4 h-4 text-purple-400" /> },
+                { id: 'forum', label: 'Foro RDM', icon: <MessagesSquare className="w-4 h-4 text-cyan-400" /> },
+                { id: 'honor', label: 'Muro de Honor', icon: <Award className="w-4 h-4 text-amber-400" /> },
+                { id: 'gallery', label: 'Galería Compartida', icon: <Images className="w-4 h-4 text-emerald-400" /> },
+                { id: 'about', label: 'Quiénes Somos', icon: <Users className="w-4 h-4 text-blue-400" /> },
               ].map(item => (
                 <button
                   key={item.id}

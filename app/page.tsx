@@ -10,6 +10,16 @@ import PhygitalMarketplace from '@/components/phygital/PhygitalMarketplace';
 import PostQuantumSecurity from '@/components/security/PostQuantumSecurity';
 import NodeDetailView from '@/components/nodes/NodeDetailView';
 import TourismSection from '@/components/tourism/TourismSection';
+import ArtSection from '@/components/art/ArtSection';
+import GastronomySection from '@/components/gastronomy/GastronomySection';
+import BusinessPortal from '@/components/business/BusinessPortal';
+import MediaSection from '@/components/media/MediaSection';
+import GamificationSection from '@/components/gamification/GamificationSection';
+import LegendsSection from '@/components/legends/LegendsSection';
+import ForumSection from '@/components/forum/ForumSection';
+import HonorWallSection from '@/components/honor/HonorWallSection';
+import GallerySection from '@/components/gallery/GallerySection';
+import AboutSection from '@/components/about/AboutSection';
 import { YUN_CORES, RDM_NODES_35, YUNNode, RDM_POIS } from '@/lib/data/rdm-data';
 import { 
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
@@ -97,7 +107,77 @@ export default function RDMDigitalHubHome() {
         </div>
       )}
 
-      {/* 7. MAIN HOME VIEW */}
+      {/* 7. ART VIEW */}
+      {activeView === 'art' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <ArtSection />
+        </div>
+      )}
+
+      {/* 8. GASTRONOMY VIEW */}
+      {activeView === 'gastronomy' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <GastronomySection />
+        </div>
+      )}
+
+      {/* 9. BUSINESS VIEW */}
+      {activeView === 'business' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <BusinessPortal />
+        </div>
+      )}
+
+      {/* 10. MEDIA VIEW */}
+      {activeView === 'media' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <MediaSection />
+        </div>
+      )}
+
+      {/* 11. GAMIFICATION VIEW */}
+      {activeView === 'gamification' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <GamificationSection />
+        </div>
+      )}
+
+      {/* 12. LEGENDS VIEW */}
+      {activeView === 'legends' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <LegendsSection />
+        </div>
+      )}
+
+      {/* 13. FORUM VIEW */}
+      {activeView === 'forum' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <ForumSection />
+        </div>
+      )}
+
+      {/* 14. HONOR VIEW */}
+      {activeView === 'honor' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <HonorWallSection />
+        </div>
+      )}
+
+      {/* 15. GALLERY VIEW */}
+      {activeView === 'gallery' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <GallerySection />
+        </div>
+      )}
+
+      {/* 16. ABOUT VIEW */}
+      {activeView === 'about' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <AboutSection />
+        </div>
+      )}
+
+      {/* 17. MAIN HOME VIEW */}
       {activeView === 'home' && (
         <div className="space-y-16 pb-20">
           
