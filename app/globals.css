@@ -1,49 +1,82 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* ------------------------------------------------------------------ */
+/* Núcleo temático RDM Crystal OS                                     */
+/* ------------------------------------------------------------------ */
 @layer base {
   :root {
-    --bg-dark: #04060a;
-    --crystal-border: rgba(255, 255, 255, 0.12);
-    --crystal-glass: rgba(12, 18, 30, 0.65);
-    --glow-cyan: rgba(0, 240, 255, 0.5);
-    --glow-purple: rgba(168, 85, 247, 0.5);
-    --glow-gold: rgba(234, 179, 8, 0.5);
+    /* Fondo y superficies */
+    --bg-dark: #02030a;
+    --bg-deep: radial-gradient(circle at 0% 0%, #0f172a, #020617 45%, #000000);
+    --surface-glass-soft: rgba(10, 16, 28, 0.72);
+    --surface-glass-strong: rgba(12, 18, 30, 0.85);
+
+    /* Bordes cristalinos */
+    --border-crystal-soft: rgba(255, 255, 255, 0.10);
+    --border-crystal-strong: rgba(255, 255, 255, 0.20);
+
+    /* Paleta glow */
+    --glow-cyan: rgba(34, 211, 238, 0.55);
+    --glow-purple: rgba(168, 85, 247, 0.55);
+    --glow-gold: rgba(234, 179, 8, 0.55);
+
+    /* Tipografía */
+    --text-primary: #e5f0ff;
+    --text-muted: rgba(148, 163, 184, 0.9);
+
+    /* Canales zombies */
+    --zc-default: #f43f5e;
+    --zc-player: #34d399;
+
+    /* Curvas de movimiento */
+    --ease-crystal: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   body {
-    background-color: var(--bg-dark);
-    color: #f1f5f9;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     overflow-x: hidden;
   }
 }
 
-/* Custom Crystal Utilities */
+/* ------------------------------------------------------------------ */
+/* Superficies cristal y paneles holográficos                         */
+/* ------------------------------------------------------------------ */
+
 .glass-panel {
-  background: rgba(10, 16, 28, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  background: var(--surface-glass-soft);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-crystal-soft);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.75),
+    inset 0 0 18px rgba(255, 255, 255, 0.03);
 }
 
 .glass-panel-interactive {
-  background: rgba(12, 20, 36, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--surface-glass-strong);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid var(--border-crystal-strong);
+  transition: all 0.32s var(--ease-crystal);
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(18, 28, 50, 0.8);
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 0 25px rgba(56, 189, 248, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.05);
-  transform: translateY(-2px);
+  background: rgba(18, 28, 52, 0.92);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow:
+    0 0 30px rgba(56, 189, 248, 0.32),
+    inset 0 0 22px rgba(255, 255, 255, 0.06);
+  transform: translateY(-3px) scale(1.01);
 }
 
-/* Iridescent Rainbow Glow Effects */
+/* ------------------------------------------------------------------ */
+/* Bordes iridiscentes y lattice de glow                              */
+/* ------------------------------------------------------------------ */
+
 .iridescent-border {
   position: relative;
   border: 1px solid transparent;
@@ -51,130 +84,178 @@
 }
 
 .iridescent-border::before {
-  content: '';
+  content: "";
   position: absolute;
-  top: -1px; left: -1px; right: -1px; bottom: -1px;
-  background: linear-gradient(135deg, #00f2fe, #4facfe, #000000, #b224ef, #7579ff, #f39c12, #00f2fe);
-  background-size: 400% 400%;
+  inset: -1px;
   border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    #00f2fe,
+    #4facfe,
+    #000000,
+    #b224ef,
+    #7579ff,
+    #f39c12,
+    #00f2fe
+  );
+  background-size: 400% 400%;
   z-index: -1;
-  animation: rainbowGlow 8s ease infinite;
+  animation: rainbowGlow 9s ease infinite;
 }
 
 .crystal-glow-cyan {
-  box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.35);
+  box-shadow: 0 0 36px -6px var(--glow-cyan);
 }
 
 .crystal-glow-purple {
-  box-shadow: 0 0 30px -5px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 0 36px -6px var(--glow-purple);
 }
 
 .crystal-glow-gold {
-  box-shadow: 0 0 30px -5px rgba(234, 179, 8, 0.35);
+  box-shadow: 0 0 36px -6px var(--glow-gold);
 }
 
-/* Animations */
+/* ------------------------------------------------------------------ */
+/* Animaciones — movimiento territorial inmersivo                     */
+/* ------------------------------------------------------------------ */
+
 @keyframes rainbowGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes crystalFloat {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(1deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.4deg);
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.6)); }
-  50% { opacity: 0.9; filter: drop-shadow(0 0 25px rgba(168, 85, 247, 0.8)); }
+  0%,
+  100% {
+    opacity: 0.45;
+    filter: drop-shadow(0 0 14px rgba(34, 211, 238, 0.7));
+  }
+  50% {
+    opacity: 0.96;
+    filter: drop-shadow(0 0 28px rgba(168, 85, 247, 0.85));
+  }
 }
 
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(1000%); }
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-crystal-float {
-  animation: crystalFloat 6s ease-in-out infinite;
+  animation: crystalFloat 6.5s ease-in-out infinite;
 }
 
 .animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
+  animation: pulseGlow 4.2s ease-in-out infinite;
 }
 
 .animate-rainbow-glow {
-  animation: rainbowGlow 10s linear infinite;
-  background-size: 300% 300%;
-}
-
-/* Shimmer sweep for glowing bars */
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  animation: rainbowGlow 11s linear infinite;
+  background-size: 320% 320%;
 }
 
 .animate-shimmer {
-  animation: shimmer 2.4s linear infinite;
-}
-
-/* Slow & slower rotation for quantum lattice rings */
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  animation: shimmer 2.6s linear infinite;
 }
 
 .animate-spin-slow {
-  animation: spinSlow 18s linear infinite;
+  animation: spinSlow 20s linear infinite;
 }
 
 .animate-spin-slower {
-  animation: spinSlow 30s linear infinite reverse;
+  animation: spinSlow 32s linear infinite reverse;
 }
 
-/* Custom Scrollbar */
+/* ------------------------------------------------------------------ */
+/* Scrollbar — rail cristalino sutil                                  */
+/* ------------------------------------------------------------------ */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(4, 6, 10, 0.9);
+  background: rgba(3, 4, 8, 0.95);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.3);
-  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.6);
+  background: rgba(168, 85, 247, 0.65);
 }
 
-/* Leaflet Map Custom dark skin */
+/* ------------------------------------------------------------------ */
+/* Leaflet — piel de mapa territorial                                 */
+/* ------------------------------------------------------------------ */
+
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #060913 !important;
+  background-color: #020617 !important;
   border-radius: 1rem;
 }
 
 .leaflet-popup-content-wrapper {
-  background: rgba(10, 16, 28, 0.92) !important;
-  color: #fff !important;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  backdrop-filter: blur(12px);
+  background: rgba(10, 16, 28, 0.95) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  backdrop-filter: blur(14px) saturate(1.2);
   border-radius: 0.75rem !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.58) !important;
 }
 
 .leaflet-popup-tip {
-  background: rgba(10, 16, 28, 0.92) !important;
+  background: rgba(10, 16, 28, 0.95) !important;
 }
 
 /* ------------------------------------------------------------------ */
-/* Zombies RDM Invasion — marcadores del mapa del juego                */
+/* Zombies RDM Invasion — marcadores y pulso de territorio            */
 /* ------------------------------------------------------------------ */
+
+@keyframes zrPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
 
 .zr-spawn {
   position: relative;
@@ -186,7 +267,7 @@
   position: absolute;
   inset: -7px;
   border-radius: 50%;
-  border: 2px solid var(--zc, #f43f5e);
+  border: 2px solid var(--zc, var(--zc-default));
   animation: zrPulse 1.6s ease-out infinite;
 }
 
@@ -197,14 +278,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 30% 28%, #fff, var(--zc, #f43f5e));
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 0 14px var(--zc, #f43f5e);
-}
-
-@keyframes zrPulse {
-  0% { transform: scale(0.55); opacity: 0.9; }
-  100% { transform: scale(1.7); opacity: 0; }
+  background: radial-gradient(
+    circle at 30% 28%,
+    #ffffff,
+    var(--zc, var(--zc-default))
+  );
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 16px var(--zc, var(--zc-default));
 }
 
 .zr-player {
@@ -225,12 +305,12 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: #34d399;
-  border: 2px solid #fff;
+  background: var(--zc-player);
+  border: 2px solid #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+  box-shadow: 0 0 13px rgba(52, 211, 153, 0.85);
 }
 
 .zr-popup {
@@ -240,14 +320,12 @@
 .zr-popup-title {
   font-weight: 700;
   font-size: 0.75rem;
-  color: #fff;
+  color: #ffffff;
 }
 
 .zr-popup-sub {
   font-size: 0.65rem;
-  color: rgba(148, 163, 184, 0.9);
+  color: var(--text-muted);
   font-family: ui-monospace, monospace;
   margin-top: 0.15rem;
 }
-
-
