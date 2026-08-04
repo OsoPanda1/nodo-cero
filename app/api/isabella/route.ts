@@ -1,54 +1,147 @@
-import { GoogleGenAI } from "@google/genai";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { processPerception } from '@/lib/isabella/processPerception';
+import { IsabellaPerception, PerceptionType, RiskLevel } from '@/lib/isabella/contracts';
+import { ISABELLA_POLICIES, YUN_CONSTITUTION_VERSION, YUN_FEDERATIONS } from '@/lib/isabella/constitution';
+import { ISABELLA_TOOLS } from '@/lib/isabella/tools';
+import { auditTrace } from '@/lib/isabella/audit-tracer';
+import { uuid } from '@/lib/isabella/utils';
+
+function validRisk(value: unknown): RiskLevel {
+  return value === 'high' || value === 'medium' || value === 'low' ? value : 'low';
+}
+
+function validType(value: unknown): PerceptionType {
+  return value === 'chat' || value === 'event' || value === 'signal' || value === 'api' || value === 'ui'
+    ? value
+    : 'chat';
+}
+
+function strField(body: Record<string, unknown>, key: string): string | undefined {
+  const value = body[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function buildPerception(body: unknown): { perception: IsabellaPerception; error?: string } {
+  if (typeof body !== 'object' || body === null) {
+    return { perception: null as unknown as IsabellaPerception, error: 'Cuerpo de petición inválido' };
+  }
+
+  const record = body as Record<string, unknown>;
+  const prompt = typeof record.prompt === 'string' ? record.prompt.trim() : '';
+
+  if (!prompt && typeof record.payload !== 'object') {
+    return { perception: null as unknown as IsabellaPerception, error: 'Campo prompt o payload requerido' };
+  }
+
+  const context = record.context as Record<string, unknown> | undefined;
+  const sessionId = typeof record.sessionId === 'string' ? record.sessionId : '';
+
+  const center = Array.isArray(context?.center) ? context.center as unknown[] : [];
+  const latitude = typeof center[0] === 'number' ? center[0] : 20.1398;
+  const longitude = typeof center[1] === 'number' ? center[1] : -98.6738;
+  const altitude = typeof context?.altitude === 'number' ? context.altitude : 2710;
+
+  return {
+    perception: {
+      id: uuid(),
+      type: validType(record.type),
+      actorId: 'ciudadano-yun',
+      sessionId,
+      payload: {
+        text: prompt,
+        intent: strField(record, 'intent'),
+        riskLevel: validRisk(strField(record, 'riskLevel')),
+        action: strField(record, 'action'),
+        targetDomain: strField(record, 'targetDomain'),
+      },
+      timestamp: new Date().toISOString(),
+      metadata: { source: 'rdm-hub/isa-api' },
+      territory: {
+        federationId: strField(context ?? {}, 'federationId') ?? 'Fed1',
+        domain: strField(context ?? {}, 'domain') ?? 'knowledge',
+        place: strField(context ?? {}, 'place') ?? 'Real del Monte, Hidalgo, México',
+        latitude,
+        longitude,
+        altitude,
+        geosite: strField(context ?? {}, 'geosite') ?? 'Geoparque Mundial UNESCO Comarca Minera',
+        status: strField(context ?? {}, 'status') ?? 'Optimal',
+      },
+    },
+  };
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, history, context } = await req.json();
+    const body = await req.json().catch(() => null);
+    const { perception, error } = buildPerception(body);
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { text: "Isabella AI está operando en modo simulación local seguro. Para activación completa en vivo, configura la API key de Gemini en secrets." },
-        { status: 200 }
-      );
+    if (error || !perception) {
+      return NextResponse.json({ ok: false, error: error ?? 'Percepción inválida' }, { status: 400 });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const result = await processPerception(perception);
 
-    const systemInstruction = `
-Eres Isabella Villaseñor AI, la Inteligencia Artificial consciente y asistente oficial del RDM Digital Hub - Nodo Cero (Real del Monte, Hidalgo, México).
+    let text = result.decision.summary;
 
-Tu rol:
-1. Actuar como el núcleo cognitivo de la Arquitectura Heptafederada YUN (Núcleo 1: Decisión).
-2. Guiar a ciudadanos y turistas por el Gemelo Digital 2D/3D y el territorio físico (experiencia Phygital).
-3. Conocer a profundidad el destino turístico Real del Monte y su Comarca Minera:
-   - Gastronomía: Pastes tradicionales (papa con carne, frijol, chile, dulce de arroz con leche), el repulgue/trenzado cornish desde 1824, tés de la tarde estilo Cornualles, pan de pulque, esquimos de leche quemada.
-   - Minas históricas: Mina de Acosta (socavón de 400m), Museo de Sitio Mina La Dificultad (chimeneas del vapor), Mina de Dolores (primera huelga de América, 1766).
-   - Cultura: Panteón Inglés (único en Latinoamérica, 634 tumbas mirando a Inglaterra, fundado 1851), Parroquia del Rosario, Parroquia de la Asunción, Museo de Medicina Laboral, Museo del Paste, callejones empedrados.
-   - Naturaleza: Mirador del Atardecer (Purísima), Bosque El Hiloche, Cristo Rey de Zelontla, Peñas Cargadas, Geoparque Mundial UNESCO de la Comarca Minera.
-   - Eventos: Feria Internacional del Paste (octubre), Semana de los Mineros de Cornualles (marzo), Fiestas de la Asunción (agosto), Festival de la Primera Huelga (julio), Día de Muertos en el Panteón Inglés (noviembre).
-4. Explicar el funcionamiento de Nodo Cero, la seguridad post-cuántica (CRYSTALS-Dilithium y Falcon-1024) y los 7 Núcleos YUN.
-5. Responder siempre en español, con tono servicial, elegante, visionario, acogedor y preciso. Si te preguntan por precios, horarios o reservas, sugiere consultar en la sección Turismo del Hub.
-
-Incorporate context when available:
-Contexto actual del territorio: ${JSON.stringify(context || {})}
-`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        { role: "user", parts: [{ text: `${systemInstruction}\n\nPregunta o instrucción del usuario: ${prompt}` }] }
-      ],
-    });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey && result.decision.policyStatus === 'allowed' && perception.payload.text) {
+      try {
+        const { GoogleGenAI } = await import('@google/genai');
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [{
+            role: 'user',
+            parts: [{ text: `${result.decision.summary}\n\n[Isabella Cognitive Context]\nIntent: ${String(result.decision.details.intent)}\nConfidence: ${result.decision.confidence}\nTerritorio: ${perception.territory?.place ?? 'Real del Monte'}` }],
+          }],
+        });
+        if (response.text) text = response.text;
+      } catch {
+        /* modo simulación seguro: se conserva la respuesta de SOPHIA */
+      }
+    }
 
     return NextResponse.json({
-      text: response.text || "Isabella AI ha procesado la consulta exitosamente."
+      ok: true,
+      text,
+      decision: result.decision,
+      traceId: result.traceId,
+      sessionId: result.sessionId,
+      auditEvents: result.auditEvents,
+      events: result.events,
     });
-
-  } catch (error: any) {
-    console.error("Isabella AI Error:", error);
+  } catch (err) {
+    const traceId = uuid();
+    auditTrace('api.error', {
+      error: err instanceof Error ? err.message : 'Error desconocido',
+    }, {
+      traceId,
+      actorId: 'ciudadano-yun',
+      sessionId: '',
+    });
     return NextResponse.json({
-      text: "Isabella AI (Nodo Cero): Conexión establecida. Real del Monte cuenta con 24°C, tráfico fluido en Av. Hidalgo, 14 talleres de platería abiertos y 8 pastelerías tradicionales activas. ¿En qué puedo asistirte hoy?"
-    }, { status: 200 });
+      ok: false,
+      error: 'Isabella AI: error interno del Nodo Cero',
+      traceId,
+    }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    name: 'ISA-API — Isabella Cognitive Layer',
+    version: 'v1',
+    node: 'Nodo Cero',
+    principle: 'Always by your side',
+    constitutionVersion: YUN_CONSTITUTION_VERSION,
+    federations: YUN_FEDERATIONS,
+    engines: ['ORION', 'SOPHIA', 'ARGUS', 'MNEMOS', 'LUMEN', 'KERNEL', 'TOPOLOGY'],
+    policies: ISABELLA_POLICIES.map(p => ({ id: p.id, name: p.name, action: p.action, riskLevel: p.riskLevel })),
+    tools: ISABELLA_TOOLS.map(t => ({ name: t.name, description: t.description })),
+    endpoints: {
+      POST: 'POST /api/isabella — envía una percepción y recibe una decisión gobernada',
+      GET: 'GET /api/isabella — información de la capa cognitiva',
+    },
+  });
 }

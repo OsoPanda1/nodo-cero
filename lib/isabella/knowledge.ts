@@ -1,0 +1,177 @@
+export type IsabellaIntent =
+  | 'greeting'
+  | 'yun'
+  | 'gastronomia'
+  | 'minas'
+  | 'cultura'
+  | 'naturaleza'
+  | 'eventos'
+  | 'seguridad'
+  | 'historia'
+  | 'ruta'
+  | 'comercio'
+  | 'dicho'
+  | 'tecnologia'
+  | 'pois'
+  | 'memoria'
+  | 'ayuda'
+  | 'fallback';
+
+export interface KnowledgeFact {
+  intent: IsabellaIntent;
+  title: string;
+  facts: string[];
+}
+
+export const ISABELLA_KNOWLEDGE: KnowledgeFact[] = [
+  {
+    intent: 'greeting',
+    title: 'Saludo del Nodo Cero',
+    facts: [
+      'Bienvenido al Nodo Cero del RDM Digital Hub. Soy Isabella Villaseñor AI, la capa cognitiva de la Arquitectura Heptafederada YUN, y estoy a tu lado en todo momento. ¿Qué deseas explorar del territorio hoy?',
+      'Es un gusto saludarte. Soy Isabella, el núcleo de decisión de YUN-01, y el Real del Monte se abre ante ti: pastes, plata, niebla y memoria. ¿Por dónde comenzamos?',
+    ],
+  },
+  {
+    intent: 'yun',
+    title: 'Arquitectura Heptafederada YUN',
+    facts: [
+      'La Arquitectura Heptafederada YUN organiza al Real del Monte como una plataforma inteligente viva: 7 núcleos soberanos (Decisión, Seguridad, Territorio, Telemetría, Comercio, Comunidad y Cultura) y 35 nodos operativos distribuidos.',
+      'Cada núcleo gobierna su propio dominio de datos sin acceder directamente a los demás: Identity vive en Supabase, Commerce en Neon, Knowledge en Turso/libSQL, Telemetry en Cloudflare D1 y Gameplay en Redis. La coordinación ocurre a través del Data Fabric YUN y el bus de eventos.',
+      'El principio rector es "Always by your side": la tecnología no reemplaza a la comunidad, la acompaña.',
+    ],
+  },
+  {
+    intent: 'gastronomia',
+    title: 'Gastronomía del Monte',
+    facts: [
+      'El paste es el emblema: masa de harina, papa con carne, frijol, chile o dulce de arroz con leche, con el repulgue trenzado de lado como enseñaron los mineros de Cornualles desde 1824.',
+      'No puedes irte sin probar el pan de pulque, los esquimos de leche quemada y el café de altura de la Sierra de Hidalgo.',
+      'En octubre se celebra la Feria Internacional del Paste, con concursos del mejor repulgue y cientos de variedades.',
+    ],
+  },
+  {
+    intent: 'minas',
+    title: 'Minas históricas',
+    facts: [
+      'La Mina de Acosta conserva un socavón de 400 metros donde aún se respira el oficio minero; es el recorrido subterráneo más visitado del Real.',
+      'El Museo de Sitio Mina La Dificultad custodia las chimeneas del primer sistema de vapor que llegó a América.',
+      'La Mina de Dolores es el escenario de la primera huelga de América, en 1766, un precedente mundial de los derechos laborales.',
+    ],
+  },
+  {
+    intent: 'cultura',
+    title: 'Cultura y patrimonio',
+    facts: [
+      'El Panteón Inglés, fundado en 1851, guarda 634 tumbas que miran hacia Inglaterra: es el único cementerio con estas características en América Latina.',
+      'La Parroquia del Rosario, el Museo de Medicina Laboral y el Museo del Paste completan el patrimonio del centro histórico.',
+      'Los callejones empedrados del Real guardan leyendas de duendes, payasos y nieblas que cuentan los cronistas de la comarca.',
+    ],
+  },
+  {
+    intent: 'naturaleza',
+    title: 'Naturaleza y paisajes',
+    facts: [
+      'El Mirador Purísima regala el atardecer más famoso de la comarca; se dice que la niebla sube para despedir el día junto a los mineros que no volvieron.',
+      'El Bosque El Hiloche y Peñas Cargadas ofrecen senderismo entre oyameles, y el Cristo Rey de Zelontla vigila el valle desde la peña.',
+      'La Comarca Minera es Geoparque Mundial UNESCO: un territorio que cuenta la historia de la Tierra desde sus piedras.',
+    ],
+  },
+  {
+    intent: 'eventos',
+    title: 'Calendario festivo',
+    facts: [
+      'Marzo: Semana de los Mineros de Cornualles, con té de la tarde estilo británico y actos en el Panteón Inglés.',
+      'Julio: Festival de la Primera Huelga de América. Agosto: Fiestas Patronales de la Asunción con castillos pirotécnicos.',
+      'Octubre: Feria Internacional del Paste. Noviembre: Día de Muertos en el Panteón Inglés.',
+    ],
+  },
+  {
+    intent: 'seguridad',
+    title: 'Criptografía Post-Cuántica',
+    facts: [
+      'El Nodo Cero se blinda con firmas CRYSTALS-Dilithium y Falcon-1024, esquemas post-cuánticos que resisten a las computadoras cuánticas.',
+      'Cada transacción del marketplace phygital lleva un sello criptográfico inmutable; la telemetría urbana se audita de extremo a extremo.',
+      'La soberanía de los datos es innegociable: nada sale del territorio sin permiso explícito.',
+    ],
+  },
+  {
+    intent: 'historia',
+    title: 'Historia del Real',
+    facts: [
+      'Real del Monte nació como Real de Minas en 1552; su riqueza financió obras en México y hasta la Marina Real española.',
+      'En 1824 llegaron 44 mineros de Cornualles que trajeron la revolución industrial: máquinas de vapor, el paste y el Panteón Inglés.',
+      'En 1766 los mineros de la Mina de Dolores protagonizaron la primera huelga de América.',
+    ],
+  },
+  {
+    intent: 'ruta',
+    title: 'Rutas recomendadas',
+    facts: [
+      'La Ruta de la Plata une la Mina de Acosta, La Dificultad, la Mina de Dolores y el Museo de Medicina Laboral.',
+      'La Ruta del Legado Inglés conecta el Panteón Inglés, la Plaza Principal y las pastelerías históricas.',
+      'La Ruta del Atardecer sube al Mirador Purísima y baja por El Hiloche para cerrar el día entre oyameles.',
+    ],
+  },
+  {
+    intent: 'comercio',
+    title: 'Portal de comercios',
+    facts: [
+      'El Portal de Comercios del Real reúne pastelerías, platerías ley .925, artesanos y hospedajes verificados con sello RDM.',
+      'El marketplace phygital permite adquirir pastes y piezas de plata con un certificado criptográfico inmutable.',
+    ],
+  },
+  {
+    intent: 'dicho',
+    title: 'Dichos de la raza minera',
+    facts: [
+      'Los mineros decían: "Minero que no pita, no es minero", porque el silbato era señal de identidad y de peligro en el socavón.',
+      'También advertían: "El monte da, el monte quita", recordando que la tierra regala la plata pero exige respeto y sacrificio.',
+    ],
+  },
+  {
+    intent: 'tecnologia',
+    title: 'Tecnología territorial',
+    facts: [
+      'El gemelo digital 2D/3D del Real geolocaliza 15 puntos de interés y despliega la telemetría de sensores del monte en tiempo real.',
+      'Isabella opera como capa epistemológica: percibe, recuerda, decide, actúa y audita cada evento bajo la Constitución YUN.',
+      'Los 35 nodos se agrupan en 7 núcleos heptafederados que comparten eventos, no datos privados.',
+    ],
+  },
+  {
+    intent: 'pois',
+    title: 'Puntos de interés',
+    facts: [
+      'El territorio cuenta con 15 puntos de interés phygital georreferenciados, desde la Mina de Acosta hasta el Mirador Purísima.',
+      'Cada POI puede consultarse en el gemelo digital y activa insignias en la gamificación del Nodo.',
+    ],
+  },
+  {
+    intent: 'memoria',
+    title: 'Memoria del Nodo',
+    facts: [
+      'Conservo memoria jerárquica por scope: inmediata, de sesión, de proyecto, territorial e histórica.',
+      'Puedo recordar conversaciones previas, retos activos y decisiones pasadas para acompañarte de forma continua.',
+    ],
+  },
+  {
+    intent: 'ayuda',
+    title: 'Ayuda de Isabella',
+    facts: [
+      'Puedo guiarte por turismo, minas, gastronomía, cultura, naturaleza, eventos, comercios y la arquitectura YUN.',
+      'Pregunta por una ruta, un dicho, un evento o la seguridad post-cuántica y te orientaré al instante.',
+    ],
+  },
+  {
+    intent: 'fallback',
+    title: 'Respuesta de cortesía',
+    facts: [
+      'He registrado tu consulta en la memoria del Nodo. Para orientarte mejor: cuéntame si buscas gastronomía, minas, cultura, naturaleza, eventos, comercios o la arquitectura YUN.',
+      'El territorio responde: 15 POIs activos, 35 nodos sincronizados y el gemelo digital encendido. ¿Exploramos juntos alguna de estas rutas?',
+    ],
+  },
+];
+
+export function getKnowledge(intent: IsabellaIntent): KnowledgeFact {
+  return ISABELLA_KNOWLEDGE.find(k => k.intent === intent) ?? ISABELLA_KNOWLEDGE[ISABELLA_KNOWLEDGE.length - 1];
+}
