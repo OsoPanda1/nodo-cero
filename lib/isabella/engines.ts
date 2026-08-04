@@ -9,6 +9,7 @@ import {
 import { ISABELLA_POLICIES } from './constitution';
 import { getKnowledge, IsabellaIntent } from './knowledge';
 import { addMemoryItem, getMemoryStats, recallMemory } from './memory';
+import { CanonicalIntent } from './intention-parser';
 import { clamp } from './utils';
 
 /* ------------------------------------------------------------------ */
@@ -307,7 +308,8 @@ export function SOPHIA_reason(
   perception: IsabellaPerception,
   orion: OrionOutput,
   recalled: IsabellaMemoryItem[],
-  territory: TopologySnapshot
+  territory: TopologySnapshot,
+  canonical?: CanonicalIntent
 ): SophiaOutput {
   const knowledge = getKnowledge(orion.intent);
   const opening = pick(knowledge.facts);
@@ -319,6 +321,11 @@ export function SOPHIA_reason(
     recalled.length > 0
       ? `Recuerdo de tu sesión: ${recalled.slice(0, 2).map(m => `"${m.content.slice(0, 80)}..."`).join(' · ')}`
       : 'Sigo construyendo la memoria de esta sesión para estar siempre a tu lado.';
+
+  const canonicalLine =
+    canonical && ['governance', 'constitution', 'ethics'].includes(canonical.domain)
+      ? `\n\nHe clasificado tu consulta en el dominio canónico «${canonical.domain}» de la ISA API (confianza ${Math.round(canonical.confidence * 100)}%). La evalúo conforme a la Constitución C.R.O.W.N. y al Runtime YUN.`
+      : '';
 
   const prompt = (perception.payload.text ?? '').trim();
   const userIntent = orion.intent !== 'fallback' ? ` (te he identificado el tema: ${orion.intent})` : '';
@@ -332,6 +339,7 @@ export function SOPHIA_reason(
     const hint = prompt ? `Sobre «${prompt.slice(0, 90)}»${userIntent}: ` : '';
     response = `${hint}${opening}\n\n${supportingFacts.slice(1).join(' ')}\n\n${territoryLine}\n\n${memoryLine}`;
   }
+  response += canonicalLine;
 
   const suggestedTools: string[] = [];
   if (orion.intent === 'eventos') suggestedTools.push('get_upcoming_events');

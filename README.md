@@ -76,10 +76,13 @@ Panel con gráficas **Recharts** (aforo turístico, tráfico vehicular, humedad 
 Explorador de bloques Ledger, rotación de llaves simulada, medidores de blindaje y tarjetas de los estándares NIST.
 
 ### 7. Isabella Villaseñor AI
-Chat con **Google Gemini 2.5 Flash** (con fallback a modo simulación local seguro), presets de consulta rápida y conocimiento profundo del territorio: historia, gastronomía, rutas y eventos.
+Chat con **Google Gemini 2.5 Flash** (con fallback a modo simulación local seguro), presets de consulta rápida y conocimiento profundo del territorio: historia, gastronomía, rutas y eventos. Opera como **núcleo cognitivo gobernado** (`lib/isabella/`): los motores **ORION** (percepción), **SOPHIA** (razonamiento), **ARGUS** (riesgo), **LUMEN** (evaluador constitucional), **KERNEL** (identidad), **TOPOLOGY** (territorio) y **MNEMOS** (memoria jerárquica) ejecutan el ciclo *Perceive → Remember → Decide → Act → Audit* bajo la **Constitución YUN**, con policy gate, audit tracer y bus de eventos — todo consumible vía la API `/api/isabella`.
 
 ### 8. Explorador de Nodos YUN
 Los **35 nodos** organizados por núcleo, con búsqueda, vista de detalle con métricas en vivo, medidores de señal, prueba de endpoint y consulta directa a Isabella.
+
+### 9. Zombies RDM Invasion (juego geolocalizado)
+Módulo de gamificación tipo *Pokémon GO* sobre el gemelo digital del territorio: exploración GPS con **spawns de zombies** en los 15 POIs reales (minas, socavones, Panteón Inglés, miradores), **combate por turnos** con artefactos del guardián (Farol de Mina, Pico Encantado, Talismán de Plata, Cartas de Memoria Histórica de 1766), **captura con Sello RDM**, bestiario, inventario, misiones y tienda de premios con puntos canjeables. El mapa reutiliza **Leaflet + CARTO dark**, la dificultad y los multiplicadores de puntos reaccionan a la hora del día, la niebla, los meses de evento y las zonas de mina, e **Isabella** aporta narrativa contextual de cada lugar. Los sprites se renderizan como SVG procedural animado y aceptan videos MP4 con fondo transparente desde `assets/.aistudio/video-animacion/`.
 
 ---
 
@@ -136,11 +139,18 @@ Cliente (React SPA)
 vvvvvvv-main/
 ├── app/
 │   ├── api/isabella/route.ts       # API de Isabella AI (Gemini + fallback)
+│   ├── api/isabella/chat/          #   Pipeline completo ISA (chat)
+│   ├── api/isabella/isa/reason/    #   Razonamiento estructurado (Answer, Sources, Trace)
+│   ├── api/isabella/crypto/        #   Mexa API: sign (operador) + verify (público)
 │   ├── globals.css                 # Tailwind + utilidades glass/glow/animaciones
 │   ├── layout.tsx                  # Metadata SEO completa, lang="es"
-│   └── page.tsx                    # SPA: todas las vistas del Hub
+│   └── page.tsx                    # SPA: todas las vistas del Hub (incl. zombies)
 ├── components/
 │   ├── 3d/CrystalHero3D.tsx        # Hero WebGL con cristal y trailer modal
+│   ├── gamification/               # Zombies RDM Invasion
+│   │   ├── ZombieSprite.tsx        #   Sprite video/imagen/SVG procedural animado
+│   │   ├── ZombieCombat.tsx        #   Combate por turnos + Sello RDM
+│   │   └── ZombiesInvasionSection.tsx  # Mapa, bestiario, inventario, misiones, premios
 │   ├── isabella/IsabellaChat.tsx   # Chat con presets y contexto territorial
 │   ├── layout/YUNLayout.tsx        # Shell: navbar + sidebar de 7 núcleos
 │   ├── map/DigitalTwinMap.tsx      # Mapa Leaflet dark, 15 POIs, rutas
@@ -149,10 +159,18 @@ vvvvvvv-main/
 │   ├── security/PostQuantumSecurity.tsx  # Ledger PQC + blindaje
 │   ├── telemetry/TelemetryDashboard.tsx  # Recharts + grid de sensores
 │   └── tourism/TourismSection.tsx  # Eventos, rutas, dichos, timeline
-├── lib/data/
-│   ├── rdm-data.ts                 # POIs, YUN_CORES, RDM_NODES_35
-│   └── rdm-tourism.ts              # Eventos, rutas, dichos, historia, comercios
+├── lib/
+│   ├── data/
+│   │   ├── rdm-data.ts             # POIs, YUN_CORES, RDM_NODES_35
+│   │   ├── rdm-tourism.ts          # Eventos, rutas, dichos, historia, comercios
+│   │   └── zombies-data.ts         # Arquetipos, motores de juego, perfil, premios, misiones
+│   └── isabella/                   # Núcleo cognitivo gobernado C.R.O.W.N. (ORION…MNEMOS,
+│                                    #   prompt-guard 9 categorías, intention-parser 8 dominios,
+│                                    #   mexa-crypto MSR, PRA Score Engine, constitución, audit, http)
+├── RFC-0001.md                     # Manifiesto C.R.O.W.N. y modelo de licenciamiento híbrido
+├── assets/.aistudio/video-animacion/  # Videos MP4 3-5 s con fondo transparente (zombies)
 ├── public/images/                  # 37 fotografías reales de Real del Monte
+│   └── zombies/                    # Sprites estáticos de los arquetipos (PNG)
 ├── .env.example
 ├── next.config.ts
 └── vercel.json
@@ -168,6 +186,9 @@ vvvvvvv-main/
 4. **Isabella con conocimiento territorial** — System prompt ampliado con rutas, eventos, historia y recomendaciones; presets de consulta turística; contexto del territorio (15 POIs, 35 nodos, geosite UNESCO).
 5. **Visualizaciones sofisticadas** — Franja de cifras en el hero, medidores de blindaje cuántico con *shimmer*, retícula cuántica SVG animada, auroras de gradiente en nodos, grid de salud de sensores IoT.
 6. **SEO y metadatos** — `lang="es"`, título/template, descripción con keywords, Open Graph (es_MX), Twitter Card, canonical, `themeColor`, robots y `metadataBase`.
+7. **Núcleo cognitivo gobernado de Isabella** — Módulo `lib/isabella/` con los 7 motores cognitivos (ORION, SOPHIA, ARGUS, LUMEN, KERNEL, TOPOLOGY, MNEMOS), la **Constitución YUN** como policy gate, audit tracer, memoria jerárquica y bus de eventos; la API `/api/isabella` los consume y el chat refleja el ciclo cognitivo en vivo.
+8. **Zombies RDM Invasion** — Juego geolocalizado completo integrado al Hub: capa de datos y motores en `lib/data/zombies-data.ts` (arquetipos, spawns ponderados por rareza con jitter GPS, contexto horario/día/noche/niebla, multiplicadores de zona y evento, sinergias de artefactos, cálculo de puntos, nivel del guardián, persistencia en `localStorage`); sprites con `video`/`img`/**SVG procedural animado**; combate por turnos con cooldowns, esquiva, captura por umbral y log de encuentro; mapa Leaflet con marcadores animados de zombies y player marker geolocalizado; bestiario, inventario, misiones y tienda de premios canjeables con puntos; e integración con Isabella para lore contextual y publicación de eventos de dominio `gameplay` en el bus YUN.
+9. **Capa constitucional C.R.O.W.N. y ISA API v4.0 Enterprise** — El núcleo cognitivo de Isabella ahora opera bajo el manifiesto `RFC-0001.md` y el marco **C.R.O.W.N. (Constitution of the Reality Ontological Web Native)**: **Prompt Guard** de 9 categorías de amenaza (jailbreak, sexualización con triple bloqueo, credenciales, PII, ilícitos, violencia, odio, economía, electoral) con severidad `none → critical`; **Intention Parser** de 8 dominios canónicos (submission, library, constitution, governance, ecosystem, education, skills, ethics) con 14 patrones ponderados; **Structured Reasoning** que expone `Answer + Sources + Trace`; **PRA Score Engine** (Olvido Activo bajo FAIR & POSI) integrado a MNEMOS; y la **Mexa API** con firmas MSR (`/api/isabella/crypto/sign` para operador, `/api/isabella/crypto/verify` público). El pipeline completo se expone en `/api/isabella`, `/api/isabella/chat` y `/api/isabella/isa/reason`, todo registrado en el audit tracer y el bus de eventos YUN con `entity_id` y `severity`.
 
 ---
 
@@ -202,7 +223,9 @@ vvvvvvv-main/
 | SEO / Open Graph / metadatos | ✅ Completos |
 | Config de despliegue (`vercel.json`) | ✅ Lista |
 | API de Isabella (Gemini) | ✅ Con fallback simulado seguro |
-| **Pendiente** | Setear `GEMINI_API_KEY` y `APP_URL` en Vercel Secrets · Desplegar en Vercel · DNS/custom domain · (Opcional) Supabase para persistencia real |
+| Capa C.R.O.W.N. + ISA API (guard, intención, reasoning, Mexa, PRA) | ✅ `/chat` · `/isa/reason` · `/crypto/sign` · `/crypto/verify` |
+| Zombies RDM Invasion (mapa, combate, bestiario, misiones, premios) | ✅ Integrado al Hub y al bus YUN (`gameplay`) |
+| **Pendiente** | Setear `GEMINI_API_KEY`, `APP_URL` y `MEXA_OPERATOR_KEY` en Vercel Secrets · Desplegar en Vercel · DNS/custom domain · (Opcional) Supabase para persistencia real |
 
 El proyecto está **listo para producción**: la SPA compila como estática, la única ruta dinámica es `/api/isabella` (Edge/serverless, con degradación elegante si no hay API key).
 
@@ -216,6 +239,7 @@ El proyecto está **listo para producción**: la SPA compila como estática, la 
    - `GEMINI_API_KEY` (clave de Google AI Studio)
    - `APP_URL` (URL del deployment)
    - `NEXT_PUBLIC_SITE_URL` (URL pública para SEO)
+   - `MEXA_OPERATOR_KEY` (secreto del operador para `/api/isabella/crypto/sign`)
 4. Deploy. Verifica que `metadataBase` use la URL de producción.
 
 ---
@@ -233,6 +257,9 @@ APP_URL=https://rdm-digital-hub.vercel.app
 
 # URL pública para SEO / Open Graph
 NEXT_PUBLIC_SITE_URL=https://rdm-digital-hub.vercel.app
+
+# Secreto del operador para la Mexa API (firmas MSR) — /api/isabella/crypto/sign
+MEXA_OPERATOR_KEY=clave-soberana-del-nodo-cero
 ```
 
 > Sin `GEMINI_API_KEY`, Isabella opera en **modo simulación local seguro** (no falla, responde con datos del territorio).

@@ -54,6 +54,7 @@ export interface IsabellaDecision {
   engines: EngineName[];
   toolCalls: IsabellaToolCall[];
   details: Record<string, unknown>;
+  sources?: string[];
   createdAt: string;
 }
 
@@ -101,6 +102,8 @@ export interface YunEvent {
   federation_id: string;
   trace_id: string;
   source: string;
+  entity_id?: string;
+  severity?: string;
   payload: Record<string, unknown>;
   created_at: string;
 }

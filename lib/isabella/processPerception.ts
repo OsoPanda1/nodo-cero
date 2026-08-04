@@ -15,16 +15,20 @@ import {
   SOPHIA_reason,
   TOPOLOGY_snapshot,
 } from './engines';
+import { guardPrompt } from './prompt-guard';
+import { parseIntention } from './intention-parser';
+import { praPrune } from './pra';
 import { policyGate } from './policy-gate';
 import { executeTool } from './tools';
 import { nowIso, uuid } from './utils';
 
 /**
- * Flujo canónico de Isabella: Perceive → Remember → Decide → Act → Audit.
+ * Flujo canónico de Isabella: Perceive → Remember → Decide → Act → Audit,
+ * gobernado por el marco constitucional C.R.O.W.N. y el Runtime YUN.
  *
- * Capa de aplicación del Nodo Cero: cada percepción se audita, se gobierna
- * por el policy gate (Constitución YUN), se razona con los motores cognitivos
- * y se registra trazabilidad completa en el bus de eventos YUN.
+ * Pipeline de la ISA API: Prompt Guard (9 categorías) → Intention Parser
+ * (8 dominios) → Structured Reasoning (Answer + Sources + Trace) → registro
+ * inmutable en el bus de eventos YUN (con firma MSR opcional en la capa HTTP).
  */
 export async function processPerception(perception: IsabellaPerception): Promise<IsabellaProcessResult> {
   const traceId = uuid();
@@ -62,20 +66,100 @@ export async function processPerception(perception: IsabellaPerception): Promise
 
   engines.push('MNEMOS');
   const memory = MNEMOS_cycle(perception, orion);
+  const pra = praPrune();
+
+  /* 3. C.R.O.W.N. — Prompt Guard (primera línea) + Intention Parser */
+  const guard = guardPrompt(perception.payload.text ?? '');
+  const canonical = parseIntention(perception.payload.text ?? '');
 
   const baseDetails: Record<string, unknown> = {
     intent: orion.intent,
+    canonicalIntent: canonical.domain,
+    canonicalConfidence: canonical.confidence,
+    guardSeverity: guard.severity,
+    guardCategories: guard.matches.map(m => m.categoryId),
     entities: orion.entities,
     sentiment: orion.sentiment,
     riskScore: argus.score,
     appliedPolicies: gate.appliedPolicies,
-    recalledMemories: memory.recalled.length,
+    pra: { engine: pra.engine, removed: pra.removed, remaining: pra.remaining },
     traceId,
   };
 
-  /* 3. DECIDE — gobernanza as code */
   let decision: IsabellaDecision;
 
+  /* 4. DECIDE — Prompt Guard bloqueante (severidad crítica) */
+  if (guard.blocked) {
+    const blockReasons = guard.reasons.join(' ');
+    const guardAudit = auditTrace('prompt_guard.blocked', {
+      severity: guard.severity,
+      categories: guard.matches.map(m => m.categoryId),
+    }, {
+      traceId,
+      actorId: perception.actorId,
+      sessionId: perception.sessionId,
+      federationId: perception.territory?.federationId,
+    });
+
+    const guardEvent = emitYunEvent({
+      eventType: 'isabella.prompt_guard.blocked',
+      domain: 'security',
+      federationId: perception.territory?.federationId,
+      traceId,
+      source: 'crown-prompt-guard',
+      entityId: perception.actorId,
+      severity: guard.severity,
+      payload: {
+        perceptionId: perception.id,
+        categories: guard.matches.map(m => m.categoryId),
+        severity: guard.severity,
+      },
+    });
+
+    decision = {
+      id: uuid(),
+      perceptionId: perception.id,
+      summary: `No puedo continuar con esa solicitud: la primera línea de la Constitución C.R.O.W.N. la bloqueó. ${blockReasons}`,
+      confidence: 0.99,
+      riskLevel: 'high',
+      policyStatus: 'denied',
+      engines,
+      toolCalls: [],
+      details: { ...baseDetails, blockReason: blockReasons, guardBlock: true },
+      createdAt: nowIso(),
+    };
+
+    const decisionAudit = auditTrace('decision.created', {
+      decisionId: decision.id,
+      policyStatus: decision.policyStatus,
+      confidence: decision.confidence,
+    }, {
+      traceId,
+      actorId: perception.actorId,
+      sessionId: perception.sessionId,
+      federationId: perception.territory?.federationId,
+    });
+
+    const processedAudit = auditTrace('perception.processed', {
+      policyStatus: 'denied',
+      source: 'prompt-guard',
+    }, {
+      traceId,
+      actorId: perception.actorId,
+      sessionId: perception.sessionId,
+    });
+
+    return {
+      traceId,
+      sessionId: perception.sessionId,
+      decision,
+      auditEvents: [receivedAudit, guardAudit, decisionAudit, processedAudit],
+      events: [guardEvent],
+      memoryItems: memory.stored,
+    };
+  }
+
+  /* 5. DECIDE — gobernanza constitucional (policy gate) */
   if (gate.status !== 'allowed') {
     const deniedSummary =
       gate.status === 'denied'
@@ -115,6 +199,8 @@ export async function processPerception(perception: IsabellaPerception): Promise
       federationId: perception.territory?.federationId,
       traceId,
       source: 'isabella-s-mind',
+      entityId: perception.actorId,
+      severity: gate.status === 'denied' ? 'high' : 'medium',
       payload: {
         decisionId: decision.id,
         perceptionId: perception.id,
@@ -139,9 +225,9 @@ export async function processPerception(perception: IsabellaPerception): Promise
     };
   }
 
-  /* 4. REASON + ACT — motores cognitivos y herramientas autorizadas */
+  /* 6. REASON + ACT — motores cognitivos y herramientas autorizadas */
   engines.push('SOPHIA');
-  const sophia = SOPHIA_reason(perception, orion, memory.recalled, territory);
+  const sophia = SOPHIA_reason(perception, orion, memory.recalled, territory, canonical);
 
   const toolCalls: IsabellaToolCall[] = [];
   for (const toolName of sophia.suggestedTools.slice(0, 3)) {
@@ -175,14 +261,16 @@ export async function processPerception(perception: IsabellaPerception): Promise
     policyStatus: 'allowed',
     engines,
     toolCalls,
+    sources: sophia.supportingFacts,
     details: {
       ...baseDetails,
       supportingFacts: sophia.supportingFacts,
+      canonicalPatterns: canonical.matchedPatterns,
     },
     createdAt: nowIso(),
   };
 
-  /* 5. AUDIT + EVENTOS — trazabilidad completa */
+  /* 7. AUDIT + EVENTOS — trazabilidad completa */
   const decisionAudit = auditTrace('decision.created', {
     decisionId: decision.id,
     policyStatus: decision.policyStatus,
@@ -201,10 +289,13 @@ export async function processPerception(perception: IsabellaPerception): Promise
     federationId: perception.territory?.federationId,
     traceId,
     source: 'isabella-s-mind',
+    entityId: perception.actorId,
+    severity: 'info',
     payload: {
       decisionId: decision.id,
       perceptionId: perception.id,
       intent: orion.intent,
+      canonicalIntent: canonical.domain,
       riskLevel: argus.level,
       confidence: decision.confidence,
       engines: engines.join(','),

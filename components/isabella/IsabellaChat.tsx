@@ -123,6 +123,20 @@ function TracePanel({ decision, traceId }: { decision?: IsabellaDecision; traceI
             </div>
           )}
 
+          {decision.sources && decision.sources.length > 0 && (
+            <div>
+              <div className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">Fuentes del territorio</div>
+              <div className="space-y-1">
+                {decision.sources.slice(0, 3).map((source, idx) => (
+                  <p key={idx} className="text-[10px] font-mono text-slate-300 flex items-start gap-1.5">
+                    <Fingerprint className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0" />
+                    {source}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="text-[9px] font-mono text-slate-500 flex items-center gap-1.5 pt-1 border-t border-white/5">
             <Fingerprint className="w-3 h-3 text-purple-400" />
             trace_id: {traceId ?? 'n/d'}

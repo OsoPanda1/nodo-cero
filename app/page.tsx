@@ -15,6 +15,7 @@ import GastronomySection from '@/components/gastronomy/GastronomySection';
 import BusinessPortal from '@/components/business/BusinessPortal';
 import MediaSection from '@/components/media/MediaSection';
 import GamificationSection from '@/components/gamification/GamificationSection';
+import ZombiesInvasionSection from '@/components/gamification/ZombiesInvasionSection';
 import LegendsSection from '@/components/legends/LegendsSection';
 import ForumSection from '@/components/forum/ForumSection';
 import HonorWallSection from '@/components/honor/HonorWallSection';
@@ -139,6 +140,13 @@ export default function RDMDigitalHubHome() {
       {activeView === 'gamification' && (
         <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
           <GamificationSection />
+        </div>
+      )}
+
+      {/* 11b. ZOMBIES RDM INVASION VIEW */}
+      {activeView === 'zombies' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <ZombiesInvasionSection onAskIsabella={handleOpenIsabellaWithPrompt} />
         </div>
       )}
 

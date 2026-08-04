@@ -6,7 +6,7 @@ import {
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
   ChevronRight, ChevronDown, Search, Menu, X, Radio, Sparkles, 
   Map, Database, Key, ShoppingBag, ArrowUpRight, Lock, Zap,
-  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users
+  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull
 } from 'lucide-react';
 
 interface YUNLayoutProps {
@@ -186,6 +186,7 @@ export default function YUNLayout({
                 { id: 'business', label: 'Portal de Comercios', icon: <Store className="w-4 h-4 text-amber-400" /> },
                 { id: 'media', label: 'Música y Podcast', icon: <Radio className="w-4 h-4 text-purple-400" /> },
                 { id: 'gamification', label: 'Gamificación del Nodo', icon: <Trophy className="w-4 h-4 text-amber-400" /> },
+                { id: 'zombies', label: 'Zombies RDM Invasion', icon: <Skull className="w-4 h-4 text-emerald-400" /> },
                 { id: 'legends', label: 'Mitos y Leyendas', icon: <Ghost className="w-4 h-4 text-purple-400" /> },
                 { id: 'forum', label: 'Foro RDM', icon: <MessagesSquare className="w-4 h-4 text-cyan-400" /> },
                 { id: 'honor', label: 'Muro de Honor', icon: <Award className="w-4 h-4 text-amber-400" /> },

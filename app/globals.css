@@ -172,3 +172,82 @@
   background: rgba(10, 16, 28, 0.92) !important;
 }
 
+/* ------------------------------------------------------------------ */
+/* Zombies RDM Invasion — marcadores del mapa del juego                */
+/* ------------------------------------------------------------------ */
+
+.zr-spawn {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+
+.zr-spawn-pulse {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px solid var(--zc, #f43f5e);
+  animation: zrPulse 1.6s ease-out infinite;
+}
+
+.zr-spawn-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 28%, #fff, var(--zc, #f43f5e));
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 14px var(--zc, #f43f5e);
+}
+
+@keyframes zrPulse {
+  0% { transform: scale(0.55); opacity: 0.9; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+.zr-player {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+
+.zr-player-ring {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 2px solid rgba(52, 211, 153, 0.6);
+  animation: zrPulse 2.2s ease-out infinite;
+}
+
+.zr-player-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #34d399;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+}
+
+.zr-popup {
+  padding: 0.25rem 0.1rem;
+}
+
+.zr-popup-title {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.zr-popup-sub {
+  font-size: 0.65rem;
+  color: rgba(148, 163, 184, 0.9);
+  font-family: ui-monospace, monospace;
+  margin-top: 0.15rem;
+}
+
+

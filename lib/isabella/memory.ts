@@ -101,3 +101,11 @@ export function clearSessionMemory(sessionId: string): number {
 export function getMemoryCount(): number {
   return readAll().length;
 }
+
+export function getAllMemoryItems(): IsabellaMemoryItem[] {
+  return readAll();
+}
+
+export function setAllMemoryItems(items: IsabellaMemoryItem[]): void {
+  writeAll(items);
+}

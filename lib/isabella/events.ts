@@ -31,6 +31,8 @@ export function emitYunEvent(input: {
   federationId?: string;
   traceId: string;
   source?: string;
+  entityId?: string;
+  severity?: string;
   payload: Record<string, unknown>;
 }): YunEvent {
   const event: YunEvent = {
@@ -40,6 +42,8 @@ export function emitYunEvent(input: {
     federation_id: input.federationId ?? DEFAULT_FEDERATION,
     trace_id: input.traceId,
     source: input.source ?? 'isabella-s-mind',
+    entity_id: input.entityId,
+    severity: input.severity ?? 'info',
     payload: input.payload,
     created_at: nowIso(),
   };
