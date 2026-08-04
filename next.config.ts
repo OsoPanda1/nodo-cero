@@ -8,22 +8,16 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Allow access to remote image placeholder.
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**', // This allows any path under the hostname
-      },
-    ],
+    // Images are served locally from /public/images (real photos of Real del Monte).
+    remotePatterns: [],
   },
+  // Standalone build keeps the deployment self-contained (Cloud Run / Docker compatible).
   output: 'standalone',
-  transpilePackages: ['motion'],
+  transpilePackages: ['motion', 'three', '@react-three/fiber'],
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
-    // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+    // File watching is disabled to prevent flickering during agent edits.
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = {
         ignored: /.*/,

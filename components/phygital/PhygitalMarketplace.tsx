@@ -24,7 +24,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'paste',
     price: 35,
     rating: 4.9,
-    image: 'https://picsum.photos/seed/paste-real/500/400',
+    image: '/images/gastronomia-1.jpg',
     badge: 'Receta Tradicional 1824',
     description: 'Paste artesanal horneado con el auténtico trenzado lateral de Cornualles.',
   },
@@ -35,7 +35,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'plata',
     price: 890,
     rating: 4.95,
-    image: 'https://picsum.photos/seed/plata-dije/500/400',
+    image: '/images/real-2.jpg',
     badge: 'Sello Cripto .925',
     description: 'Joyería forjada a mano con plata purificada de la comarca minera.',
   },
@@ -46,7 +46,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'tour',
     price: 120,
     rating: 4.88,
-    image: 'https://picsum.photos/seed/tour-acosta/500/400',
+    image: '/images/mina-acosta.jpg',
     badge: 'Pasaporte RDM Válido',
     description: 'Entrada completa con casco de minero, lámpara e historiador certificado.',
   },
@@ -57,7 +57,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'paste',
     price: 35,
     rating: 4.85,
-    image: 'https://picsum.photos/seed/paste-dulce/500/400',
+    image: '/images/gastronomia-4.jpg',
     badge: 'Insignia Dulce Monte',
     description: 'El postre tradicional de la cocina hidalguense.',
   },
@@ -68,7 +68,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'plata',
     price: 1450,
     rating: 4.92,
-    image: 'https://picsum.photos/seed/anillo-plata/500/400',
+    image: '/images/plaza-principal.jpg',
     badge: 'Certificado Inmutable',
     description: 'Diseño exclusivo inspirado en la arquitectura churrigueresca de la Parroquia.',
   },
@@ -79,7 +79,7 @@ const marketplaceItems: CommerceItem[] = [
     category: 'hotel',
     price: 1850,
     rating: 4.9,
-    image: 'https://picsum.photos/seed/hotel-casona/500/400',
+    image: '/images/centro.jpg',
     badge: 'Sello Confort Soberano',
     description: 'Casona del siglo XIX restaurada con chimenea de piedra y vista al bosque de oyameles.',
   },
@@ -155,6 +155,7 @@ export default function PhygitalMarketplace() {
             <div>
               {/* Product Image Banner */}
               <div className="relative h-48 w-full overflow-hidden bg-slate-950">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={item.image}
                   alt={item.name}

@@ -100,8 +100,8 @@ export default function DigitalTwinMap({ onSelectPOI }: DigitalTwinMapProps) {
           [20.1415, -98.6722], // Mina Acosta
           [20.1405, -98.6732], // Platería
           [20.1398, -98.6738], // Pastes Portal
-          [20.1392, -98.6742], // Parroquia
-          [20.1458, -98.6748], // Panteón Inglés
+          [20.1395, -98.6742], // Parroquia
+          [20.1397, -98.6769], // Panteón Inglés
         ];
 
         L.polyline(routePoints, {
