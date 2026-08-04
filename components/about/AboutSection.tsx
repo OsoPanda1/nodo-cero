@@ -39,43 +39,48 @@ export default function AboutSection() {
           <Network className="w-4 h-4" />
           Manifiesto del Nodo Cero
         </div>
+
         <p className="text-sm text-slate-200 leading-relaxed font-light">
           Somos una comunidad digital soberana que habita en las laderas de
-          Real del Monte, a 20.1398°N / 98.6738°W. Tejemos tecnología, patrimonio y
-          memoria para que el legado minero de la Comarca no se pierda en la niebla ni
-          se diluya en los servidores de las grandes plataformas.
+          Real del Monte, a 20.1398°N / 98.6738°W. Tejemos tecnología, patrimonio
+          y memoria para que el legado minero de la Comarca no se pierda en la niebla,
+          ni se diluya en los servidores de las grandes plataformas.
         </p>
+
         <p className="text-sm text-slate-200 leading-relaxed font-light">
-          Este nodo nace de un sueño, el cual se volvio una meta a cumplir,
-          el resultado llevo 23,200 horas de trabajo silencioso de un solo
-          arquitecto, que desea ver cumplidos sus sueños en su tierra natal. —{" "}
+          El Nodo Cero nace de un sueño que se convirtió en meta: más de{" "}
+          <span className="text-cyan-300 font-semibold">23 200 horas</span> de trabajo
+          silencioso de un solo arquitecto que decidió que su pueblo no sería un
+          dato más en la estadística de la publicidad digital. Ese arquitecto es{" "}
           <span className="text-cyan-300 font-semibold">
             Edwin Oswaldo Castillo Trejo (Anubis Villaseñor)
-          </span>{" "}
-          — que decidió que la historia de su pueblo no iba a depender de la
-          voluntad de ninguna big tech. Su dolor es simple y radical: ver cómo
-          comunidades enteras son reducidas a métricas de publicidad y perfiles
-          anónimos, mientras su identidad, sus muertos y sus fiestas son
-          convertidos en contenido desechable.
+          </span>, realmontense que transformó su dolor en infraestructura.
         </p>
+
         <p className="text-sm text-slate-200 leading-relaxed font-light">
-          TAMV Online Network no es una red social, es un{" "}
+          Su lucha es directa contra la lógica extractiva de las big tech: ver
+          cómo comunidades enteras son reducidas a métricas, mientras su identidad,
+          sus muertos y sus fiestas son convertidos en contenido desechable. TAMV Online
+          Network no es otra red social, es un{" "}
           <span className="text-amber-300 font-semibold">
             ecosistema antifrágil de soberanía digital
           </span>{" "}
-          diseñado desde Real del Monte para demostrar que en Latinoamérica
-          también se construyen infraestructuras de clase mundial sin pedir
-          permiso a Silicon Valley. Este Nodo Cero es la primera pieza de un
-          sistema operativo territorial que devuelve el control del dato, de la
-          voz y del mapa a quienes viven aquí. Durante casi 50 años se etiqueto
-          a LATAM como simples consumidores, se les olvido que en Latinoamerica,
-          existe un pais llamado Mexico, donde cada mexicano, nace  con la
-          nececidad y sentido de sobrevivencia y resiliencia en sus venas y 
-          eso señor es lo mismo que innovar. Recordemos que, La innovación nace
-          de la necesidad, se forja en el dolor y sobrevive como resiliencia. 
-          Entonces definamos para Silicon Vlley un punto: 
-          Innovar no es un lujo: es sobrevivir, resistir y convertir el dolor en futuro.
+          diseñado desde Real del Monte para demostrar que en Latinoamérica también
+          se construyen infraestructuras de clase mundial sin pedir permiso a Silicon Valley.
         </p>
+
+        <p className="text-sm text-slate-200 leading-relaxed font-light">
+          Durante décadas, LATAM fue etiquetada solo como mercado consumidor.
+          Desde este Nodo Cero recordamos que en México cada persona nace con
+          necesidad y supervivencia en la sangre, y que eso —{" "}
+          <span className="text-emerald-300 font-semibold">
+            sobrevivencia + resiliencia + necesidad + dolor
+          </span>{" "}
+          — es exactamente lo que llamamos innovación. La innovación nace de la
+          necesidad, se forja en el dolor y sobrevive como resiliencia. Innovar
+          no es un lujo: es sobrevivir, resistir y convertir el dolor en futuro.
+        </p>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
           {[
             ["7", "Federaciones YUN"],
@@ -93,6 +98,50 @@ export default function AboutSection() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Biografía de Edwin / Anubis */}
+      <section className="p-6 rounded-2xl glass-panel border border-white/15 bg-slate-950/70 space-y-4">
+        <h3 className="text-lg font-black text-white flex items-center gap-2 mb-2">
+          <Users className="w-5 h-5 text-cyan-400" />
+          Edwin Oswaldo Castillo Trejo · Anubis Villaseñor
+        </h3>
+
+        <p className="text-xs text-slate-400 font-mono">
+          Arquitecto de sistemas · CEO & Founder TAMV Online Network · Master Architect del RDM Digital Hub
+        </p>
+
+        <p className="text-sm text-slate-200 leading-relaxed font-light">
+          Edwin Oswaldo Castillo Trejo, conocido en la arquitectura digital como{" "}
+          <span className="text-cyan-300 font-semibold">Anubis Villaseñor</span>, es
+          un desarrollador independiente y arquitecto de futuro nacido en Real del Monte,
+          Hidalgo. Desde un pueblo minero decidió levantar el primer ecosistema inmersivo
+          y sensorial en 4D orquestado por inteligencia artificial, situando a TAMV MD‑X4
+          como referencia pionera de la Web 4.0 y de la soberanía tecnológica latinoamericana.
+        </p>
+
+        <p className="text-sm text-slate-200 leading-relaxed font-light">
+          Su trayectoria cruza varias fronteras: fundador de{" "}
+          <span className="text-amber-300 font-semibold">TAMV Online Network</span>,
+          creador de ISABELLA AI y arquitecto de la{" "}
+          <span className="text-emerald-300 font-semibold">
+            infraestructura civilizatoria federada
+          </span>{" "}
+          que da origen al RDM Digital Hub como Nodo Cero. En ciberseguridad y defensa
+          digital adopta el alias Anubis, impulsa ALIANZAS LATAM y consolida redes
+          comunitarias orientadas a proteger poblaciones vulnerables frente a abusos
+          tecnológicos y económicos. [web:18][web:35][web:38]
+        </p>
+
+        <p className="text-sm text-slate-200 leading-relaxed font-light">
+          Su trabajo ha sido descrito como el intento de convertir un pueblo
+          en sistema operativo civilizatorio: una plataforma donde la inteligencia
+          artificial, la economía simbólica, los protocolos de seguridad híbridos
+          y la memoria histórica conviven como infraestructura crítica, y no como
+          productos desechables. Para Edwin, cada línea de código escrita en TAMV
+          es una forma de decir que Real del Monte tiene derecho a diseñar su propio
+          futuro y a ocupar un lugar en la cartografía tecnológica del mundo. [web:13][web:21][web:37]
+        </p>
       </section>
 
       {/* Valores */}
