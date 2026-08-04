@@ -9,6 +9,7 @@ import TelemetryDashboard from '@/components/telemetry/TelemetryDashboard';
 import PhygitalMarketplace from '@/components/phygital/PhygitalMarketplace';
 import PostQuantumSecurity from '@/components/security/PostQuantumSecurity';
 import NodeDetailView from '@/components/nodes/NodeDetailView';
+import TourismSection from '@/components/tourism/TourismSection';
 import { YUN_CORES, RDM_NODES_35, YUNNode, RDM_POIS } from '@/lib/data/rdm-data';
 import { 
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
@@ -68,28 +69,35 @@ export default function RDMDigitalHubHome() {
         </div>
       )}
 
-      {/* 3. MARKETPLACE VIEW */}
+      {/* 3. TOURISM VIEW */}
+      {activeView === 'tourism' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <TourismSection />
+        </div>
+      )}
+
+      {/* 4. MARKETPLACE VIEW */}
       {activeView === 'marketplace' && (
         <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
           <PhygitalMarketplace />
         </div>
       )}
 
-      {/* 4. TELEMETRY VIEW */}
+      {/* 5. TELEMETRY VIEW */}
       {activeView === 'telemetry' && (
         <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
           <TelemetryDashboard />
         </div>
       )}
 
-      {/* 5. SECURITY VIEW */}
+      {/* 6. SECURITY VIEW */}
       {activeView === 'security' && (
         <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
           <PostQuantumSecurity />
         </div>
       )}
 
-      {/* 6. MAIN HOME VIEW */}
+      {/* 7. MAIN HOME VIEW */}
       {activeView === 'home' && (
         <div className="space-y-16 pb-20">
           
@@ -101,6 +109,29 @@ export default function RDMDigitalHubHome() {
               if (found) handleSelectNode(found);
             }}
           />
+
+          {/* Stats Band: RDM in Numbers */}
+          <section className="max-w-7xl mx-auto px-6 -mt-10 relative z-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { value: '35', label: 'Nodos YUN Soberanos', sub: '7 Núcleos Heptafederados', color: 'text-cyan-400 border-cyan-500/30' },
+                { value: '15', label: 'Puntos de Interés Phygital', sub: 'Minas, templos y miradores', color: 'text-amber-400 border-amber-500/30' },
+                { value: '500', label: 'Años de Historia', sub: 'De la Real de Minas a 2026', color: 'text-rose-400 border-rose-500/30' },
+                { value: '4.9', label: 'Rating Turístico', sub: 'Pueblo Mágico certificado', color: 'text-emerald-400 border-emerald-500/30' },
+              ].map((stat, idx) => (
+                <div
+                  key={idx}
+                  className={`p-5 rounded-2xl glass-panel border ${stat.color} text-center shadow-[0_0_30px_rgba(6,182,212,0.1)]`}
+                >
+                  <div className={`text-3xl sm:text-4xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent`}>
+                    {stat.value}
+                  </div>
+                  <div className="text-xs font-mono font-bold text-white mt-1">{stat.label}</div>
+                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">{stat.sub}</div>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* Section: The 7 Cores of Heptafederated YUN Architecture */}
           <section className="max-w-7xl mx-auto px-6 space-y-8">
@@ -159,6 +190,30 @@ export default function RDMDigitalHubHome() {
                 );
               })}
             </div>
+          </section>
+
+          {/* Section: Tourism & Events */}
+          <section className="max-w-7xl mx-auto px-6 space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-black text-white">
+                  Turismo del Real: Eventos, Rutas y Tradiciones
+                </h3>
+                <p className="text-xs text-slate-400 font-mono">
+                  Feria del Paste, Semana Cornish, rutas mineras y los dichos que cuentan el alma del pueblo
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveView('tourism')}
+                className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-mono font-bold transition-all flex items-center gap-2"
+              >
+                <span>Explorar Turismo</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <TourismSection />
           </section>
 
           {/* Section: Interactive Digital Twin Preview */}

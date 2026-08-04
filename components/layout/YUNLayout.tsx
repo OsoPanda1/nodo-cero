@@ -175,6 +175,7 @@ export default function YUNLayout({
             <div className="space-y-1">
               {[
                 { id: 'home', label: 'Inicio / Trailer AAA', icon: <Radio className="w-4 h-4 text-cyan-400" /> },
+                { id: 'tourism', label: 'Turismo y Eventos', icon: <Map className="w-4 h-4 text-rose-400" /> },
                 { id: 'map', label: 'Gemelo Digital 2D/3D', icon: <Map className="w-4 h-4 text-amber-400" /> },
                 { id: 'marketplace', label: 'Marketplace Pastes & Plata', icon: <ShoppingBag className="w-4 h-4 text-rose-400" /> },
                 { id: 'telemetry', label: 'Telemetría y Sensores', icon: <Activity className="w-4 h-4 text-emerald-400" /> },
