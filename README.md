@@ -2,7 +2,7 @@
 
 **Sistema de Inteligencia Territorial Soberano para Real del Monte, Hidalgo, México.**
 
-Plataforma digital integral (Phygital) del **RDM Digital Hub — Nodo Cero**: una convergencia de gemelo digital 2D/3D, cartografía interactiva, economía de la plata y el paste, telemetría IoT, criptografía post-cuántica y la asistencia cognitiva de **Isabella Villaseñor AI**, todo sobre la **Arquitectura Heptafederada YUN** de 7 núcleos.
+Plataforma digital integral (Phygital) del **RDM Digital Hub — Nodo Cero**: convergencia de **Plataforma de Gemelo Territorial / Smart City** con gemelo digital, centro de operaciones urbano (IOC), gestión de activos y mantenimiento (EAM/APM), redes inteligentes de energía y agua, marketplace soberano, telemetría IoT, criptografía post-cuántica y la asistencia cognitiva de **Isabella Villaseñor AI**, todo sobre la **Arquitectura Heptafederada YUN** de 7 núcleos.
 
 > Real del Monte, conocido como **"Cuna de la Minería Mexicana"**, es Pueblo Mágico de Hidalgo y parte del **Geoparque Mundial UNESCO de la Comarca Minera** (2017).
 
@@ -12,28 +12,37 @@ Plataforma digital integral (Phygital) del **RDM Digital Hub — Nodo Cero**: un
 
 1. [¿Qué es?](#qué-es)
 2. [¿Qué hace?](#qué-hace)
-3. [¿Cómo lo hace?](#cómo-lo-hace)
-4. [Arquitectura Heptafederada YUN](#arquitectura-heptafederada-yun)
-5. [Stack Tecnológico](#stack-tecnológico)
-6. [Estructura del Proyecto](#estructura-del-proyecto)
-7. [Implementaciones](#implementaciones)
-8. [Mejoras Realizadas](#mejoras-realizadas)
-9. [Avance Real hacia Producción](#avance-real-hacia-producción)
-10. [Despliegue en Vercel](#despliegue-en-vercel)
-11. [Variables de Entorno](#variables-de-entorno)
-12. [Scripts](#scripts)
-13. [Licenciamiento](#licenciamiento)
+3. [Plataforma de Gemelo Territorial](#plataforma-de-gemelo-territorial)
+4. [Dominios de la Plataforma](#dominios-de-la-plataforma)
+5. [¿Cómo lo hace?](#cómo-lo-hace)
+6. [Arquitectura Heptafederada YUN](#arquitectura-heptafederada-yun)
+7. [Stack Tecnológico](#stack-tecnológico)
+8. [Estructura del Proyecto](#estructura-del-proyecto)
+9. [Implementaciones](#implementaciones)
+10. [Mejoras Realizadas](#mejoras-realizadas)
+11. [Pruebas Automatizadas](#pruebas-automatizadas)
+12. [Base de Datos (Supabase/Postgres)](#base-de-datos-supabasepostgres)
+13. [Avance Real hacia Producción](#avance-real-hacia-producción)
+14. [Despliegue en Vercel](#despliegue-en-vercel)
+15. [Variables de Entorno](#variables-de-entorno)
+16. [Scripts](#scripts)
+17. [Licenciamiento](#licenciamiento)
 
 ---
 
 ## ¿Qué es?
 
-**RDM Digital Hub — Nodo Cero** es el **Sistema Operativo Territorial** (TOS, por sus siglas en inglés) de Real del Monte. Trata al pueblo como una *plataforma inteligente viva*: unifica su patrimonio histórico-minero, su vida cultural, su economía local (pastes y platería) y su geografía con tecnología de punta:
+**RDM Digital Hub — Nodo Cero** es el **Sistema Operativo Territorial** (TOS) de Real del Monte. Trata al pueblo como una *plataforma inteligente viva*: unifica su patrimonio histórico-minero, su vida cultural, su economía local (pastes y platería) y su geografía con tecnología de punta:
 
-- **Gemelo digital** del territorio y sus 15 puntos de interés principales.
+- **Gemelo digital territorial** con modelos DTDL, NGSI-LD, grafo de relaciones y simulación en tiempo real.
+- **Centro de Operaciones Urbano (IOC)**: incidentes, triage, playbooks de respuesta, movilidad, emergencias e infraestructura crítica.
+- **EAM/APM**: registro de activos, salud, modelo de falla, mantenimiento predictivo y órdenes de trabajo.
+- **Smart Grid y Agua**: balance de energía y agua, topología de red, alertas y resiliencia.
+- **Marketplace Soberano**: ofertas de datos, licencias y suscripción entre nodos federados.
 - **7 núcleos soberanos** (35 nodos operativos) de arquitectura descentralizada.
 - **Isabella Villaseñor AI**: asistente cognitivo del territorio basado en Google Gemini.
 - **Criptografía post-cuántica** (NIST): CRYSTALS-Dilithium-5, CRYSTALS-Kyber-1024 y Falcon-1024.
+- **Capa de confianza cero (Zero Trust)**: origen verificado, rate limiting, comparación en tiempo constante y políticas de gateway con *fail-closed*.
 
 Es el **Nodo Cero** de una red metropolitana más amplia: la **Heptafederación YUN** que conecta los municipios de la Comarca Minera (Real del Monte, Pachuca, Mineral del Chico, Huasca, Omitlán).
 
@@ -42,12 +51,12 @@ Es el **Nodo Cero** de una red metropolitana más amplia: la **Heptafederación 
 | Campo | Valor |
 |---|---|
 | **Nombre** | RDM Digital Hub — Nodo Cero |
-| **Alias** | Sistema de Inteligencia Territorial Soberano |
+| **Alias** | Sistema de Inteligencia Territorial Soberano / Plataforma de Gemelo Territorial |
 | **Ubicación** | Real del Monte, Hidalgo, México (20.1398° N, 98.6738° O, 2,710 m s. n. m.) |
 | **Autor** | Edwin Oswaldo Castillo Trejo (Anubis Villaseñor) |
 | **IA Asistente** | Isabella Villaseñor AI |
 | **Arquitectura** | Heptafederación YUN (7 núcleos) |
-| **Sector** | Turismo, gobernanza, patrimonio cultural, economía phygital |
+| **Sector** | Turismo, gobernanza, patrimonio cultural, economía phygital, smart city |
 
 ---
 
@@ -56,51 +65,129 @@ Es el **Nodo Cero** de una red metropolitana más amplia: la **Heptafederación 
 ### 1. Portal "Trailer AAA" e identidad visual
 Hero en **WebGL (Three.js)** con cristal holográfico central, 7 satélites orbitando (los 7 núcleos YUN), partículas flotantes y modal de trailer cinematográfico 4K simulado.
 
-### 2. Turismo y Eventos (nueva sección)
+### 2. Turismo y Eventos
 - **8 eventos/festivales** reales del calendario local (Feria del Paste en octubre, Semana de los Mineros de Cornualles en marzo, Fiestas de la Asunción en agosto, Festival de la Primera Huelga de América en julio, Día de Muertos en el Panteón Inglés, Trail de Peñas Cargadas, Calendas de Mayo, Navidad).
 - **5 rutas turísticas** con paradas georreferenciadas (Ruta de la Plata, Ruta del Legado Inglés, Ruta del Paste, Ruta de los Miradores, Ruta de la Fe).
 - **5 dichos populares** del pueblo con su significado y origen.
-- **Línea de tiempo histórica** de 1554 a 2026 (fundación, Conde de Regla, huelga de 1766, llegada cornish 1824, Panteón Inglés 1851, Geoparque UNESCO 2017).
+- **Línea de tiempo histórica** de 1554 a 2026.
 - **10 comercios** destacados (pasteadoras, platerías, cafés, panaderías, hospedajes).
 
-### 3. Gemelo Digital 2D/3D
-Mapa interactivo **Leaflet** con estética *dark matter* (CARTO), 15 POIs geolocalizados con iconografía por categoría, filtros, trazado de ruta minera phygital y panel de telemetría flotante.
+### 3. Gemelo Digital 2D/3D y Twins
+Mapa interactivo **Leaflet** con estética *dark matter* (CARTO), 15 POIs geolocalizados, y el dominio **Twins**: modelos DTDL (Building, EnergyGrid, WaterNetwork, Vehicle, PublicSpace), conversión NGSI-LD, grafo de relaciones, simulador de telemetría y consultas — todo consumible desde `app/twins` y `/api/twins/*`.
 
-### 4. Marketplace Phygital
-Comercio soberano simulado de pastes y platería ley .925, con carrito, precios en MXN, **sello QR de autenticidad** e insignias criptográficas.
+### 4. Ciudad IOC (Centro de Operaciones)
+Dominio `app/city`: **CityIOC** con KPIs en vivo, scorecard de ciudad ponderado (6 dimensiones, calificación A–F), incidentes con ranking/triage automático, playbooks de respuesta por dominio (Protección Civil, tráfico, bomberos, policía, energía, agua, salud), escalación de emergencias con lockdown, control de movilidad con índice de congestión, grid de salud de infraestructura, panel de mando de emergencias y **políticas RBAC** por rol (observer/operator/supervisor/admin) con SLAs y colas de triage.
 
-### 5. Telemetría y Sensores
-Panel con gráficas **Recharts** (aforo turístico, tráfico vehicular, humedad de la niebla) y **grid de salud de 12 sensores IoT** distribuidos en el territorio.
+### 5. EAM/APM (Activos y Mantenimiento)
+Dominio `app/assets`: registro de activos (transformadores, bombas, válvulas, vehículos, compresores, estructuras patrimoniales), motor de salud (`computeAssetHealth`), modelo de falla con probabilidad y `meanTimeToFailure`, mantenimiento predictivo con prioridades y fechas, órdenes de trabajo generadas automáticamente y **APM Score** global con 4 pilares (availability, reliability, maintainability, compliance) y calificación A–F.
 
-### 6. Criptografía Post-Cuántica
+### 6. Smart Grid y Agua
+Dominio `app/grid`: balance eléctrico (generación, carga, reserva, voltaje, frecuencia), balance hídrico (producción, demanda, nivel de almacenamiento, presión, calidad), topología de red multi-nodo (subestaciones, alimentadores, tanques, bombas, válvulas, medidores) con enlaces por dominio, alertas automáticas por umbral (sobrecarga, tensión baja, nivel/presión baja, calidad fuera de norma) y estado global de la red.
+
+### 7. Marketplace
+Dominio `app/marketplace`: catálogo de **modelos de datos y ofertas** entre nodos federados, motor de búsqueda, publicación, suscripción y **control de licencias** para intercambio de datos territoriales.
+
+### 8. Criptografía Post-Cuántica
 Explorador de bloques Ledger, rotación de llaves simulada, medidores de blindaje y tarjetas de los estándares NIST.
 
-### 7. Isabella Villaseñor AI
-Chat con **Google Gemini 2.5 Flash** (con fallback a modo simulación local seguro), presets de consulta rápida y conocimiento profundo del territorio: historia, gastronomía, rutas y eventos. Opera como **núcleo cognitivo gobernado** (`lib/isabella/`): los motores **ORION** (percepción), **SOPHIA** (razonamiento), **ARGUS** (riesgo), **LUMEN** (evaluador constitucional), **KERNEL** (identidad), **TOPOLOGY** (territorio) y **MNEMOS** (memoria jerárquica) ejecutan el ciclo *Perceive → Remember → Decide → Act → Audit* bajo la **Constitución YUN**, con policy gate, audit tracer y bus de eventos — todo consumible vía la API `/api/isabella`.
+### 9. Isabella Villaseñor AI
+Chat con **Google Gemini 2.5 Flash** (con fallback a modo simulación local seguro). Opera como **núcleo cognitivo gobernado** (`lib/isabella/`): los motores **ORION** (percepción), **SOPHIA** (razonamiento), **ARGUS** (riesgo), **LUMEN** (evaluador constitucional), **KERNEL** (identidad), **TOPOLOGY** (territorio) y **MNEMOS** (memoria jerárquica) ejecutan el ciclo *Perceive → Remember → Decide → Act → Audit* bajo la **Constitución YUN**, con policy gate, audit tracer y bus de eventos.
 
-### 8. Explorador de Nodos YUN
+### 10. Explorador de Nodos YUN
 Los **35 nodos** organizados por núcleo, con búsqueda, vista de detalle con métricas en vivo, medidores de señal, prueba de endpoint y consulta directa a Isabella.
 
-### 9. Zombies RDM Invasion (juego geolocalizado)
-Módulo de gamificación tipo *Pokémon GO* sobre el gemelo digital del territorio: exploración GPS con **spawns de zombies** en los 15 POIs reales (minas, socavones, Panteón Inglés, miradores), **combate por turnos** con artefactos del guardián (Farol de Mina, Pico Encantado, Talismán de Plata, Cartas de Memoria Histórica de 1766), **captura con Sello RDM**, bestiario, inventario, misiones y tienda de premios con puntos canjeables. El mapa reutiliza **Leaflet + CARTO dark**, la dificultad y los multiplicadores de puntos reaccionan a la hora del día, la niebla, los meses de evento y las zonas de mina, e **Isabella** aporta narrativa contextual de cada lugar. Los sprites se renderizan como SVG procedural animado y aceptan videos MP4 con fondo transparente desde `assets/.aistudio/video-animacion/`.
+### 11. Zombies RDM Invasion (juego geolocalizado)
+Gamificación tipo *Pokémon GO* sobre el gemelo digital: spawns de zombies en los 15 POIs reales, combate por turnos, captura con Sello RDM, bestiario, inventario, misiones y tienda de premios. Incluye capa **server-authoritative** de puntos con HMAC (`lib/gamification/*`, `/api/gamification/*`) para evitar trampas.
+
+### 12. CROWN Gateway y Dead Man Switch
+Pasarela federada de la flota de IA con políticas de acceso, registro de emergencias y **Dead Man Switch** (`lib/isabella/dead-man-switch.ts`): si el operador deja de reportarse, se activan protocolos de emergencia automáticos.
+
+---
+
+## Plataforma de Gemelo Territorial
+
+Desde la SPA (`app/page.tsx`) y la navegación (`components/layout/YUNLayout.tsx`) se integran **cinco dominios operativos** como vistas nativas, cada uno con motor (`lib/<dominio>/*`), API con trust layer (`app/api/<dominio>/*`), componentes reutilizables (`components/<dominio>/*`) y página (`app/<dominio>/page.tsx`):
+
+```
+Vista             Dominio            Ruta SPA       APIs
+twins             Gemelo Digital     activeView     /api/twins/{models,instances,graph,simulate,query}
+city              IOC Urbano         activeView     /api/city/{ioc,events,incidents,mobility,response,infrastructure,scorecard}
+eam               Activos/APM        activeView     /api/assets/{register,health,maintenance,failures,score}
+grid              Energía y Agua     activeView     /api/grid/{power,water,topology,balance,alerts}
+digital-marketplace  Marketplace     activeView     /api/marketplace/{models,offers,publish,subscribe,license}
+```
+
+Todos los datos provienen de **datos reales del territorio** (`lib/data/rdm-data.ts`): los **15 POIs** se convierten en gemelos, activos patrimoniales, nodos de red e incidentes de aforo, y los **35 nodos YUN** alimentan el grafo de gemelos de servicios (ver `lib/data/rdm-territorial.ts`).
+
+---
+
+## Dominios de la Plataforma
+
+### Twins (Gemelo Digital) — `lib/twins/` · `app/api/twins/` · `components/twins/` · `app/twins/`
+
+| Pieza | Descripción |
+|---|---|
+| `dtdl/*` | Modelos DTDL v3: Building, EnergyGrid, WaterNetwork, Vehicle, PublicSpace |
+| `ngsi/*` | Esquemas y convertidores NGSI-LD |
+| `twin-graph.ts` | Grafo de gemelos: nodos, aristas, adyacencia, vecinos, relacionados |
+| `twin-simulator.ts` | Simulación de telemetría y estados |
+| `twin-store.ts` | Registro en memoria con TTL, seed desde POIs y nodos YUN |
+| `twin-queries.ts` | Filtros por dominio/estado/modelo/texto, conteos |
+| UI | `TwinsDashboard`, `TwinGraphView`, `TwinModelEditor`, `TwinInspectorPanel`, `TwinTelemetryStrip`, `TwinRelationDrawer` |
+
+### City IOC — `lib/city/` · `app/api/city/` · `components/city/` · `app/city/`
+
+| Pieza | Descripción |
+|---|---|
+| `city-types.ts` | Dominios, severidades, estados, incidentes, acciones, KPIs, scorecard |
+| `city-event-bus.ts` | Bus de eventos con seed de 5 incidentes base + incidentes derivados de POIs |
+| `city-incident-engine.ts` | Ranking por severidad/fecha, triage automático, por dominio, escalación |
+| `city-response-playbooks.ts` | Playbooks por dominio y nivel de automatización, ETA total |
+| `city-ioc-state.ts` | Estado agregado del centro de operaciones |
+| `city-mobility-engine.ts` | Segmentos viales, utilización, índice de congestión, alertas |
+| `city-emergency-engine.ts` | Escalación 1–4, lockdown, detección de emergencias, resumen |
+| `city-infrastructure-engine.ts` | Salud de infraestructura crítica |
+| `city-scorecard.ts` | Scorecard ponderado (6 dimensiones, grade A–F) |
+| `city-policy.ts` | RBAC por roles, SLAs, colas de triage, cierre/escalación |
+| UI | `CityDashboard`, `CityIOCOverview`, `IncidentTimeline`, `UrbanBrainMap`, `EmergencyCommandPanel`, `MobilityControlPanel`, `InfrastructureHealthGrid`, `CityScorecardPanel` |
+
+### EAM/APM — `lib/assets/` · `app/api/assets/` · `components/assets/` · `app/assets/`
+
+| Pieza | Descripción |
+|---|---|
+| `asset-types.ts` | Categorías, criticidad, estado, condición, telemetría |
+| `asset-registry.ts` | Registro en memoria con seed industrial + activos derivados de POIs |
+| `asset-health-engine.ts` | `computeAssetHealth` (0–100), resumen de flota |
+| `asset-failure-model.ts` | `failureProbability` (banda, MTTF, factor dominante), riesgo de flota |
+| `asset-predictive-maintenance.ts` | Recomendaciones con estrategia, prioridad y próxima fecha |
+| `asset-work-orders.ts` | Generación y estadísticas de órdenes de trabajo |
+| `asset-apm-score.ts` | APM Score global con 4 pilares y calificación |
+| UI | `AssetDashboard` (auto-fetch): salud, riesgo, mantenimiento y órdenes |
+
+### Smart Grid y Agua — `lib/grid/` · `app/api/grid/` · `components/grid/` · `app/grid/`
+
+| Pieza | Descripción |
+|---|---|
+| `grid-types.ts` | Nodos de energía/agua, enlaces, alertas |
+| `grid-network.ts` | Seed de red multi-nodo + nodos derivados de POIs/nodos YUN |
+| `grid-balance.ts` | Balance eléctrico e hídrico |
+| `grid-alerts.ts` | Alertas por umbrales y estado de nodo |
+| `grid-state.ts` | Estado global de la red |
+| UI | `GridDashboard` (auto-fetch): vista de red, balances, alertas |
+
+### Marketplace — `lib/marketplace/` · `app/api/marketplace/` · `components/marketplace/` · `app/marketplace/`
+
+| Pieza | Descripción |
+|---|---|
+| `marketplace-types.ts` | Ofertas, modelos, licencias, suscripciones |
+| `marketplace-store.ts` | Almacén de ofertas y modelos |
+| `marketplace-search.ts` | Búsqueda y filtrado |
+| `marketplace-license.ts` | Control de licencias y acceso |
+| UI | `MarketplaceDashboard` (auto-fetch): ofertas y resumen |
 
 ---
 
 ## ¿Cómo lo hace?
-
-### Stack Tecnológico
-
-| Capa | Tecnología |
-|---|---|
-| **Framework** | Next.js 15 (App Router, React 19, TypeScript 5.9) |
-| **Estilos** | Tailwind CSS 4 + CSS custom (glass panels, glows, shimmer) |
-| **3D / WebGL** | Three.js + @react-three/fiber (transpilado) |
-| **Mapas** | Leaflet + tiles CARTO dark |
-| **Gráficas** | Recharts |
-| **Animación** | Motion |
-| **Iconos** | Lucide React |
-| **IA** | @google/genai (Gemini 2.5 Flash) |
-| **Lenguaje** | Español (es-MX) |
 
 ### Flujo de datos
 
@@ -110,10 +197,27 @@ Cliente (React SPA)
    ├── /api/isabella ─────────────► GoogleGenAI (Gemini 2.5 Flash)
    │        └─ fallback local ─────► Modo simulación seguro (sin API key)
    │
+   ├── /api/twins/* ──────────────► lib/twins/* (DTDL, NGSI, grafo, simulación)
+   ├── /api/city/* ───────────────► lib/city/* (IOC, incidentes, scorecard)
+   ├── /api/assets/* ─────────────► lib/assets/* (salud, falla, mantenimiento, APM)
+   ├── /api/grid/* ───────────────► lib/grid/* (balance energía/agua, alertas)
+   ├── /api/marketplace/* ────────► lib/marketplace/* (ofertas, licencias)
+   │
    ├── lib/data/rdm-data.ts ─────── 15 POIs · 7 núcleos · 35 nodos YUN
+   ├── lib/data/rdm-territorial.ts  Adaptador POIs/nodos → twins, assets, grid, incidents
    ├── lib/data/rdm-tourism.ts ──── 8 eventos · 5 rutas · 5 dichos · 9 hitos · 10 comercios
    └── public/images/*.jpg ──────── 37 fotografías reales del territorio
 ```
+
+### Capa de confianza (Zero Trust)
+
+Todas las APIs de dominio aplican `enforceTrust(req)` en `lib/isabella/trust.ts`:
+
+1. `assertServerOnly()` — rechaza ejecución fuera del servidor.
+2. `verifyOrigin(req)` — valida `Origin`/`Referer` contra `APP_URL`.
+3. `rateLimit(req, ROUTE_ID, RATE_LIMIT)` — límite por ruta con `Retry-After`.
+
+Además: **comparación en tiempo constante** (`constantTimeCompare`) para claves de operador, gateway con *fail-closed* (`lib/isabella/gateway-policy.ts`), PII redactada y auditabilidad vía `isabella_audit_logs`.
 
 ---
 
@@ -133,44 +237,69 @@ Cliente (React SPA)
 
 ---
 
+## Stack Tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| **Framework** | Next.js 16 (App Router, React 19, TypeScript 5.9) |
+| **Estilos** | Tailwind CSS 4 + CSS custom (glass panels, glows, shimmer) |
+| **3D / WebGL** | Three.js + @react-three/fiber (transpilado) |
+| **Mapas** | Leaflet + tiles CARTO dark |
+| **Gráficas** | Recharts |
+| **Animación** | Motion |
+| **Iconos** | Lucide React |
+| **IA** | @google/genai (Gemini 2.5 Flash) |
+| **Pruebas** | Vitest 4 (`npm test`) |
+| **Base de datos** | Supabase/Postgres (migraciones SQL, RLS, PostGIS) |
+| **Lenguaje** | Español (es-MX) |
+
+---
+
 ## Estructura del Proyecto
 
 ```
 vvvvvvv-main/
 ├── app/
-│   ├── api/isabella/route.ts       # API de Isabella AI (Gemini + fallback)
-│   ├── api/isabella/chat/          #   Pipeline completo ISA (chat)
-│   ├── api/isabella/isa/reason/    #   Razonamiento estructurado (Answer, Sources, Trace)
-│   ├── api/isabella/crypto/        #   Mexa API: sign (operador) + verify (público)
-│   ├── globals.css                 # Tailwind + utilidades glass/glow/animaciones
-│   ├── layout.tsx                  # Metadata SEO completa, lang="es"
-│   └── page.tsx                    # SPA: todas las vistas del Hub (incl. zombies)
+│   ├── api/
+│   │   ├── isabella/                # Isabella AI (Gemini + fallback), ISA, Mexa, gateway
+│   │   ├── gamification/            # Puntos HMAC server-authoritative (events, session)
+│   │   ├── twins/                   # models, instances, graph, simulate, query
+│   │   ├── city/                    # ioc, events, incidents, mobility, response, infrastructure, scorecard
+│   │   ├── assets/                  # register, health, maintenance, failures, score
+│   │   ├── grid/                    # power, water, topology, balance, alerts
+│   │   └── marketplace/             # models, offers, publish, subscribe, license
+│   ├── twins/page.tsx               # Gemelo Digital
+│   ├── city/page.tsx                # IOC Urbano
+│   ├── assets/page.tsx              # EAM/APM
+│   ├── grid/page.tsx                # Smart Grid/Agua
+│   ├── marketplace/page.tsx         # Marketplace
+│   ├── page.tsx                     # SPA integrada (activeView para los 5 dominios)
+│   └── layout.tsx
 ├── components/
-│   ├── 3d/CrystalHero3D.tsx        # Hero WebGL con cristal y trailer modal
-│   ├── gamification/               # Zombies RDM Invasion
-│   │   ├── ZombieSprite.tsx        #   Sprite video/imagen/SVG procedural animado
-│   │   ├── ZombieCombat.tsx        #   Combate por turnos + Sello RDM
-│   │   └── ZombiesInvasionSection.tsx  # Mapa, bestiario, inventario, misiones, premios
-│   ├── isabella/IsabellaChat.tsx   # Chat con presets y contexto territorial
-│   ├── layout/YUNLayout.tsx        # Shell: navbar + sidebar de 7 núcleos
-│   ├── map/DigitalTwinMap.tsx      # Mapa Leaflet dark, 15 POIs, rutas
-│   ├── nodes/NodeDetailView.tsx    # Detalle de nodo con medidores y ping
-│   ├── phygital/PhygitalMarketplace.tsx  # Marketplace pastes & plata
-│   ├── security/PostQuantumSecurity.tsx  # Ledger PQC + blindaje
-│   ├── telemetry/TelemetryDashboard.tsx  # Recharts + grid de sensores
-│   └── tourism/TourismSection.tsx  # Eventos, rutas, dichos, timeline
+│   ├── twins/                       # TwinsDashboard, TwinGraphView, TwinModelEditor, ...
+│   ├── city/                        # CityDashboard, CityIOCOverview, EmergencyCommandPanel, ...
+│   ├── assets/                      # AssetDashboard (salud, riesgo, mantenimiento, órdenes)
+│   ├── grid/                        # GridDashboard (red, balances, alertas)
+│   ├── marketplace/                 # MarketplaceDashboard (ofertas, resumen)
+│   ├── layout/YUNLayout.tsx         # Nav integrada (twins, city, eam, grid, digital-marketplace)
+│   ├── gamification/                # Zombies RDM Invasion
+│   └── ...                          # 3D, isabella, map, nodes, phygital, security, telemetry, tourism
 ├── lib/
-│   ├── data/
-│   │   ├── rdm-data.ts             # POIs, YUN_CORES, RDM_NODES_35
-│   │   ├── rdm-tourism.ts          # Eventos, rutas, dichos, historia, comercios
-│   │   └── zombies-data.ts         # Arquetipos, motores de juego, perfil, premios, misiones
-│   └── isabella/                   # Núcleo cognitivo gobernado C.R.O.W.N. (ORION…MNEMOS,
-│                                    #   prompt-guard 9 categorías, intention-parser 8 dominios,
-│                                    #   mexa-crypto MSR, PRA Score Engine, constitución, audit, http)
-├── RFC-0001.md                     # Manifiesto C.R.O.W.N. y modelo de licenciamiento híbrido
-├── assets/.aistudio/video-animacion/  # Videos MP4 3-5 s con fondo transparente (zombies)
-├── public/images/                  # 37 fotografías reales de Real del Monte
-│   └── zombies/                    # Sprites estáticos de los arquetipos (PNG)
+│   ├── twins/ dtdl/ ngsi/           # Motores del gemelo digital
+│   ├── city/                        # Motores del IOC urbano
+│   ├── assets/                      # Motores EAM/APM
+│   ├── grid/                        # Motores smart grid/agua
+│   ├── marketplace/                 # Motores del marketplace
+│   ├── isabella/                    # Núcleo cognitivo C.R.O.W.N. + trust + gateway + DMS
+│   ├── gamification/                # Anticheat y puntos firmados
+│   ├── security/                    # Auth tokens y validación de requests
+│   └── data/                        # rdm-data, rdm-tourism, rdm-territorial, zombies-data
+├── supabase/migrations/
+│   ├── 001_create_isabella_tables.sql   # Capa cognitiva (sessions, memory, decisions, audit)
+│   └── 002_create_territorial_domains.sql  # Twins, assets, work_orders, incidents, grid + RLS
+├── tests/                          # 12 archivos · 100 tests (vitest)
+├── RFC-0001.md                     # Manifiesto C.R.O.W.N.
+├── vitest.config.mts
 ├── .env.example
 ├── next.config.ts
 └── vercel.json
@@ -180,15 +309,23 @@ vvvvvvv-main/
 
 ## Implementaciones
 
-1. **Datos reales del territorio** — 15 POIs con coordenadas geográficas reales, historia, insignias phygital y sensores. Imágenes locales auténticas (37 fotografías de Real del Monte) en lugar de placeholders.
+1. **Datos reales del territorio** — 15 POIs con coordenadas geográficas reales, historia, insignias phygital y sensores. Imágenes locales auténticas (37 fotografías de Real del Monte).
 2. **35 nodos YUN completos** — Antes la lista declaraba 35 pero solo definía 28; hoy los 35 nodos existen, distribuidos en los 7 núcleos.
 3. **Sección Turismo** — Nueva vista con pestañas (Eventos / Rutas / Dichos / Historia) con datos documentados del calendario local y la tradición cornish.
-4. **Isabella con conocimiento territorial** — System prompt ampliado con rutas, eventos, historia y recomendaciones; presets de consulta turística; contexto del territorio (15 POIs, 35 nodos, geosite UNESCO).
-5. **Visualizaciones sofisticadas** — Franja de cifras en el hero, medidores de blindaje cuántico con *shimmer*, retícula cuántica SVG animada, auroras de gradiente en nodos, grid de salud de sensores IoT.
-6. **SEO y metadatos** — `lang="es"`, título/template, descripción con keywords, Open Graph (es_MX), Twitter Card, canonical, `themeColor`, robots y `metadataBase`.
-7. **Núcleo cognitivo gobernado de Isabella** — Módulo `lib/isabella/` con los 7 motores cognitivos (ORION, SOPHIA, ARGUS, LUMEN, KERNEL, TOPOLOGY, MNEMOS), la **Constitución YUN** como policy gate, audit tracer, memoria jerárquica y bus de eventos; la API `/api/isabella` los consume y el chat refleja el ciclo cognitivo en vivo.
-8. **Zombies RDM Invasion** — Juego geolocalizado completo integrado al Hub: capa de datos y motores en `lib/data/zombies-data.ts` (arquetipos, spawns ponderados por rareza con jitter GPS, contexto horario/día/noche/niebla, multiplicadores de zona y evento, sinergias de artefactos, cálculo de puntos, nivel del guardián, persistencia en `localStorage`); sprites con `video`/`img`/**SVG procedural animado**; combate por turnos con cooldowns, esquiva, captura por umbral y log de encuentro; mapa Leaflet con marcadores animados de zombies y player marker geolocalizado; bestiario, inventario, misiones y tienda de premios canjeables con puntos; e integración con Isabella para lore contextual y publicación de eventos de dominio `gameplay` en el bus YUN.
-9. **Capa constitucional C.R.O.W.N. y ISA API v4.0 Enterprise** — El núcleo cognitivo de Isabella ahora opera bajo el manifiesto `RFC-0001.md` y el marco **C.R.O.W.N. (Constitution of the Reality Ontological Web Native)**: **Prompt Guard** de 9 categorías de amenaza (jailbreak, sexualización con triple bloqueo, credenciales, PII, ilícitos, violencia, odio, economía, electoral) con severidad `none → critical`; **Intention Parser** de 8 dominios canónicos (submission, library, constitution, governance, ecosystem, education, skills, ethics) con 14 patrones ponderados; **Structured Reasoning** que expone `Answer + Sources + Trace`; **PRA Score Engine** (Olvido Activo bajo FAIR & POSI) integrado a MNEMOS; y la **Mexa API** con firmas MSR (`/api/isabella/crypto/sign` para operador, `/api/isabella/crypto/verify` público). El pipeline completo se expone en `/api/isabella`, `/api/isabella/chat` y `/api/isabella/isa/reason`, todo registrado en el audit tracer y el bus de eventos YUN con `entity_id` y `severity`.
+4. **Isabella con conocimiento territorial** — System prompt ampliado con rutas, eventos, historia y recomendaciones.
+5. **Visualizaciones sofisticadas** — Franja de cifras, medidores de blindaje cuántico, retícula cuántica SVG, auroras de gradiente, grid de salud IoT.
+6. **SEO y metadatos** — `lang="es"`, Open Graph (es_MX), Twitter Card, canonical, `metadataBase`.
+7. **Núcleo cognitivo gobernado de Isabella** — `lib/isabella/` con los 7 motores cognitivos y la **Constitución YUN** como policy gate.
+8. **Zombies RDM Invasion** — Juego geolocalizado completo integrado al Hub y al bus YUN.
+9. **Capa constitucional C.R.O.W.N. y ISA API v4.0 Enterprise** — Prompt Guard de 9 categorías, Intention Parser de 8 dominios, Structured Reasoning (Answer + Sources + Trace), PRA Score Engine, Mexa API con firmas MSR.
+10. **Dominio Twins (Gemelo Digital)** — Modelos DTDL v3, NGSI-LD, grafo de gemelos, simulador, store y queries; integrado a la SPA y con API de 5 rutas.
+11. **Dominio City IOC** — Centro de operaciones urbano con incidentes, triage, playbooks, scorecard ponderado, RBAC y SLAs; 7 rutas de API y 8 componentes de UI.
+12. **Dominio EAM/APM** — Registro de activos, salud, modelo de falla, mantenimiento predictivo, órdenes de trabajo y APM Score; 5 rutas de API.
+13. **Dominio Smart Grid/Agua** — Balance de energía y agua, topología, alertas; 5 rutas de API.
+14. **Dominio Marketplace** — Ofertas, licencias, suscripción y búsqueda de modelos de datos; 5 rutas de API.
+15. **Zero Trust en todas las APIs** — `enforceTrust` (server-only + origin + rate limit), `constantTimeCompare`, gateway *fail-closed*, Dead Man Switch.
+16. **Datos reales conectados** — `lib/data/rdm-territorial.ts` convierte los 15 POIs y 35 nodos YUN en gemelos, activos, nodos de red e incidentes (deja de ser mock).
+17. **Base de datos Supabase/Postgres** — Migración `002` con tablas de twins, activos, órdenes, incidentes y nodos de red, seeds y Row Level Security.
 
 ---
 
@@ -196,19 +333,66 @@ vvvvvvv-main/
 
 ### Correcciones de bugs
 - `RDM_NODES_35` pasó de 28 a **35 nodos** reales.
-- **Estado muerto** eliminado (`isPlayingVideo` no utilizado en `CrystalHero3D`).
-- **Tecla ESC** ahora cierra el modal del trailer (antes solo se etiquetaba «[ESC]» sin funcionar).
-- **Imports sin usar** removidos (`NodeDetailView`: 6 íconos, etc.).
-- Contador del hero actualizado de "28/28" a "35/35".
-- Coordenadas del **Panteón Inglés** corregidas en el trazado de ruta del mapa.
-- **Warning de ESLint** de dependencia en `IsabellaChat` resuelto con ref.
+- **Estado muerto** eliminado (`isPlayingVideo` no utilizado).
+- **Tecla ESC** ahora cierra el modal del trailer.
+- **Imports sin usar** removidos.
+- Coordenadas del **Panteón Inglés** corregidas.
+- **Warning de ESLint** en `IsabellaChat` resuelto con ref.
+- **Tests de tipado** corregidos para `TwinInstanceRecord` y `autoTriageIncident` (`createdAt`/`updatedAt`).
 
 ### Optimizaciones
-- Imágenes del marketplace migradas de **picsum.photos** a **archivos locales** (`/images/*.jpg`); se limpió el `remotePatterns` obsoleto.
-- **`vercel.json`** con `installCommand: npm install --legacy-peer-deps`, headers de seguridad (nosniff, DENY frame, referrer-policy, permissions-policy).
-- **`next.config.ts`** saneado (comentario corrupto por encoding corregido, `transpilePackages` para Three).
-- **`.env.example`** documentado para Vercel Secrets.
-- Build y lint **100% limpios** (0 errores, 0 warnings).
+- Imágenes migradas de picsum.photos a archivos locales.
+- `vercel.json` con headers de seguridad y `npm install --legacy-peer-deps`.
+- `next.config.ts` saneado.
+- Build y lint **100% limpios**.
+- 100 tests automatizados en Vitest.
+
+---
+
+## Pruebas Automatizadas
+
+```bash
+npm test          # Vitest run — 12 archivos · 100 tests
+npx tsc --noEmit  # Typecheck completo
+npm run lint      # ESLint
+npm run build     # Build de producción
+```
+
+Cobertura por dominio:
+
+| Archivo | Cubre |
+|---|---|
+| `tests/twins.test.ts` | Store, grafo, queries del gemelo digital |
+| `tests/city.test.ts` | Scorecard, ranking/triage, emergencias, políticas RBAC |
+| `tests/assets.test.ts` | Salud, falla, mantenimiento, órdenes, APM Score |
+| `tests/grid.test.ts` | Balance eléctrico/hídrico, alertas |
+| `tests/marketplace.test.ts` | Ofertas, licencias, búsqueda |
+| `tests/trust.test.ts` | Capa de confianza |
+| `tests/anti-cheat.test.ts` | Gamificación server-authoritative |
+| `tests/points-engine.test.ts` | Motor de puntos |
+| `tests/auth-tokens.test.ts` | Tokens de autenticación |
+| `tests/dead-man-switch.test.ts` | Interruptor de emergencia |
+| `tests/gateway-policy.test.ts` | Políticas del gateway |
+| `tests/rules.test.ts` | Reglas del dominio |
+
+---
+
+## Base de Datos (Supabase/Postgres)
+
+Migraciones en `supabase/migrations/`:
+
+- **001** — Capa cognitiva Isabella: `isabella_sessions`, `isabella_messages`, `isabella_memory_items`, `isabella_decisions`, `isabella_tools`, `isabella_tool_calls`, `isabella_policies`, `isabella_approvals`, `isabella_audit_logs` con RLS por tenant.
+- **002** — Dominios territoriales: `dt_twin_models`, `dt_twins` (con índice PostGIS), `dt_twin_edges`, `dt_assets`, `dt_work_orders`, `dt_city_incidents`, `dt_grid_nodes` con seeds y RLS.
+
+Para aplicar:
+
+```bash
+supabase db push
+# o
+psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
+```
+
+> Requiere las extensiones `postgis` y `pgcrypto` (incluidas en la migración).
 
 ---
 
@@ -217,17 +401,18 @@ vvvvvvv-main/
 | Hito | Estado |
 |---|---|
 | Build de producción (`next build`) | ✅ Exitoso (0 errores TS) |
+| Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
+| Tests (`vitest`) | ✅ 100/100 |
 | Datos del territorio (POIs, nodos, turismo) | ✅ 15 POIs · 35 nodos · 8 eventos · 5 rutas |
-| Imágenes reales en el bundle | ✅ 37 fotografías locales |
-| SEO / Open Graph / metadatos | ✅ Completos |
-| Config de despliegue (`vercel.json`) | ✅ Lista |
-| API de Isabella (Gemini) | ✅ Con fallback simulado seguro |
-| Capa C.R.O.W.N. + ISA API (guard, intención, reasoning, Mexa, PRA) | ✅ `/chat` · `/isa/reason` · `/crypto/sign` · `/crypto/verify` |
-| Zombies RDM Invasion (mapa, combate, bestiario, misiones, premios) | ✅ Integrado al Hub y al bus YUN (`gameplay`) |
-| **Pendiente** | Setear `GEMINI_API_KEY`, `APP_URL` y `MEXA_OPERATOR_KEY` en Vercel Secrets · Desplegar en Vercel · DNS/custom domain · (Opcional) Supabase para persistencia real |
-
-El proyecto está **listo para producción**: la SPA compila como estática, la única ruta dinámica es `/api/isabella` (Edge/serverless, con degradación elegante si no hay API key).
+| Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
+| IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
+| EAM/APM | ✅ Salud · falla · mantenimiento · APM Score |
+| Smart Grid/Agua | ✅ Balance · topología · alertas |
+| Marketplace | ✅ Ofertas · licencias · suscripción |
+| Zero Trust en APIs | ✅ Origin · rate limit · fail-closed |
+| Supabase/Postgres | ✅ Migraciones 001 y 002 con RLS |
+| **Pendiente** | Setear `GEMINI_API_KEY`, `APP_URL`, `MEXA_OPERATOR_KEY` y `GAMIFICATION_HMAC_SECRET` en Vercel Secrets · Desplegar en Vercel · Conectar servicios Supabase a las APIs |
 
 ---
 
@@ -240,6 +425,7 @@ El proyecto está **listo para producción**: la SPA compila como estática, la 
    - `APP_URL` (URL del deployment)
    - `NEXT_PUBLIC_SITE_URL` (URL pública para SEO)
    - `MEXA_OPERATOR_KEY` (secreto del operador para `/api/isabella/crypto/sign`)
+   - `GAMIFICATION_HMAC_SECRET` (secreto para firmar puntos de zombies)
 4. Deploy. Verifica que `metadataBase` use la URL de producción.
 
 ---
@@ -260,6 +446,9 @@ NEXT_PUBLIC_SITE_URL=https://rdm-digital-hub.vercel.app
 
 # Secreto del operador para la Mexa API (firmas MSR) — /api/isabella/crypto/sign
 MEXA_OPERATOR_KEY=clave-soberana-del-nodo-cero
+
+# Secreto HMAC para el motor de gamificación server-authoritative
+GAMIFICATION_HMAC_SECRET=secreto-del-juego
 ```
 
 > Sin `GEMINI_API_KEY`, Isabella opera en **modo simulación local seguro** (no falla, responde con datos del territorio).
@@ -274,6 +463,8 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
+npm test                         # Vitest (100 tests)
+npx tsc --noEmit                 # Typecheck
 ```
 
 ---
@@ -293,5 +484,5 @@ Para colaboraciones, licencias o despliegues oficiales, contactar al autor a tra
 
 ---
 
-*Construido con Next.js, Three.js, Leaflet, Recharts y la Heptafederación YUN.*
+*Construido con Next.js, Three.js, Leaflet, Recharts, Vitest y la Heptafederación YUN.*
 *Real del Monte, Hidalgo — Cuna de la Minería Mexicana.*

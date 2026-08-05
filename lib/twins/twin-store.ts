@@ -1,4 +1,5 @@
 import type { TwinGraphEdge, TwinInstanceRecord, TwinModelRecord, TwinStatus } from './twin-types';
+import { RDM_POIS, RDM_NODES_35 } from '@/lib/data/rdm-data';
 
 const MODEL_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -91,6 +92,61 @@ function seed(store: TwinStoreShape): void {
     ['bus-turistico-01', 'museo-mineria', 'serves'],
     ['bus-turistico-01', 'plaza-nacional', 'serves'],
   ];
+
+  const derivedPois = RDM_POIS.map((poi) => ({
+    id: `twin-${poi.id}`,
+    modelId: poi.category === 'naturaleza' ? 'dtmi:rdm:twin:PublicSpace;1' : 'dtmi:rdm:twin:Building;1',
+    name: poi.name,
+    externalRef: poi.id,
+    lat: poi.lat,
+    lng: poi.lng,
+    properties: {
+      category: poi.category,
+      rating: poi.rating,
+      badge: poi.phygitalBadge,
+      heritageGrade: poi.category === 'mina' || poi.category === 'cultura' ? 'A' : undefined,
+    },
+    telemetry: {
+      temperature: parseFloat(poi.sensors.temp ?? '16') || 16,
+      occupancy: Number.parseInt(poi.sensors.occupancy ?? '50', 10) || 50,
+      traffic: poi.sensors.traffic ?? 'Bajo',
+    },
+    status: (poi.status === 'En mantenimiento' ? 'warning' : 'healthy') as TwinStatus,
+  }));
+
+  const derivedNodes = RDM_NODES_35.map((node) => ({
+    id: `yun-${node.id}`,
+    modelId: 'dtmi:rdm:twin:CityService;1',
+    name: node.title,
+    externalRef: node.code,
+    properties: {
+      coreId: node.coreId,
+      coreName: node.coreName,
+      category: node.category,
+      endpoint: node.endpoint,
+    },
+    telemetry: {
+      latencyMs: Number.parseInt(node.latency, 10) || 0,
+      statusLabel: node.status,
+    },
+    status: (node.status === 'Standby' ? 'offline' : node.status === 'Sincronizado' ? 'warning' : 'healthy') as TwinStatus,
+  }));
+
+  for (const instance of [...derivedPois, ...derivedNodes]) {
+    store.instances.set(instance.id, {
+      createdAt: now(),
+      updatedAt: now(),
+      ...instance,
+    });
+  }
+
+  for (const poi of RDM_POIS) {
+    const from = `twin-${poi.id}`;
+    if (poi.category === 'naturaleza') edges.push([from, 'plaza-nacional', 'locatedIn']);
+    else edges.push([from, 'sub-rdm', 'feeds']);
+    edges.push([from, 'bus-turistico-01', 'serves']);
+  }
+
   for (const [from, to, kind, weight] of edges) {
     store.edges.set(`${from}->${to}:${kind}`, { id: `${from}->${to}:${kind}`, from, to, kind, weight });
   }

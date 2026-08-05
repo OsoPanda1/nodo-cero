@@ -1,4 +1,5 @@
 import type { CityDomain, CityEvent, CityIncident, CityIncidentStatus, CitySeverity } from './city-types';
+import { RDM_POIS } from '@/lib/data/rdm-data';
 
 const MAX_EVENTS = 200;
 
@@ -21,8 +22,9 @@ function now(): string {
   return new Date().toISOString();
 }
 
+const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
+
 export function seedIncidents(): CityIncident[] {
-  const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
   return [
     {
       id: 'inc-001',
@@ -94,7 +96,62 @@ export function seedIncidents(): CityIncident[] {
       tags: ['mobility', 'vehicle'],
       relatedEntityIds: ['bus-turistico-01'],
     },
+    ...poisToIncidents(),
   ];
+}
+
+function poisToIncidents(): CityIncident[] {
+  const incidents: CityIncident[] = [];
+  for (const poi of RDM_POIS) {
+    const occupancy = Number.parseInt(poi.sensors.occupancy ?? '0', 10) || 0;
+    if (poi.status === 'En mantenimiento') {
+      incidents.push({
+        id: `inc-poi-${poi.id}`,
+        domain: 'publicWorks',
+        title: `Mantenimiento en ${poi.name}`,
+        description: 'Punto de interés en mantenimiento: coordinación de horarios de atención y restricciones de acceso.',
+        severity: 'low',
+        status: 'open',
+        location: { lat: poi.lat, lng: poi.lng, label: poi.name },
+        source: 'operator',
+        createdAt: minutesAgo(120),
+        updatedAt: minutesAgo(120),
+        tags: ['mantenimiento', poi.category],
+        relatedEntityIds: [`twin-${poi.id}`, `asst-poi-${poi.id}`],
+      });
+    } else if (occupancy >= 80) {
+      incidents.push({
+        id: `inc-poi-${poi.id}`,
+        domain: 'traffic',
+        title: `Aforo alto en ${poi.name}`,
+        description: `Ocupación del ${occupancy}% detectada por sensores. Se recomienda desviar flujos peatonales.`,
+        severity: 'medium',
+        status: 'triaged',
+        location: { lat: poi.lat, lng: poi.lng, label: poi.name },
+        source: 'sensor',
+        createdAt: minutesAgo(90),
+        updatedAt: minutesAgo(60),
+        tags: ['aforo', 'sensor', poi.category],
+        relatedEntityIds: [`twin-${poi.id}`],
+      });
+    } else if (poi.sensors.traffic === 'Alto') {
+      incidents.push({
+        id: `inc-poi-${poi.id}`,
+        domain: 'traffic',
+        title: `Tráfico alto en ${poi.name}`,
+        description: 'Flujo vehicular elevado en la zona. Activación de protocolo de desvío.',
+        severity: 'medium',
+        status: 'triaged',
+        location: { lat: poi.lat, lng: poi.lng, label: poi.name },
+        source: 'sensor',
+        createdAt: minutesAgo(75),
+        updatedAt: minutesAgo(50),
+        tags: ['traffic', poi.category],
+        relatedEntityIds: [`twin-${poi.id}`],
+      });
+    }
+  }
+  return incidents;
 }
 
 export function publishCityEvent(event: Omit<CityEvent, 'id' | 'timestamp'>): CityEvent {

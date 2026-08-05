@@ -1,6 +1,56 @@
 import type { Asset } from './asset-types';
+import { RDM_POIS } from '@/lib/data/rdm-data';
 
 const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
+
+const POI_CATEGORY_TO_ASSET: Record<string, Asset['category']> = {
+  mina: 'structure',
+  gastronomia: 'hvac',
+  cultura: 'structure',
+  naturaleza: 'structure',
+  plateria: 'structure',
+  hotel: 'hvac',
+};
+
+const POI_CATEGORY_CRITICALITY: Record<string, Asset['criticality']> = {
+  mina: 'high',
+  gastronomia: 'medium',
+  cultura: 'medium',
+  naturaleza: 'low',
+  plateria: 'medium',
+  hotel: 'medium',
+};
+
+function poisToAssets(): Asset[] {
+  return RDM_POIS.map((poi, index) => {
+    const occupancy = Number.parseInt(poi.sensors.occupancy ?? '50', 10) || 50;
+    const temperature = Number.parseFloat(poi.sensors.temp ?? '16') || 16;
+    return {
+      id: `asst-poi-${poi.id}`,
+      code: `RDM-POI-${String(index + 1).padStart(3, '0')}`,
+      name: poi.name,
+      category: POI_CATEGORY_TO_ASSET[poi.category],
+      criticality: POI_CATEGORY_CRITICALITY[poi.category],
+      status: poi.status === 'En mantenimiento' ? 'maintenance' : 'operational',
+      condition: poi.status === 'En mantenimiento' ? 'poor' : 'good',
+      strategy: 'preventive',
+      location: { zone: 'Real del Monte', building: poi.name, coordinates: { lat: poi.lat, lng: poi.lng } },
+      manufacturer: 'Patrimonio RDM',
+      model: `RDM-${poi.category.toUpperCase()}`,
+      serialNumber: `RDM-${poi.id}`,
+      installedAt: daysAgo(1800 + index * 30),
+      designLifeYears: 30,
+      lastMaintenanceAt: daysAgo(30 + index * 2),
+      telemetry: {
+        temperatureC: temperature,
+        loadPercent: occupancy,
+        runtimeHours: 8000 + index * 400,
+        lastUpdated: new Date().toISOString(),
+      },
+      tags: [poi.category, 'patrimonio', 'poi', poi.status],
+    };
+  });
+}
 
 export function seedAssets(): Asset[] {
   return [
@@ -118,6 +168,7 @@ export function seedAssets(): Asset[] {
       telemetry: { temperatureC: 41, vibrationMmS: 1.1, runtimeHours: 4100, loadPercent: 62, lastUpdated: new Date().toISOString() },
       tags: ['mining', 'waste'],
     },
+    ...poisToAssets(),
   ];
 }
 

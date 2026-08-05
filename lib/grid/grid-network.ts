@@ -1,4 +1,56 @@
 import type { GridLink, PowerNode, WaterNode } from './grid-types';
+import { RDM_POIS, RDM_NODES_35 } from '@/lib/data/rdm-data';
+
+function poisToPowerNodes(): PowerNode[] {
+  return RDM_POIS.map((poi) => {
+    const occupancy = Number.parseInt(poi.sensors.occupancy ?? '50', 10) || 50;
+    return {
+      id: `pw-${poi.id}`,
+      name: poi.name,
+      type: 'meter',
+      zone: 'Real del Monte',
+      status: poi.status === 'En mantenimiento' ? 'degraded' : 'operational',
+      capacityKw: 15,
+      loadKw: 2 + (occupancy % 8),
+      voltagePu: 1.0,
+      frequencyHz: 60.0,
+    };
+  });
+}
+
+function nodesToPowerNodes(): PowerNode[] {
+  return RDM_NODES_35
+    .filter((node) => node.category === 'Infraestructura' || node.title.toLowerCase().includes('alumbrado'))
+    .map((node, index) => ({
+      id: `nw-${node.id}`,
+      name: node.title,
+      type: index % 2 === 0 ? ('transformer' as const) : ('switch' as const),
+      zone: node.coreName,
+      status: node.status === 'Optimo' ? 'operational' : node.status === 'Sincronizado' ? 'degraded' : 'warning',
+      capacityKw: 120 + index * 40,
+      loadKw: 60 + index * 22,
+      voltagePu: 1.0 - index * 0.01,
+      frequencyHz: 60.0,
+    }));
+}
+
+function poisToWaterNodes(): WaterNode[] {
+  return RDM_POIS.map((poi) => {
+    const temp = Number.parseFloat(poi.sensors.temp ?? '16') || 16;
+    return {
+      id: `wt-${poi.id}`,
+      name: poi.name,
+      type: 'pipe',
+      zone: 'Real del Monte',
+      status: 'operational',
+      capacityM3: 0,
+      flowM3h: 8 + (temp % 10),
+      levelPercent: 0,
+      pressureBar: 0,
+      qualityPpm: 10 + (temp % 8),
+    };
+  });
+}
 
 export function seedPowerNodes(): PowerNode[] {
   return [
@@ -8,6 +60,8 @@ export function seedPowerNodes(): PowerNode[] {
     { id: 'tra-pasta', name: 'Transformador Pasta de Conchos', type: 'transformer', zone: 'Pasta de Conchos', status: 'operational', capacityKw: 800, loadKw: 610, voltagePu: 0.99, frequencyHz: 60.0 },
     { id: 'fed-norte', name: 'Alimentador norte', type: 'feeder', zone: 'Acceso norte', status: 'warning', capacityKw: 600, loadKw: 470, voltagePu: 0.97, frequencyHz: 59.95 },
     { id: 'sw-cc1', name: 'Seccionador CC-1', type: 'switch', zone: 'Centro', status: 'operational', capacityKw: 400, loadKw: 210, voltagePu: 1.0, frequencyHz: 60.0 },
+    ...poisToPowerNodes(),
+    ...nodesToPowerNodes(),
   ];
 }
 
@@ -19,6 +73,7 @@ export function seedWaterNodes(): WaterNode[] {
     { id: 'bmb-norte', name: 'Bomba Tanque norte', type: 'pump', zone: 'Tanque norte', status: 'warning', capacityM3: 0, flowM3h: 180, levelPercent: 0, pressureBar: 3.1, qualityPpm: 15 },
     { id: 'vav-s7', name: 'Válvula sector 7', type: 'valve', zone: 'Sector 7', status: 'operational', capacityM3: 0, flowM3h: 95, levelPercent: 0, pressureBar: 3.4, qualityPpm: 14 },
     { id: 'mtr-centro', name: 'Macromedidor centro', type: 'meter', zone: 'Centro', status: 'operational', capacityM3: 0, flowM3h: 260, levelPercent: 0, pressureBar: 3.0, qualityPpm: 15 },
+    ...poisToWaterNodes(),
   ];
 }
 
