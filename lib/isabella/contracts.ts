@@ -81,6 +81,8 @@ export interface IsabellaPolicy {
   scope: string[];
   rule: string;
   match?: RegExp;
+  domain?: string;
+  priority?: number;
 }
 
 export interface IsabellaAuditEvent {

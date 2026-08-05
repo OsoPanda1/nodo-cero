@@ -1,6 +1,7 @@
 import { RDM_BUSINESSES, RDM_DICHOS, RDM_EVENTS, RDM_ROUTES } from '@/lib/data/rdm-tourism';
 import { YUN_CORES, RDM_NODES_35, RDM_POIS } from '@/lib/data/rdm-data';
 import { TOPOLOGY_snapshot } from './engines';
+import { getGamificationStatus } from '@/lib/gamification/status';
 
 export interface IsabellaTool {
   name: string;
@@ -121,6 +122,28 @@ export const ISABELLA_TOOLS: IsabellaTool[] = [
         description: p.description,
       }));
     },
+  },
+  {
+    name: 'get_gamification_status',
+    description: 'Estado de la gamificación territorial: puntos, capturas, oleadas y ranking de guardianes del Nodo.',
+    parameters: {},
+    execute: () => getGamificationStatus(),
+  },
+  {
+    name: 'get_zombie_challenge',
+    description: 'Contexto del reto Zombies RDM Invasion: multiplicadores de zona y tiempo activos en la comarca.',
+    parameters: {},
+    execute: () => ({
+      game: 'Zombies RDM Invasion',
+      domain: 'gameplay',
+      multipliers: {
+        zonaMina: 1.2,
+        noche: 1.3,
+        niebla: 1.5,
+        mesEvento: 2,
+      },
+      note: 'El backend YUN es la fuente de verdad de puntos; el cliente solo reporta eventos firmados.',
+    }),
   },
 ];
 

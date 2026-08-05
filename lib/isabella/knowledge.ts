@@ -17,6 +17,7 @@ export type IsabellaIntent =
   | "pois"
   | "memoria"
   | "ayuda"
+  | "gamificacion"
   | "fallback";
 
 export type IntentMode =
@@ -224,6 +225,18 @@ export const ISABELLA_KNOWLEDGE: KnowledgeFact[] = [
     facts: [
       "Puedo guiarte por turismo, minas, gastronomía, cultura, naturaleza, eventos, comercios y la arquitectura YUN.",
       "Pregunta por una ruta, un dicho, un evento o la seguridad post-cuántica y te orientaré al instante.",
+    ],
+  },
+  {
+    intent: "gamificacion",
+    title: "Gamificación territorial · Zombies RDM Invasion",
+    mode: "situational",
+    priority: 85,
+    tags: ["zombies", "gamificacion", "juego", "oleadas", "puntos", "invasión"],
+    facts: [
+      "El juego de zombies de la comarca es una experiencia territorial más: cada captura, oleada superada y misión completada queda registrada en el Nodo como un evento del territorio, con puntuación validada por el backend YUN (server-authoritative).",
+      "Puedo consultar tu progreso: puntos acumulados, zombies capturados, oleadas superadas y tu posición en el ranking de guardianes del Nodo Cero.",
+      "Las reglas de puntuación dependen del territorio: la niebla multiplica ×1.5, la noche ×1.3, los meses de evento ×2 y las zonas de mina ×1.2. Nada de eso se decide en el cliente.",
     ],
   },
   {

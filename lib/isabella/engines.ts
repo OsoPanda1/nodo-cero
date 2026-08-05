@@ -9,6 +9,7 @@ import {
 import { ISABELLA_POLICIES } from "./constitution";
 import { getKnowledge, IsabellaIntent } from "./knowledge";
 import { addMemoryItem, getMemoryStats, recallMemory } from "./memory";
+import { getGamificationStatus } from "../gamification/status";
 import { CanonicalIntent } from "./intention-parser";
 import { clamp } from "./utils";
 
@@ -284,6 +285,32 @@ const INTENT_GRAPH: IntentDescriptor[] = [
       "anterior",
     ],
     weight: 1.0,
+  },
+  {
+    intent: "gamificacion",
+    mode: "situational",
+    keywords: [
+      "zombie",
+      "zombies",
+      "juego",
+      "gamificacion",
+      "gamificación",
+      "invasión",
+      "invasion",
+      "oleada",
+      "oleadas",
+      "captura",
+      "guardian",
+      "guardián",
+      "puntos del juego",
+      "ranking",
+      "score",
+      "puntaje",
+      "wave",
+      "level up",
+      "nivel",
+    ],
+    weight: 1.2,
   },
   {
     intent: "ayuda",
@@ -637,13 +664,13 @@ export function KERNEL_verify(
 ): KernelOutput {
   const actorId = perception.actorId || "actor-anonimo";
   const sessionId = perception.sessionId || "sesion-efimera";
-  const role = perception.payload.role || "ciudadano-yun";
+  const role = (perception.payload.role as string) || "ciudadano-yun";
   const sessionState: KernelOutput["sessionState"] = perception.sessionId
     ? "existente"
     : "nuevo";
 
-  const federationId = perception.payload.federationId || "Fed1";
-  const tenantId = perception.payload.tenantId || "real-del-monte";
+  const federationId = (perception.payload.federationId as string) || "Fed1";
+  const tenantId = (perception.payload.tenantId as string) || "real-del-monte";
 
   const coreId =
     typeof perception.payload.coreId === "number"
@@ -879,6 +906,14 @@ function buildPlan(orion: OrionOutput): PlannedStep[] {
       description:
         "Desplegar overview arquitectónico de la heptafederación YUN.",
     });
+  } else if (orion.intent === "gamificacion") {
+    plan.push({
+      step: 1,
+      tool: "get_gamification_status",
+      args: {},
+      description:
+        "Consultar el estado de la gamificación territorial: puntos, capturas y ranking de guardianes.",
+    });
   } else {
     plan.push({
       step: 1,
@@ -931,6 +966,16 @@ export function SOPHIA_reason(
 
   if (orion.intent === "greeting") {
     response = `${opening}\n\n${territoryLine}`;
+  } else if (orion.intent === "gamificacion") {
+    const game = getGamificationStatus();
+    const guardianLine =
+      game.topGuardians.length > 0
+        ? `\n\nEn el ranking de guardianes del Nodo lidera «${game.topGuardians[0].name}» con ${game.topGuardians[0].points.toLocaleString('es-MX')} pts. Se han registrado ${game.totalKills.toLocaleString('es-MX')} zombies capturados en la comarca.`
+        : "\n\nAún no hay guardianes en el ranking del Nodo: sé el primero en salir a la patrulla.";
+    response = `${opening}\n\n${game.topGuardians
+      .slice(1, 3)
+      .map(g => `«${g.name}»: ${g.points.toLocaleString('es-MX')} pts (${g.captures} capturas)`)
+      .join(" · ")}${guardianLine}\n\n${memoryLine}`;
   } else if (orion.intent === "dicho") {
     response = `${opening}\n\n${territoryLine}\n\n${memoryLine}`;
   } else {

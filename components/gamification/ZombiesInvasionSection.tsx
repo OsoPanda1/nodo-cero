@@ -16,6 +16,7 @@ import ZombieCombat from './ZombieCombat';
 import ZombieSprite from './ZombieSprite';
 import { emitYunEvent } from '@/lib/isabella/events';
 import { uuid } from '@/lib/isabella/utils';
+import { reportKill, reportMission, reportPrize, startSession } from '@/lib/gamification/client';
 
 interface ZombiesInvasionSectionProps {
   onAskIsabella?: (prompt: string) => void;
@@ -101,6 +102,7 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
     setSpawns(loadSpawns(new Date()));
     setTimeCtx(getTimeContext(new Date()));
     /* eslint-enable react-hooks/set-state-in-effect */
+    void startSession();
   }, []);
 
   useEffect(() => {
@@ -262,6 +264,19 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
             totalCaptures: profile.captures.length + 1,
           },
         });
+        const ctx = timeCtx ?? getTimeContext(new Date());
+        const capturedArchetype = ZOMBIE_ARCHETYPES.find(a => a.id === captured.archetypeId);
+        void reportKill({
+          archetypeId: captured.archetypeId,
+          archetypeName: capturedArchetype?.name,
+          rarity: capturedArchetype?.rarity,
+          zone: captured.zone,
+          poiId: captured.poiId,
+          basePoints: capturedArchetype?.basePoints ?? result.points,
+          night: ctx.period === 'noche',
+          fog: ctx.niebla,
+          eventMonth: ctx.isEventMonth,
+        });
         setProfile(p => {
           const missionProgress = { ...p.missionProgress };
           for (const m of ZOMBIE_MISSIONS) {
@@ -284,7 +299,7 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
       setSpawns(prev => prev.filter(s => s.id !== current.id));
       return null;
     });
-  }, [profile.captures.length]);
+  }, [profile.captures.length, timeCtx]);
 
   const claimMission = (mission: ZombieMission) => {
     if (profile.claimedMissions.includes(mission.id)) return;
@@ -304,6 +319,7 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
       totalPoints: p.totalPoints + mission.reward,
       claimedMissions: [...p.claimedMissions, mission.id],
     }));
+    void reportMission(mission.id, mission.reward);
     setToast(`Misión completada: +${mission.reward} puntos.`);
   };
 
@@ -330,6 +346,7 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
         inventory,
       };
     });
+    void reportPrize(prize.id, prize.cost);
     setToast(`Canje realizado: ${prize.name}.`);
   };
 

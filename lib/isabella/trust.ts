@@ -1,21 +1,30 @@
 /* ------------------------------------------------------------------ */
-/* C.R.O.W.N. — Hardening Zero Trust de la ISA API                     */
+/* C.R.O.W.N. / ISA — Trust Layer unificada                            */
 /* ------------------------------------------------------------------ */
-/* Controles de confianza cero aplicados a TODA la superficie de       */
+/* Núcleo de confianza de servidor aplicado a TODA la superficie de    */
 /* entrada del Nodo Cero:                                              */
-/*  - assertServerOnly: el módulo jamás se ejecuta en el cliente.      */
-/*  - verifyOrigin: rechaza peticiones CSRF/cross-origin no autorizadas*/
-/*    (comparación con APP_URL / NEXT_PUBLIC_SITE_URL).                */
-/*  - rateLimit: ventana deslizante por IP en memoria del runtime.     */
-/*  - redact: ofuscación de PII y secretos en cualquier log/traza.     */
-/*  - constantTimeCompare: comparación de claves sin timing attacks.   */
+/*                                                                     */
+/*  1. assertServerOnly      — el módulo jamás se ejecuta en el cliente */
+/*  2. verifyOrigin / verifyOriginFromHeaders — rechaza CSRF y orígenes */
+/*     cross-origin no autorizados (APP_URL / NEXT_PUBLIC_SITE_URL).   */
+/*  3. rateLimit (req o headers) — ventana deslizante por IP con poda  */
+/*     periódica del almacén.                                          */
+/*  4. redact / redactPII / redactRecord / sanitizeForLog — ofuscación */
+/*     de PII y secretos en logs, trazas y respuestas.                 */
+/*  5. constantTimeCompare / timingSafeEqualUtf8 — comparación de      */
+/*     claves y tokens sin timing attacks.                             */
+/*                                                                     */
+/* Esta capa es la ÚNICA fuente de trust del Nodo: cualquier módulo    */
+/* que necesite validar origen, limitar tráfico o sanear datos debe    */
+/* importar de aquí.                                                   */
 /* ------------------------------------------------------------------ */
 
 import { NextRequest } from 'next/server';
+import crypto from 'node:crypto';
 
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 /* 1. SOLO SERVIDOR                                                    */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 export function assertServerOnly(context = 'CROWN'):
   { ok: boolean; error?: string } {
@@ -25,30 +34,53 @@ export function assertServerOnly(context = 'CROWN'):
   return { ok: true };
 }
 
-/* ------------------------------------------------------------------ */
-/* 2. VERIFICACIÓN DE ORIGEN (anti-CSRF)                               */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/* 2. ORIGEN CANÓNICO Y VERIFICACIÓN (anti-CSRF / Zero Trust)          */
+/* ================================================================== */
 
-function normalizeOrigin(url: string): string {
+export interface CanonicalOriginConfig {
+  appUrl?: string;
+  siteUrl?: string;
+  vercelUrl?: string;
+}
+
+export function getCanonicalOrigins(): CanonicalOriginConfig {
+  return {
+    appUrl: process.env.APP_URL,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+    vercelUrl: process.env.VERCEL_URL,
+  };
+}
+
+/** Normaliza una URL a su origen (esquema + host + puerto). */
+export function normalizeOrigin(raw?: string | null): string | null {
+  if (!raw) return null;
   try {
-    return new URL(url).origin;
+    const url = new URL(raw);
+    const port = url.port ? `:${url.port}` : '';
+    return `${url.protocol}//${url.hostname}${port}`;
   } catch {
-    return url;
+    return null;
   }
 }
 
-function allowedOrigins(): string[] {
+/** Allowlist de orígenes canónicos (APP_URL, NEXT_PUBLIC_SITE_URL, VERCEL_URL). */
+export function allowedOrigins(): string[] {
   const origins = new Set<string>();
-  for (const env of ['APP_URL', 'NEXT_PUBLIC_SITE_URL', 'VERCEL_URL']) {
-    const value = process.env[env];
-    if (!value) continue;
-    if (env === 'VERCEL_URL' && !value.startsWith('http')) {
-      origins.add(normalizeOrigin(`https://${value}`));
-    } else {
-      origins.add(normalizeOrigin(value));
-    }
+  const { appUrl, siteUrl, vercelUrl } = getCanonicalOrigins();
+
+  for (const value of [appUrl, siteUrl]) {
+    const normalized = normalizeOrigin(value);
+    if (normalized) origins.add(normalized);
   }
-  /* En desarrollo local se permite el origen de Next dev */
+  if (vercelUrl) {
+    const normalized = normalizeOrigin(
+      vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`,
+    );
+    if (normalized) origins.add(normalized);
+  }
+
+  /* En desarrollo local se permiten los orígenes de Next dev. */
   if (process.env.NODE_ENV === 'development') {
     origins.add('http://localhost:3000');
     origins.add('http://127.0.0.1:3000');
@@ -56,45 +88,98 @@ function allowedOrigins(): string[] {
   return [...origins];
 }
 
+/**
+ * Verifica el origen/host de una petición Next contra la allowlist.
+ *  - Si hay header `origin`: compara contra la allowlist (rechaza CSRF).
+ *  - Si no hay `origin` pero hay `host`: compara el host (server-to-server).
+ *  - Sin ninguno de los dos: se permite (cliente/agente sin origen).
+ */
 export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string } {
   if (process.env.NODE_ENV === 'development') return { ok: true };
   const origins = allowedOrigins();
-  if (origins.length === 0) return { ok: true }; /* sin origen configurado: no se puede comparar */
-  const origin = req.headers.get('origin') ?? req.headers.get('referer');
-  if (!origin) return { ok: true }; /* peticiones server-to-server sin origen */
-  const normalized = normalizeOrigin(origin);
-  if (origins.includes(normalized)) return { ok: true };
-  return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
+  if (origins.length === 0) return { ok: true };
+
+  const origin = req.headers.get('origin');
+  if (origin) {
+    const normalized = normalizeOrigin(origin);
+    if (normalized && origins.includes(normalized)) return { ok: true };
+    return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
+  }
+
+  const host = req.headers.get('host');
+  if (host) {
+    const candidate = normalizeOrigin(`https://${host}`);
+    if (candidate && origins.includes(candidate)) return { ok: true };
+    return { ok: false, reason: 'Host no autorizado (Zero Trust).' };
+  }
+
+  return { ok: true };
 }
 
-/* ------------------------------------------------------------------ */
+/** Variante para Headers estándar (fetch/Next) con detalle de diagnóstico. */
+export function verifyOriginFromHeaders(headers: Headers): {
+  ok: boolean;
+  origin?: string | null;
+  host?: string | null;
+  reason?: string;
+} {
+  const originHeader = headers.get('origin') ?? headers.get('referer');
+  const hostHeader = headers.get('host');
+
+  const origin = normalizeOrigin(originHeader);
+  const host = hostHeader ? normalizeOrigin(`https://${hostHeader}`) : null;
+
+  const allowed = allowedOrigins();
+
+  if (!origin && !host) {
+    return { ok: false, origin, host, reason: 'No origin/host headers present' };
+  }
+
+  const candidate = origin ?? host;
+  const match = candidate !== null && allowed.includes(candidate);
+
+  return {
+    ok: match,
+    origin,
+    host,
+    reason: match ? undefined : 'Origin/host not in canonical allowlist',
+  };
+}
+
+/** Lanza si el origen no es confiable (para early-return con try/catch). */
+export function assertTrustedOrigin(headers: Headers): void {
+  const check = verifyOriginFromHeaders(headers);
+  if (!check.ok) {
+    throw new Error(
+      `Untrusted origin: origin=${check.origin ?? 'null'} host=${check.host ?? 'null'} reason=${check.reason ?? 'unknown'}`,
+    );
+  }
+}
+
+/* ================================================================== */
 /* 3. RATE LIMIT (ventana deslizante en memoria del runtime)           */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
 
 interface Bucket {
   timestamps: number[];
 }
 
-const rateBuckets = new Map<string, Bucket>();
 const RATE_WINDOW_MS = 60_000;
+/** Límite por defecto para la variante header-only (assertRateLimit). */
+const RATE_LIMIT_MAX_REQUESTS = 30;
 
-export function rateLimit(
-  req: NextRequest,
+const rateBuckets = new Map<string, Bucket>();
+
+function rateLimitByKey(
   key: string,
   limit: number,
-  windowMs: number = RATE_WINDOW_MS
+  windowMs: number,
 ): { ok: boolean; remaining: number; retryAfterMs: number } {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown';
-  const bucketKey = `${key}:${ip}`;
   const now = Date.now();
-
-  let bucket = rateBuckets.get(bucketKey);
+  let bucket = rateBuckets.get(key);
   if (!bucket) {
     bucket = { timestamps: [] };
-    rateBuckets.set(bucketKey, bucket);
+    rateBuckets.set(key, bucket);
   }
   bucket.timestamps = bucket.timestamps.filter(t => now - t < windowMs);
 
@@ -107,7 +192,46 @@ export function rateLimit(
   return { ok: true, remaining: Math.max(0, limit - bucket.timestamps.length), retryAfterMs: 0 };
 }
 
-/** Libera memoria: poda los buckets expirados (llamar ocasionalmente). */
+/** Extrae la IP real de la petición (x-forwarded-for → x-real-ip → unknown). */
+export function getRequestIp(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  const first = forwarded?.split(',')[0]?.trim();
+  if (first) return first;
+  return req.headers.get('x-real-ip')?.trim() || 'unknown';
+}
+
+/** Clave de rate limit a partir de headers estándar. */
+export function getRateLimitKey(headers: Headers): string {
+  const forwarded = headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() || headers.get('x-real-ip')?.trim() || 'unknown';
+  return `ip:${ip}`;
+}
+
+/** Rate limit por petición Next (buckets separados por clave + IP). */
+export function rateLimit(
+  req: NextRequest,
+  key: string,
+  limit: number,
+  windowMs: number = RATE_WINDOW_MS,
+): { ok: boolean; remaining: number; retryAfterMs: number } {
+  return rateLimitByKey(`${key}:${getRequestIp(req)}`, limit, windowMs);
+}
+
+/** Aplica rate limit por headers estándar; lanza si se supera. */
+export function assertRateLimit(
+  headers: Headers,
+  limit: number = RATE_LIMIT_MAX_REQUESTS,
+): void {
+  const key = getRateLimitKey(headers);
+  const { ok, retryAfterMs } = rateLimitByKey(`header:${key}`, limit, RATE_WINDOW_MS);
+  if (!ok) {
+    throw new Error(
+      `Rate limit exceeded for key=${key} resetMs=${retryAfterMs}`,
+    );
+  }
+}
+
+/** Libera memoria: poda los buckets expirados. */
 export function pruneRateBuckets(): void {
   const now = Date.now();
   for (const [key, bucket] of rateBuckets) {
@@ -116,20 +240,37 @@ export function pruneRateBuckets(): void {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/* 4. REDACCIÓN DE PII / SECRETOS (para logs y trazas)                 */
+/* ================================================================== */
+/* 4. REDACCIÓN DE PII / SECRETOS (para logs, trazas y respuestas)     */
+/* ================================================================== */
+/* Patrones calibrados para evitar falsos positivos en contenido       */
+/* histórico del territorio (años como "2026", cifras como "500"):     */
+/* los teléfonos requieren formato completo y los años quedan intactos */
+/* porque no alcanzan las longitudes mínimas de las reglas.            */
 /* ------------------------------------------------------------------ */
 
 const PII_PATTERNS: Array<[RegExp, string]> = [
+  /* Correos electrónicos */
   [/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '[EMAIL]'],
-  [/\+\d[\d\s-]{8,}/g, '[TEL]'],
-  [/\b[A-Z]{4}\d{6}H[A-Z0-9]{9}\b/g, '[CURP]'],
-  [/\b\d{13,19}\b/g, '[TARJETA]'],
+  /* Teléfonos internacionales con prefijo + (9-15 dígitos) */
+  [/\+?\d{1,3}[\s-]?\(\d{2,4}\)[\s-]?\d{3,4}[\s-]?\d{3,4}/g, '[TEL]'],
+  /* Teléfonos MX de 10 dígitos exactos (nunca años de 4 dígitos) */
+  [/\b\d{10}\b/g, '[TEL]'],
+  /* CURP (18 caracteres alfanuméricos, sexo H/M) */
+  [/\b[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/g, '[CURP]'],
+  /* Tarjetas: 13-19 dígitos, con o sin separadores */
+  [/\b(?:\d[ -]*?){13,19}\b/g, '[TARJETA]'],
+  /* Claves de proveedores de IA */
   [/AIza[A-Za-z0-9_\-]{20,}/g, '[GEMINI_KEY]'],
+  [/\bsk-ant-[A-Za-z0-9_-]{20,}/g, '[SK_KEY]'],
   [/\bsk-[A-Za-z0-9]{16,}/g, '[SK_KEY]'],
   [/\bgsk_[A-Za-z0-9]{16,}/g, '[GATEWAY_KEY]'],
+  /* Tokens Bearer y secretos por clave: valor */
+  [/\bBearer\s+[A-Za-z0-9._~+/=-]{16,}/g, '[TOKEN]'],
+  [/\b(?:apikey|api_key|secret|token|password|clave)\s*[:=]\s*[^\s,;]+/gi, '[KEY]'],
 ];
 
+/** Redacta PII y secretos en un texto. */
 export function redact(input: string): string {
   let output = input;
   for (const [pattern, replacement] of PII_PATTERNS) {
@@ -138,20 +279,42 @@ export function redact(input: string): string {
   return output;
 }
 
+/** Alias legado (nomenclatura del trust layer original). */
+export function redactPII(text: string): string {
+  return redact(text);
+}
+
+/** Redacta un registro plano o anidado (objetos/arrays incluidos). */
 export function redactRecord(record: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(record)) {
     if (typeof value === 'string') out[key] = redact(value);
-    else if (value && typeof value === 'object') out[key] = JSON.parse(redact(JSON.stringify(value)));
+    else if (Array.isArray(value)) out[key] = value.map(sanitizeForLog);
+    else if (value && typeof value === 'object') out[key] = redactRecord(value as Record<string, unknown>);
     else out[key] = value;
   }
   return out;
 }
 
-/* ------------------------------------------------------------------ */
-/* 5. COMPARACIÓN EN TIEMPO CONSTANTE (anti timing-attack)             */
-/* ------------------------------------------------------------------ */
+/** Sanitiza cualquier payload para logs (recursivo). */
+export function sanitizeForLog(payload: unknown): unknown {
+  if (typeof payload === 'string') return redact(payload);
+  if (Array.isArray(payload)) return payload.map(sanitizeForLog);
+  if (payload && typeof payload === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(payload as Record<string, unknown>)) {
+      out[key] = sanitizeForLog(value);
+    }
+    return out;
+  }
+  return payload;
+}
 
+/* ================================================================== */
+/* 5. COMPARACIÓN EN TIEMPO CONSTANTE (anti timing-attack)             */
+/* ================================================================== */
+
+/** Compara dos cadenas en tiempo constante (sin dependencias nativas). */
 export function constantTimeCompare(a: string, b: string): boolean {
   const ba = new TextEncoder().encode(a);
   const bb = new TextEncoder().encode(b);
@@ -159,4 +322,12 @@ export function constantTimeCompare(a: string, b: string): boolean {
   let diff = 0;
   for (let i = 0; i < ba.length; i++) diff |= ba[i] ^ bb[i];
   return diff === 0;
+}
+
+/** Variante con crypto.timingSafeEqual (requiere Node; misma longitud). */
+export function timingSafeEqualUtf8(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, 'utf8');
+  const bufB = Buffer.from(b, 'utf8');
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
 }
