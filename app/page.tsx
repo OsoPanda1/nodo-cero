@@ -21,6 +21,7 @@ import ForumSection from "@/components/forum/ForumSection";
 import HonorWallSection from "@/components/honor/HonorWallSection";
 import GallerySection from "@/components/gallery/GallerySection";
 import AboutSection from "@/components/about/AboutSection";
+import CrownGatewaySection from "@/components/gateway/CrownGatewaySection";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
 import { Box, Activity, ArrowRight, Radio, Lock } from "lucide-react";
 
@@ -172,6 +173,13 @@ export default function RDMDigitalHubHome() {
       {activeView === "gallery" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
           <GallerySection />
+        </div>
+      )}
+
+      {/* 15b. CROWN GATEWAY VIEW */}
+      {activeView === 'crown-gateway' && (
+        <div className="p-6 md:p-10 space-y-6 max-w-7xl mx-auto">
+          <CrownGatewaySection />
         </div>
       )}
 

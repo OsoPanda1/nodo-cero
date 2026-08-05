@@ -8,7 +8,30 @@ import { GUARD_CATEGORIES } from './prompt-guard';
 import { CANONICAL_DOMAINS } from './intention-parser';
 import { MEXA_PQC_TARGET, MEXA_SCHEME, mexaGetOperatorKeyPair, mexaKeyIdFromPublic, mexaSign, mexaVerify } from './mexa-crypto';
 import { PRA_ENGINE } from './pra';
+import { crownGatewayGenerate } from './crown-gateway';
+import { CanonicalDomain } from './intention-parser';
 import { uuid } from './utils';
+import { assertServerOnly, rateLimit, verifyOrigin } from './trust';
+
+/* ------------------------------------------------------------------ */
+/* HARDENING ZERO TRUST — aplicado a toda la superficie de entrada     */
+/* ------------------------------------------------------------------ */
+function enforceTrust(req: NextRequest, key: string, limit: number): NextResponse | null {
+  const server = assertServerOnly('ISA API');
+  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
+
+  const origin = verifyOrigin(req);
+  if (!origin.ok) return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
+
+  const rl = rateLimit(req, key, limit);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { ok: false, error: 'Límite de peticiones del Nodo alcanzado. Reintenta en un momento.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
+    );
+  }
+  return null;
+}
 
 function validRisk(value: unknown): RiskLevel {
   return value === 'high' || value === 'medium' || value === 'low' ? value : 'low';
@@ -78,6 +101,8 @@ export function buildPerception(body: unknown): { perception: IsabellaPerception
 /* POST /api/isabella  ·  POST /api/isabella/chat (pipeline completo)  */
 /* ------------------------------------------------------------------ */
 export async function handleIsabellaPost(req: NextRequest) {
+  const denied = enforceTrust(req, 'isabella-chat', 60);
+  if (denied) return denied;
   try {
     const body = await req.json().catch(() => null);
     const { perception, error } = buildPerception(body);
@@ -89,22 +114,34 @@ export async function handleIsabellaPost(req: NextRequest) {
     const result = await processPerception(perception);
 
     let text = result.decision.summary;
+    let gateway = null;
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && result.decision.policyStatus === 'allowed' && perception.payload.text) {
+    if (result.decision.policyStatus === 'allowed' && perception.payload.text) {
       try {
-        const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: [{
-            role: 'user',
-            parts: [{ text: `${result.decision.summary}\n\n[Isabella Cognitive Context]\nIntent: ${String(result.decision.details.intent)}\nCanonical: ${String(result.decision.details.canonicalIntent)}\nConfidence: ${result.decision.confidence}\nTerritorio: ${perception.territory?.place ?? 'Real del Monte'}` }],
-          }],
+        const canonical = (result.decision.details.canonicalIntent as CanonicalDomain | undefined) ?? 'submission';
+        const routed = await crownGatewayGenerate({
+          prompt: perception.payload.text,
+          canonicalDomain: canonical,
+          intent: String(result.decision.details.intent ?? ''),
+          riskLevel: result.decision.riskLevel,
+          confidence: result.decision.confidence,
+          traceId: result.traceId,
+          fallbackText: result.decision.summary,
+          territory: perception.territory?.place,
+          sessionId: result.sessionId,
         });
-        if (response.text) text = response.text;
+        text = routed.text;
+        gateway = {
+          provider: routed.provider,
+          model: routed.model,
+          latencyMs: routed.latencyMs,
+          trustZone: routed.trustZone,
+          simulation: routed.simulation,
+          emergency: routed.emergency,
+          fallbacksTried: routed.fallbacksTried,
+        };
       } catch {
-        /* modo simulación seguro: se conserva la respuesta de SOPHIA */
+        /* el fallback soberano (SOPHIA) ya está en `text` */
       }
     }
 
@@ -116,6 +153,7 @@ export async function handleIsabellaPost(req: NextRequest) {
       sessionId: result.sessionId,
       auditEvents: result.auditEvents,
       events: result.events,
+      gateway,
     });
   } catch (err) {
     const traceId = uuid();
@@ -178,6 +216,8 @@ export async function handleIsabellaGet() {
 /* POST /api/isabella/isa/reason — Structured Reasoning Engine         */
 /* ------------------------------------------------------------------ */
 export async function handleIsabellaReason(req: NextRequest) {
+  const denied = enforceTrust(req, 'isabella-reason', 60);
+  if (denied) return denied;
   try {
     const body = await req.json().catch(() => null);
     const { perception, error } = buildPerception(body);
@@ -225,6 +265,8 @@ export async function handleIsabellaReason(req: NextRequest) {
 /* POST /api/isabella/crypto/sign — Mexa API (operador)                */
 /* ------------------------------------------------------------------ */
 export async function handleIsabellaCryptoSign(req: NextRequest) {
+  const denied = enforceTrust(req, 'isabella-crypto-sign', 20);
+  if (denied) return denied;
   try {
     const operatorKey = process.env.MEXA_OPERATOR_KEY;
     if (!operatorKey) {
@@ -270,6 +312,8 @@ export async function handleIsabellaCryptoSign(req: NextRequest) {
 /* POST /api/isabella/crypto/verify — Mexa API (público)               */
 /* ------------------------------------------------------------------ */
 export async function handleIsabellaCryptoVerify(req: NextRequest) {
+  const denied = enforceTrust(req, 'isabella-crypto-verify', 60);
+  if (denied) return denied;
   try {
     const body = await req.json().catch(() => null);
     const record = (typeof body === 'object' && body !== null ? body : {}) as Record<string, unknown>;

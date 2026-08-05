@@ -6,7 +6,7 @@ import {
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
   ChevronRight, ChevronDown, Search, Menu, X, Radio, Sparkles, 
   Map, Database, Key, ShoppingBag, ArrowUpRight, Lock, Zap,
-  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull
+  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network
 } from 'lucide-react';
 
 interface YUNLayoutProps {
@@ -191,6 +191,7 @@ export default function YUNLayout({
                 { id: 'forum', label: 'Foro RDM', icon: <MessagesSquare className="w-4 h-4 text-cyan-400" /> },
                 { id: 'honor', label: 'Muro de Honor', icon: <Award className="w-4 h-4 text-amber-400" /> },
                 { id: 'gallery', label: 'Galería Compartida', icon: <Images className="w-4 h-4 text-emerald-400" /> },
+                { id: 'crown-gateway', label: 'CROWN Gateway · IA Federada', icon: <Network className="w-4 h-4 text-cyan-400" /> },
                 { id: 'about', label: 'Quiénes Somos', icon: <Users className="w-4 h-4 text-blue-400" /> },
               ].map(item => (
                 <button

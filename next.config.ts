@@ -1,5 +1,35 @@
 import type {NextConfig} from 'next';
 
+/* C.R.O.W.N. — Cabeceras de seguridad Zero Trust aplicadas en el edge.
+   CSP estricta: los tiles del mapa (Carto) y el iframe de Spotify son
+   los únicos orígenes externos permitidos. */
+const securityHeaders = [
+  { key: 'Content-Security-Policy', value: [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org",
+    "media-src 'self' blob: data:",
+    "font-src 'self' data:",
+    "connect-src 'self' ws: wss:",
+    "frame-src https://open.spotify.com",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "upgrade-insecure-requests",
+  ].join('; ') },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self), payment=(), usb=()' },
+  { key: 'X-XSS-Protection', value: '1; mode=block' },
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+  { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: {
@@ -15,6 +45,15 @@ const nextConfig: NextConfig = {
   // Standalone build keeps the deployment self-contained (Cloud Run / Docker compatible).
   output: 'standalone',
   transpilePackages: ['motion', 'three', '@react-three/fiber'],
+  async headers() {
+    return [
+      {
+        // Apply security headers to all routes
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ];
+  },
   webpack: (config, {dev}) => {
     // HMR is disabled in AI Studio via DISABLE_HMR env var.
     // File watching is disabled to prevent flickering during agent edits.
