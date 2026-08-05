@@ -9,6 +9,7 @@ import { emitYunEvent } from '@/lib/isabella/events';
 import { uuid } from '@/lib/isabella/utils';
 import { rateLimit, verifyOrigin, assertServerOnly, redact } from '@/lib/isabella/trust';
 import { getEmergencyStatus } from '@/lib/isabella/dead-man-switch';
+import { fleetAllowed, policySeverity } from '@/lib/isabella/gateway-policy';
 
 /* ------------------------------------------------------------------ */
 /* POST /api/isabella/gateway — genera una respuesta vía el CROWN      */
@@ -62,6 +63,33 @@ export async function POST(req: NextRequest) {
     const canonical = parseIntention(perception.payload.text ?? '');
     const result = await processPerception(perception);
     const traceId = result.traceId;
+
+    /* LUMEN: percepciones denegadas o que requieren aprobación NO consultan
+       a la flota federada. Se responde con la decisión soberana (fail-closed). */
+    if (!fleetAllowed(result.decision.policyStatus)) {
+      emitYunEvent({
+        eventType: 'gateway.response.blocked_by_lumen',
+        domain: 'security',
+        federationId: perception.territory?.federationId,
+        traceId,
+        source: 'crown-gateway',
+        entityId: perception.actorId,
+        severity: policySeverity(result.decision.policyStatus),
+        payload: {
+          policyStatus: result.decision.policyStatus,
+          canonicalDomain: canonical.domain,
+        },
+      });
+      return NextResponse.json({
+        ok: true,
+        text: result.decision.summary,
+        gateway: null,
+        decision: result.decision,
+        policyBlocked: true,
+        traceId,
+        sessionId: result.sessionId,
+      });
+    }
 
     const gateway = await crownGatewayGenerate({
       prompt: perception.payload.text ?? '',

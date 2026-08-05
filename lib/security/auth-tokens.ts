@@ -58,6 +58,10 @@ export function signSessionToken(input: {
   actorId: string;
 }): { token: string; mode: 'signed' | 'open' } {
   const secret = getHmacSecret();
+  if (!secret && process.env.NODE_ENV === 'production') {
+    /* Fail-closed: en producción jamás se emiten tokens sin integridad criptográfica. */
+    throw new Error('GAMIFICATION_HMAC_SECRET no está definida: los tokens de sesión exigen firma en producción.');
+  }
   const now = Date.now();
   const payload: TokenPayload = {
     sessionId: input.sessionId,
@@ -77,12 +81,17 @@ export function signSessionToken(input: {
 export function verifySessionToken(
   token: string | null | undefined,
   expectedSessionId?: string,
+  expectedDeviceId?: string,
 ): { ok: boolean; payload?: TokenPayload; reason?: string } {
   if (!token || !token.includes('.')) {
     return { ok: false, reason: 'token ausente o malformado' };
   }
 
-  const [body, signature] = token.split('.');
+  const parts = token.split('.');
+  if (parts.length !== 2) {
+    return { ok: false, reason: 'token con segmentos extra' };
+  }
+  const [body, signature] = parts;
   const decoded = decodeBase64Url(body);
   if (!decoded) return { ok: false, reason: 'payload de token inválido' };
 
@@ -105,7 +114,15 @@ export function verifySessionToken(
     return { ok: false, reason: 'token no corresponde a la sesión' };
   }
 
+  if (expectedDeviceId && payload.deviceId !== expectedDeviceId) {
+    return { ok: false, reason: 'token no corresponde al dispositivo' };
+  }
+
   const secret = getHmacSecret();
+  if (!secret && process.env.NODE_ENV === 'production') {
+    /* Fail-closed: sin secreto en producción no hay integridad que verificar. */
+    return { ok: false, reason: 'verificación criptográfica no disponible' };
+  }
   if (secret) {
     if (!signature) return { ok: false, reason: 'token sin firma' };
     const expected = hmac(payload, secret);

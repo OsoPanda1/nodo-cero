@@ -15,6 +15,7 @@
 /* ------------------------------------------------------------------ */
 
 import { auditTrace } from './audit-tracer';
+import { constantTimeCompare } from './trust';
 import { uuid } from './utils';
 
 export type EmergencyMode = 'disarmed' | 'armed';
@@ -93,7 +94,7 @@ interface EmergencyState {
 
 let emergencyState: EmergencyState = {
   mode: process.env.CROWN_EMERGENCY_MODE === 'armed' ? 'armed' : 'disarmed',
-  trigger: process.env.CROWN_EMERGENCY_MODE === 'armed' ? 'manual' : 'manual',
+  trigger: 'manual',
   reason: process.env.CROWN_EMERGENCY_MODE === 'armed' ? 'Activado por variable de entorno (CROWN_EMERGENCY_MODE)' : null,
   activatedAt: null,
   deactivatedAt: null,
@@ -165,14 +166,14 @@ export function disarmEmergency(key: string): { ok: boolean; error?: string } {
   if (!expected) {
     return { ok: false, error: 'CROWN_EMERGENCY_KEY no está definida en el Nodo: no se permite desarmar.' };
   }
-  if (key !== expected) {
+  if (!constantTimeCompare(key, expected)) {
     return { ok: false, error: 'Clave de emergencia inválida.' };
   }
   emergencyState = {
     mode: 'disarmed',
     trigger: 'manual',
     reason: null,
-    activatedAt: emergencyState.activatedAt,
+    activatedAt: null,
     deactivatedAt: Date.now(),
   };
   heartbeat();

@@ -20,6 +20,7 @@ import {
   POINT_LIMITS,
 } from './rules';
 import {
+  pruneWindows,
   validateComboEvent,
   validateGenericEvent,
   validateKillEvent,
@@ -62,7 +63,7 @@ function applyKill(session: GamificationSession, event: KillZombieEvent): EventR
   const next = updateSession(session.id, {
     totalPoints: session.totalPoints + points,
     kills: session.kills + 1,
-    maxCombo: session.maxCombo,
+    maxCombo: Math.max(session.maxCombo, event.comboCount ?? 0),
   });
 
   return {
@@ -236,6 +237,9 @@ function applyPrize(session: GamificationSession, prizeId: string, cost: number,
 }
 
 export function applyEvent(event: GameplayEvent): EventResult {
+  /* Poda de ventanas anti-cheat expiradas (mitiga crecimiento de memoria). */
+  pruneWindows();
+
   const session = getSession(event.sessionId);
   if (!session) {
     return { ok: false, accepted: false, pointsAwarded: 0, totalPoints: 0, sessionId: event.sessionId, reason: 'sesión no encontrada', flags: [] };

@@ -22,6 +22,11 @@ import HonorWallSection from "@/components/honor/HonorWallSection";
 import GallerySection from "@/components/gallery/GallerySection";
 import AboutSection from "@/components/about/AboutSection";
 import CrownGatewaySection from "@/components/gateway/CrownGatewaySection";
+import { TwinsDashboard } from "@/components/twins/TwinsDashboard";
+import { CityDashboard } from "@/components/city/CityDashboard";
+import { AssetDashboard } from "@/components/assets/AssetDashboard";
+import { GridDashboard } from "@/components/grid/GridDashboard";
+import { MarketplaceDashboard } from "@/components/marketplace/MarketplaceDashboard";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
 import { Box, Activity, ArrowRight, Radio, Lock } from "lucide-react";
 
@@ -182,6 +187,21 @@ export default function RDMDigitalHubHome() {
           <CrownGatewaySection />
         </div>
       )}
+
+      {/* 15c. GEMELO TERRITORIAL (TWINS) VIEW */}
+      {activeView === "twins" && <TwinsDashboard />}
+
+      {/* 15d. CIUDAD IOC VIEW */}
+      {activeView === "city" && <CityDashboard />}
+
+      {/* 15e. EAM / APM VIEW */}
+      {activeView === "eam" && <AssetDashboard />}
+
+      {/* 15f. SMART GRID / AGUA VIEW */}
+      {activeView === "grid" && <GridDashboard />}
+
+      {/* 15g. MARKETPLACE DIGITAL VIEW */}
+      {activeView === "digital-marketplace" && <MarketplaceDashboard />}
 
       {/* 16. ABOUT VIEW */}
       {activeView === "about" && (

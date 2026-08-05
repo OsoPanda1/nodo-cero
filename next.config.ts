@@ -32,9 +32,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: false,
   },
@@ -44,6 +41,8 @@ const nextConfig: NextConfig = {
   },
   // Standalone build keeps the deployment self-contained (Cloud Run / Docker compatible).
   output: 'standalone',
+  // Next.js 16 usa Turbopack por defecto; la config webpack legacy solo se aplica con --webpack.
+  turbopack: {},
   transpilePackages: ['motion', 'three', '@react-three/fiber'],
   async headers() {
     return [

@@ -11,7 +11,7 @@ import { PRA_ENGINE } from './pra';
 import { crownGatewayGenerate } from './crown-gateway';
 import { CanonicalDomain } from './intention-parser';
 import { uuid } from './utils';
-import { assertServerOnly, rateLimit, verifyOrigin } from './trust';
+import { assertServerOnly, constantTimeCompare, rateLimit, verifyOrigin } from './trust';
 
 /* ------------------------------------------------------------------ */
 /* HARDENING ZERO TRUST — aplicado a toda la superficie de entrada     */
@@ -277,12 +277,26 @@ export async function handleIsabellaCryptoSign(req: NextRequest) {
     }
 
     const body = await req.json().catch(() => null);
-    const payload = typeof body === 'object' && body !== null
-      ? (body as Record<string, unknown>).payload
-      : body;
+    const record = (typeof body === 'object' && body !== null ? body : {}) as Record<string, unknown>;
+    const payload = record.payload;
+    const operatorId = typeof record.operatorId === 'string' ? record.operatorId.trim() : '';
+    const candidateOperatorKey = typeof record.operatorKey === 'string' ? record.operatorKey : '';
 
     if (payload === undefined || payload === null) {
       return NextResponse.json({ ok: false, error: 'Campo payload requerido para firmar.' }, { status: 400 });
+    }
+    if (!operatorId) {
+      return NextResponse.json({ ok: false, error: 'Campo operatorId requerido para firmar.' }, { status: 400 });
+    }
+
+    /* Autenticación del operador: prueba de posesión de MEXA_OPERATOR_KEY
+       comparada en tiempo constante (rechaza 403 sin revelar la clave). */
+    const operatorSecret = process.env.MEXA_OPERATOR_KEY;
+    if (!operatorSecret || !constantTimeCompare(candidateOperatorKey, operatorSecret)) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Operador no autenticado: credencial inválida o inexistente.',
+      }, { status: 403 });
     }
 
     const keyPair = await mexaGetOperatorKeyPair();
@@ -292,6 +306,7 @@ export async function handleIsabellaCryptoSign(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       signedBy: 'Nodo Cero · Mexa API (operador)',
+      operatorId,
       scheme: MEXA_SCHEME,
       pqTarget: MEXA_PQC_TARGET,
       signature,
@@ -299,11 +314,10 @@ export async function handleIsabellaCryptoSign(req: NextRequest) {
       keyId,
       payload,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({
       ok: false,
       error: 'Mexa API: error al emitir la firma MSR.',
-      detail: err instanceof Error ? err.message : 'Error desconocido',
     }, { status: 500 });
   }
 }
@@ -322,14 +336,44 @@ export async function handleIsabellaCryptoVerify(req: NextRequest) {
     const signature = typeof record.signature === 'string' ? record.signature : '';
     const publicKey = record.publicKey as JsonWebKey | undefined;
 
-    if (payload === undefined || payload === null || !signature || !publicKey) {
+    if (payload === undefined || payload === null || !signature) {
+      return NextResponse.json({
+        ok: false,
+        error: 'Se requieren payload y signature para verificar.',
+      }, { status: 400 });
+    }
+
+    /* Provenance real: en producción solo se verifica contra la clave pública
+       del operador (MEXA_OPERATOR_PUBLIC_KEY). Una clave arbitraria aportada
+       por la petición solo demuestra autoconsistencia, no procedencia, así que
+       fuera de development se ignora y se falla cerrado si no está configurada. */
+    let verificationKey: JsonWebKey | undefined;
+    if (process.env.NODE_ENV !== 'development') {
+      if (typeof process.env.MEXA_OPERATOR_PUBLIC_KEY === 'string' && process.env.MEXA_OPERATOR_PUBLIC_KEY) {
+        try {
+          verificationKey = JSON.parse(process.env.MEXA_OPERATOR_PUBLIC_KEY) as JsonWebKey;
+        } catch {
+          verificationKey = undefined;
+        }
+      }
+      if (!verificationKey) {
+        return NextResponse.json({
+          ok: false,
+          error: 'Verificación no disponible: define MEXA_OPERATOR_PUBLIC_KEY (JWK del operador).',
+        }, { status: 503 });
+      }
+    } else {
+      verificationKey = publicKey;
+    }
+
+    if (!verificationKey) {
       return NextResponse.json({
         ok: false,
         error: 'Se requieren payload, signature y publicKey para verificar.',
       }, { status: 400 });
     }
 
-    const result = await mexaVerify(publicKey, payload, signature);
+    const result = await mexaVerify(verificationKey, payload, signature);
 
     return NextResponse.json({
       ok: true,
@@ -338,11 +382,10 @@ export async function handleIsabellaCryptoVerify(req: NextRequest) {
       verifiedBy: 'Nodo Cero · Mexa API',
       scheme: MEXA_SCHEME,
     });
-  } catch (err) {
+  } catch {
     return NextResponse.json({
       ok: false,
       error: 'Mexa API: verificación rechazada por integridad o formato.',
-      detail: err instanceof Error ? err.message : 'Error desconocido',
     }, { status: 400 });
   }
 }

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { assertServerOnly, rateLimit, verifyOrigin } from '@/lib/isabella/trust';
-import { signSessionToken } from '@/lib/security/auth-tokens';
+import { signSessionToken, verifySessionToken } from '@/lib/security/auth-tokens';
 import { jsonContentGuard, methodGuard, parseJsonBody, requiredString } from '@/lib/security/request-validator';
-import { createSession, endSession, getActiveSessionByDevice } from '@/lib/gamification/store';
+import { createSession, endSession, getActiveSessionByDevice, getSession } from '@/lib/gamification/store';
 import { uuid } from '@/lib/isabella/utils';
 
 export const runtime = 'nodejs';
@@ -25,13 +25,13 @@ function enforceTrust(req: NextRequest): NextResponse | null {
 }
 
 async function startSession(body: Record<string, unknown>) {
-  const deviceId = requiredString(body, 'deviceId');
-  if (deviceId) {
-    return NextResponse.json({ ok: false, error: `Campo requerido: ${deviceId}` }, { status: 400 });
+  const missingField = requiredString(body, 'deviceId');
+  if (missingField) {
+    return NextResponse.json({ ok: false, error: `Campo requerido: ${missingField}` }, { status: 400 });
   }
   const deviceIdValue = String(body.deviceId).slice(0, 128);
-  const name = typeof body.name === 'string' ? body.name.slice(0, 40) : undefined;
-  const actorId = typeof body.actorId === 'string' && body.actorId ? String(body.actorId).slice(0, 64) : `guardian-${deviceIdValue.slice(0, 12)}`;
+  const name = typeof body.name === 'string' ? body.name.replace(/[<>]/g, '').trim().slice(0, 40) : undefined;
+  const actorId = typeof body.actorId === 'string' && body.actorId ? String(body.actorId).replace(/[<>]/g, '').slice(0, 64) : `guardian-${deviceIdValue.slice(0, 12)}`;
 
   const existing = getActiveSessionByDevice(deviceIdValue);
   if (existing) {
@@ -83,11 +83,24 @@ async function endSessionHandler(body: Record<string, unknown>) {
   if (missing) {
     return NextResponse.json({ ok: false, error: `Campo requerido: ${missing}` }, { status: 400 });
   }
-  const session = endSession(String(body.sessionId));
+  const sessionId = String(body.sessionId);
+  const session = getSession(sessionId);
   if (!session) {
     return NextResponse.json({ ok: false, error: 'Sesión no encontrada.' }, { status: 404 });
   }
-  return NextResponse.json({ ok: true, sessionId: session.id, endedAt: session.endedAt, totalPoints: session.totalPoints });
+
+  /* Autorización: finalizar una sesión exige el token firmado de ESA sesión y
+     dispositivo (previene terminar sesiones ajenas / IDOR). */
+  const tokenCheck = verifySessionToken(String(body.token ?? ''), sessionId, session.deviceId);
+  if (!tokenCheck.ok) {
+    return NextResponse.json({ ok: false, error: `Token inválido: ${tokenCheck.reason}` }, { status: 401 });
+  }
+
+  const ended = endSession(sessionId);
+  if (!ended) {
+    return NextResponse.json({ ok: false, error: 'Sesión no encontrada.' }, { status: 404 });
+  }
+  return NextResponse.json({ ok: true, sessionId: ended.id, endedAt: ended.endedAt, totalPoints: ended.totalPoints });
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {

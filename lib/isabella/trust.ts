@@ -93,16 +93,23 @@ export function allowedOrigins(): string[] {
  *  - Si hay header `origin`: compara contra la allowlist (rechaza CSRF).
  *  - Si no hay `origin` pero hay `host`: compara el host (server-to-server).
  *  - Sin ninguno de los dos: se permite (cliente/agente sin origen).
+ *  - Sin allowlist configurada en producción: FALL-CLOSED (se rechaza todo).
  */
 export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string } {
   if (process.env.NODE_ENV === 'development') return { ok: true };
   const origins = allowedOrigins();
-  if (origins.length === 0) return { ok: true };
+  if (origins.length === 0) {
+    return { ok: false, reason: 'Ningún origen canónico configurado (APP_URL / NEXT_PUBLIC_SITE_URL / VERCEL_URL). Zero Trust: fail-closed.' };
+  }
 
   const origin = req.headers.get('origin');
   if (origin) {
     const normalized = normalizeOrigin(origin);
-    if (normalized && origins.includes(normalized)) return { ok: true };
+    if (!normalized) {
+      /* Origin presente pero malformado: jamás se degrada al chequeo de Host. */
+      return { ok: false, reason: 'Origen malformado no autorizado (Zero Trust).' };
+    }
+    if (origins.includes(normalized)) return { ok: true };
     return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
   }
 
@@ -176,6 +183,11 @@ function rateLimitByKey(
   windowMs: number,
 ): { ok: boolean; remaining: number; retryAfterMs: number } {
   const now = Date.now();
+
+  /* Poda probabilística del almacén de buckets para evitar crecimiento
+     ilimitado en procesos de larga duración. */
+  if (rateBuckets.size > 512) pruneRateBuckets();
+
   let bucket = rateBuckets.get(key);
   if (!bucket) {
     bucket = { timestamps: [] };
@@ -192,12 +204,29 @@ function rateLimitByKey(
   return { ok: true, remaining: Math.max(0, limit - bucket.timestamps.length), retryAfterMs: 0 };
 }
 
-/** Extrae la IP real de la petición (x-forwarded-for → x-real-ip → unknown). */
+/**
+ * Extrae la IP real de la petición priorizando proxies de confianza.
+ *  - Vercel: x-vercel-forwarded-for (añadido por su proxy).
+ *  - Cloudflare: cf-connecting-ip.
+ *  - Proxy propio: x-real-ip.
+ *  - Cadena X-Forwarded-For: último valor (el que añade el proxy último).
+ * Nota: sin un proxy de confianza la cabecera es spoofeable; se documenta
+ * en el informe de auditoría (mitigación: desplegar tras Vercel/edge).
+ */
 export function getRequestIp(req: NextRequest): string {
+  if (process.env.VERCEL) {
+    const vercelForwarded = req.headers.get('x-vercel-forwarded-for');
+    if (vercelForwarded) return vercelForwarded.trim();
+  }
+  const cf = req.headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
+  const real = req.headers.get('x-real-ip');
+  if (real) return real.trim();
   const forwarded = req.headers.get('x-forwarded-for');
-  const first = forwarded?.split(',')[0]?.trim();
-  if (first) return first;
-  return req.headers.get('x-real-ip')?.trim() || 'unknown';
+  const parts = forwarded?.split(',') ?? [];
+  const last = parts[parts.length - 1]?.trim();
+  if (last) return last;
+  return 'unknown';
 }
 
 /** Clave de rate limit a partir de headers estándar. */

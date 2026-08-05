@@ -25,6 +25,7 @@ export interface CheatCheckResult {
 /* Ventana deslizante por sesión (timestamps en ms). */
 interface SessionWindow {
   timestamps: number[];
+  killTimestamps: number[];
 }
 
 const windows = new Map<string, SessionWindow>();
@@ -32,7 +33,7 @@ const windows = new Map<string, SessionWindow>();
 function windowFor(sessionId: string): SessionWindow {
   let w = windows.get(sessionId);
   if (!w) {
-    w = { timestamps: [] };
+    w = { timestamps: [], killTimestamps: [] };
     windows.set(sessionId, w);
   }
   return w;
@@ -42,7 +43,8 @@ export function pruneWindows(): void {
   const now = Date.now();
   for (const [id, w] of windows) {
     w.timestamps = w.timestamps.filter(t => now - t < 60_000);
-    if (w.timestamps.length === 0) windows.delete(id);
+    w.killTimestamps = w.killTimestamps.filter(t => now - t < 60_000);
+    if (w.timestamps.length === 0 && w.killTimestamps.length === 0) windows.delete(id);
   }
 }
 
@@ -65,6 +67,18 @@ function eventRateOk(sessionId: string): CheatCheckResult {
   return { ok: true };
 }
 
+/** Ventana deslizante real de 60s para kills (nunca media desde el inicio de la sesión). */
+function killRateOk(sessionId: string): CheatCheckResult {
+  const now = Date.now();
+  const w = windowFor(sessionId);
+  w.killTimestamps = w.killTimestamps.filter(t => now - t < 60_000);
+  if (w.killTimestamps.length >= CHEAT_LIMITS.MAX_KILLS_PER_MINUTE) {
+    return { ok: false, reason: 'kills por minuto sobre el límite', flag: 'kill-rate' };
+  }
+  w.killTimestamps.push(now);
+  return { ok: true };
+}
+
 export function validateSessionActive(session: GamificationSession | undefined): CheatCheckResult {
   if (!session) return { ok: false, reason: 'sesión no encontrada', flag: 'unknown-session' };
   if (session.endedAt) return { ok: false, reason: 'sesión finalizada', flag: 'closed-session' };
@@ -84,10 +98,8 @@ export function validateKillEvent(
   const rate = eventRateOk(session.id);
   if (!rate.ok) return rate;
 
-  const killsPerMinute = Math.max(1, session.kills) / Math.max(1, (Date.now() - session.startedAt) / 60_000);
-  if (killsPerMinute > CHEAT_LIMITS.MAX_KILLS_PER_MINUTE) {
-    return { ok: false, reason: 'kills por minuto sobre el límite', flag: 'kill-rate' };
-  }
+  const killRate = killRateOk(session.id);
+  if (!killRate.ok) return killRate;
 
   const base = event.basePoints;
   if (!Number.isFinite(base) || base <= 0 || base > POINT_LIMITS.MAX_KILL_POINTS) {

@@ -5,6 +5,7 @@ import { jsonContentGuard, methodGuard, parseJsonBody, requiredString } from '@/
 import { applyEvent } from '@/lib/gamification/points-engine';
 import { recordGameplayEvent } from '@/lib/gamification/events';
 import { getSession } from '@/lib/gamification/store';
+import type { GameplayEvent, SpawnZone, ZombieRarity } from '@/lib/gamification/contracts';
 
 export const runtime = 'nodejs';
 const ROUTE_ID = 'api:gamification:events';
@@ -35,7 +36,16 @@ function clampBool(value: unknown): boolean | undefined {
   return typeof value === 'boolean' ? value : undefined;
 }
 
-function buildGameplayEvent(body: Record<string, unknown>) {
+function enumValue<T extends string>(value: unknown, allowed: readonly T[]): T | undefined {
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : undefined;
+}
+
+const ZONES = ['mina', 'cultura', 'naturaleza', 'gastronomia', 'calles'] as const;
+const RARITIES = ['comun', 'raro', 'epico'] as const;
+
+function buildGameplayEvent(body: Record<string, unknown>): GameplayEvent | null {
   const type = String(body.type ?? '');
   const sessionId = String(body.sessionId ?? '');
   const timestamp = clampNumber(body.timestamp, Date.now());
@@ -48,8 +58,8 @@ function buildGameplayEvent(body: Record<string, unknown>) {
         timestamp,
         archetypeId: String(body.archetypeId ?? 'unknown'),
         archetypeName: typeof body.archetypeName === 'string' ? body.archetypeName : undefined,
-        rarity: typeof body.rarity === 'string' ? body.rarity : undefined,
-        zone: typeof body.zone === 'string' ? body.zone : undefined,
+        rarity: enumValue<ZombieRarity>(body.rarity, RARITIES),
+        zone: enumValue<SpawnZone>(body.zone, ZONES),
         poiId: typeof body.poiId === 'string' ? body.poiId : undefined,
         basePoints: clampNumber(body.basePoints, 100),
         night: clampBool(body.night),
@@ -123,7 +133,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: false, error: 'Sesión no encontrada. Inicia una sesión primero.' }, { status: 404 });
   }
 
-  const tokenCheck = verifySessionToken(String(body.token ?? ''), session.id);
+  const tokenCheck = verifySessionToken(String(body.token ?? ''), session.id, session.deviceId);
   if (!tokenCheck.ok) {
     return NextResponse.json({ ok: false, error: `Token inválido: ${tokenCheck.reason}` }, { status: 401 });
   }
@@ -133,7 +143,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ ok: false, error: 'Evento malformado.' }, { status: 400 });
   }
 
-  const result = applyEvent(event as never);
+  const result = applyEvent(event);
 
   if (result.accepted) {
     recordGameplayEvent({

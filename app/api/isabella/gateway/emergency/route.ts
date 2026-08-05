@@ -77,11 +77,10 @@ export async function POST(req: NextRequest) {
       default:
         return NextResponse.json({ ok: false, error: 'Acción desconocida. Usa arm | disarm | heartbeat.' }, { status: 400 });
     }
-  } catch (err) {
+  } catch {
     return NextResponse.json({
       ok: false,
       error: 'CROWN Emergency: error interno.',
-      detail: err instanceof Error ? err.message : 'Error desconocido',
     }, { status: 500 });
   }
 }

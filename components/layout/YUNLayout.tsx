@@ -192,6 +192,11 @@ export default function YUNLayout({
                 { id: 'honor', label: 'Muro de Honor', icon: <Award className="w-4 h-4 text-amber-400" /> },
                 { id: 'gallery', label: 'Galería Compartida', icon: <Images className="w-4 h-4 text-emerald-400" /> },
                 { id: 'crown-gateway', label: 'CROWN Gateway · IA Federada', icon: <Network className="w-4 h-4 text-cyan-400" /> },
+                { id: 'twins', label: 'Gemelo Territorial DTDL', icon: <Box className="w-4 h-4 text-emerald-400" /> },
+                { id: 'city', label: 'Ciudad IOC', icon: <Activity className="w-4 h-4 text-red-400" /> },
+                { id: 'eam', label: 'EAM / APM Activos', icon: <Zap className="w-4 h-4 text-amber-400" /> },
+                { id: 'grid', label: 'Smart Grid / Agua', icon: <Zap className="w-4 h-4 text-sky-400" /> },
+                { id: 'digital-marketplace', label: 'Marketplace de Datos', icon: <Database className="w-4 h-4 text-emerald-400" /> },
                 { id: 'about', label: 'Quiénes Somos', icon: <Users className="w-4 h-4 text-blue-400" /> },
               ].map(item => (
                 <button

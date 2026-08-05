@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { handleIsabellaCryptoSign } from '@/lib/isabella/http';
 
 const ROUTE_ID = 'api:isabella:crypto:sign';
-const REQUIRED_FIELDS = ['payload', 'context', 'operatorId'] as const;
+const REQUIRED_FIELDS = ['payload', 'context', 'operatorId', 'operatorKey'] as const;
 
 type SignRequestBody = {
   payload: string;
   context?: Record<string, unknown>;
   operatorId: string;
+  operatorKey: string;
 };
 
 function isSignBody(value: unknown): value is SignRequestBody {
@@ -17,7 +18,8 @@ function isSignBody(value: unknown): value is SignRequestBody {
 
   return (
     typeof body.payload === 'string' &&
-    typeof body.operatorId === 'string'
+    typeof body.operatorId === 'string' &&
+    typeof body.operatorKey === 'string'
   );
 }
 
@@ -80,7 +82,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           ok: false,
           error: 'INVALID_PAYLOAD',
           message:
-            'La carga de firma debe incluir al menos: payload (string) y operatorId (string).',
+            'La carga de firma debe incluir: payload (string), operatorId (string) y operatorKey (credencial del operador).',
           required: REQUIRED_FIELDS,
         },
         { status: 400 },
