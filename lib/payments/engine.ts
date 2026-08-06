@@ -13,6 +13,8 @@ import { publishEvent } from '@/lib/core/events';
 import { constantTimeCompare } from '@/lib/security/trust';
 import type { UserPayment, MerchantPayout, PAYMENT_TYPES, PAYMENT_METHODS, CURRENCIES } from './contracts';
 import crypto from 'node:crypto';
+import { registerHydrator, schedulePersist } from '@/lib/core/persistence';
+import { insertPayout, loadIntents, loadMerchants, upsertIntent, upsertMerchant } from './repository';
 
 export type PaymentStatus = 'pending' | 'confirmed' | 'declined';
 

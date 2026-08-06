@@ -8,6 +8,8 @@
 
 import type { RegisterBusinessInput, RegisterUserInput } from './contracts';
 import { publishEvent } from '@/lib/core/events';
+import { registerHydrator, schedulePersist } from '@/lib/core/persistence';
+import { loadActors, upsertActor } from './repository';
 
 export interface RegisteredUserRecord {
   id: string;
@@ -35,6 +37,19 @@ function getStore(): IdentityStoreShape {
   }
   return g[STORE_KEY] as IdentityStoreShape;
 }
+
+/** Carga inicial desde Postgres (idempotente): no pisa registros ya en
+ *  memoria más recientes; solo rellena los ausentes. */
+registerHydrator('identity', async () => {
+  const records = await loadActors();
+  const store = getStore();
+  for (const record of records) {
+    if (!store.users.has(record.id)) {
+      store.users.set(record.id, record);
+      store.byEmail.set(record.email.toLowerCase(), record.id);
+    }
+  }
+});
 
 function nextId(prefix: string): string {
   const rand = Math.random().toString(36).slice(2, 10);
@@ -64,6 +79,7 @@ export function registerUser(input: RegisterUserInput): { ok: true; user: Regist
   };
   store.users.set(user.id, user);
   store.byEmail.set(email, user.id);
+  schedulePersist('identity.user', () => upsertActor(user));
 
   publishEvent({
     type: 'identity.user.registered',
@@ -93,6 +109,7 @@ export function registerBusiness(input: RegisterBusinessInput): { ok: true; user
   };
   store.users.set(business.id, business);
   store.byEmail.set(email, business.id);
+  schedulePersist('identity.business', () => upsertActor(business));
 
   publishEvent({
     type: 'identity.business.registered',

@@ -9,6 +9,8 @@
 
 import type { GamificationSession, LeaderboardEntry } from './contracts';
 import { CHEAT_LIMITS } from './rules';
+import { registerHydrator, schedulePersist } from '@/lib/core/persistence';
+import { loadLeaderboard, loadSessions, persistLeaderboardEntry, persistSession } from './repository';
 
 const SESSION_TTL_MS = CHEAT_LIMITS.MAX_SESSION_DURATION_MS;
 
@@ -27,6 +29,24 @@ function getStore(): GamificationStoreShape {
   }
   return g.__rdmGamificationStore;
 }
+
+/** Carga inicial desde Postgres (idempotente): rellena ausentes sin
+ *  pisar el estado caliente en memoria. */
+registerHydrator('gamification', async () => {
+  const [sessions, leaderboard] = await Promise.all([loadSessions(), loadLeaderboard()]);
+  const store = getStore();
+  for (const session of sessions) {
+    if (!store.sessions.has(session.id)) {
+      store.sessions.set(session.id, session);
+      const ids = store.byDevice.get(session.deviceId) ?? [];
+      ids.push(session.id);
+      store.byDevice.set(session.deviceId, ids.slice(-20));
+    }
+  }
+  for (const entry of leaderboard) {
+    if (!store.leaderboard.has(entry.deviceId)) store.leaderboard.set(entry.deviceId, entry);
+  }
+});
 
 function pruneSessions(store: GamificationStoreShape, now: number): void {
   for (const [id, session] of store.sessions) {
@@ -50,6 +70,7 @@ export function createSession(session: GamificationSession): GamificationSession
   const deviceIds = store.byDevice.get(session.deviceId) ?? [];
   deviceIds.push(session.id);
   store.byDevice.set(session.deviceId, deviceIds.slice(-20));
+  schedulePersist('gamification.session.create', () => persistSession(session));
   return session;
 }
 
@@ -80,6 +101,7 @@ export function updateSession(id: string, patch: Partial<GamificationSession>): 
   if (!session) return undefined;
   const next = { ...session, ...patch };
   store.sessions.set(id, next);
+  schedulePersist('gamification.session.update', () => persistSession(next));
   return next;
 }
 
@@ -89,6 +111,7 @@ export function endSession(id: string): GamificationSession | undefined {
   if (!session || session.endedAt) return session;
   const next = { ...session, endedAt: Date.now() };
   store.sessions.set(id, next);
+  schedulePersist('gamification.session.end', () => persistSession(next));
   return next;
 }
 
@@ -97,6 +120,7 @@ export function endSession(id: string): GamificationSession | undefined {
 export function upsertLeaderboardEntry(entry: LeaderboardEntry): LeaderboardEntry {
   const store = getStore();
   store.leaderboard.set(entry.deviceId, entry);
+  schedulePersist('gamification.leaderboard', () => persistLeaderboardEntry(entry));
   return entry;
 }
 

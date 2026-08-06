@@ -66,6 +66,22 @@ export const envSchema = z.object({
   /* Gamificación */
   GAMIFICATION_HMAC_SECRET: z.string().optional(),
 
+  /* Persistencia — Postgres primario (Supabase) */
+  POSTGRES_URL: z.string().optional(),
+  POSTGRES_PRISMA_URL: z.string().optional(),
+  POSTGRES_URL_NON_POOLING: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+
+  /* Persistencia — Postgres réplica (Neon) */
+  NEON_DATABASE_URL: z.string().optional(),
+  NEON_POSTGRES_URL: z.string().optional(),
+  NEON_POSTGRES_URL_NON_POOLING: z.string().optional(),
+
+  /* Persistencia — Redis (Upstash) */
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+
   /* Desarrollo */
   DISABLE_HMR: z.string().optional(),
 });
