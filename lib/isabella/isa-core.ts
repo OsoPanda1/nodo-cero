@@ -165,20 +165,22 @@ function searchSources(intent: IsaIntent, query: string, max: number): IsaSource
     }
   }
 
-  /* Núcleos (los 7 centros federados son la fuente primaria de arquitectura) */
+  /* Núcleos Heptafederados YUN (los 7 centros federados son fuente primaria) */
   for (const core of YUN_CORES) {
     if (hits.length >= max) break;
-    if (intent.domain === 'arquitectura') {
-      add({ kind: 'nucleo', id: String(core.id), title: core.name, detail: core.subtitle });
+    const coreHay = `${core.name} ${core.subtitle} núcleo ${core.id} heptafederada yun`;
+    if (matches(tokens, coreHay) || intent.domain === 'arquitectura') {
+      add({ kind: 'nucleo', id: String(core.id), title: `Núcleo ${core.id}: ${core.name}`, detail: core.subtitle });
     }
   }
 
-  /* Nodos YUN (muestra acotada para no inundar la respuesta) */
+  /* Nodos YUN (35 nodos soberanos de Real del Monte) */
   let nodos = 0;
   for (const node of RDM_NODES_35) {
     if (hits.length >= max) break;
-    if ((intent.domain === 'gemelo' || intent.domain === 'arquitectura') && nodos < 5) {
-      add({ kind: 'nodo', id: node.id, title: node.title, detail: node.subtitle });
+    const nodeHay = `${node.title} ${node.subtitle} ${node.code} ${node.category}`;
+    if (matches(tokens, nodeHay) || intent.domain === 'gemelo' || intent.domain === 'arquitectura') {
+      add({ kind: 'nodo', id: node.id, title: `${node.code} · ${node.title}`, detail: `${node.status} | ${node.subtitle}` });
       nodos += 1;
     }
   }
