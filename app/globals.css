@@ -53,8 +53,15 @@
   }
 
   body {
-    background: var(--bg-deep);
-    color: var(--text-primary);
+    /* Identidad perlada global: blanco perlado + neblina de plata.
+       Los dashboards técnicos (Plano 4) reintroducen el fondo oscuro
+       localmente vía la clase .plano-tecnico. */
+    background:
+      radial-gradient(1200px 800px at 12% -8%, rgba(83, 107, 134, 0.14), transparent 55%),
+      radial-gradient(1000px 720px at 92% 4%, rgba(13, 70, 82, 0.1), transparent 52%),
+      linear-gradient(180deg, #fbfcfa 0%, #f4f6f2 46%, #eef1ec 100%);
+    background-attachment: fixed;
+    color: var(--rdm-graphite, #283038);
     font-family: var(--font-dm-sans), system-ui, -apple-system, "Segoe UI",
       Roboto, sans-serif;
     overflow-x: hidden;
@@ -66,6 +73,27 @@
   .font-patrimonial {
     font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
   }
+
+  ::selection {
+    background: rgba(13, 70, 82, 0.16);
+    color: var(--rdm-petroleum-deep, #082f3b);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Plano técnico — reintroduce el Nocturno Minero localmente           */
+/* (dashboards de gobernanza: ciudad, gemelos, grid, activos, monitor) */
+/* ------------------------------------------------------------------ */
+
+.plano-tecnico {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  border-radius: 28px;
+  border: 1px solid rgba(13, 70, 82, 0.18);
+  box-shadow:
+    0 30px 80px rgba(8, 47, 59, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
 }
 
 /* ------------------------------------------------------------------ */
