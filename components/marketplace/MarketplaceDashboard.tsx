@@ -61,7 +61,7 @@ export function OfferCard({ listing, acquired, onAcquire }: OfferCardProps) {
         <span>· {listing.downloads} descargas</span>
       </div>
       <div className="mt-2 flex flex-wrap gap-1">
-        {listing.tags.slice(0, 4).map((tag) => (
+        {listing.tags.slice(0, 4).map((tag: string) => (
           <span key={tag} className="rounded bg-slate-800/80 px-1.5 py-0.5 text-[9px] text-slate-400">{tag}</span>
         ))}
       </div>

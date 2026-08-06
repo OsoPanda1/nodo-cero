@@ -5,7 +5,7 @@
 import 'server-only';
 import type { JSONValue } from 'postgres';
 import { isPostgresConfigured, sql } from '@/lib/core/persistence';
-import type { MarketplaceListing, Subscription } from './marketplace-types';
+import type { MarketplaceListing, PriceModel, Subscription } from './marketplace-types';
 
 /**
  * Obtiene la conexión tipada a Postgres o lanza si no está configurado.
@@ -184,7 +184,7 @@ export async function loadListings(): Promise<MarketplaceListing[]> {
     provider: r.provider ?? '',
     publisher: r.publisher ?? '',
     status: r.status,
-    price: r.price,
+    price: r.price as unknown as PriceModel,
     rating: Number(r.rating),
     ratingCount: r.rating_count,
     downloads: r.downloads,

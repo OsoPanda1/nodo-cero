@@ -39,3 +39,40 @@ export type PriceModel =
   | OneTimePriceModel
   | SubscriptionPriceModel
   | UsageBasedPriceModel;
+
+export type MarketplaceListing = {
+  id: string;
+  slug: string;
+  type: string;
+  title: string;
+  description: string;
+  provider: string;
+  publisher: string;
+  status: string;
+  price: PriceModel;
+  rating: number;
+  ratingCount: number;
+  downloads: number;
+  tags: string[];
+  compatibleDomains: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Subscription = {
+  id: string;
+  listingId: string;
+  licensee: string;
+  licensedAt: string;
+  expiresAt?: string;
+  status: string;
+  usageCount: number;
+};
+
+export type LicenseCheckResult = {
+  allowed: boolean;
+  reason: string;
+  subscriptionId?: string;
+  remaining?: number;
+};
+

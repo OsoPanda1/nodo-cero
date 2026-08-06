@@ -156,7 +156,7 @@ export function subscribeListing(listingId: string, licensee: string): Subscript
     listingId,
     licensee,
     licensedAt: new Date().toISOString(),
-    expiresAt: listing?.price.period === 'monthly' ? new Date(Date.now() + 30 * 86_400_000).toISOString() : undefined,
+    expiresAt: listing?.price.model === 'subscription' && listing.price.period === 'monthly' ? new Date(Date.now() + 30 * 86_400_000).toISOString() : undefined,
     status: 'active',
     usageCount: 0,
   };

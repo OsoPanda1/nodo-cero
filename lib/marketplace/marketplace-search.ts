@@ -16,11 +16,11 @@ export function searchListings(params: MarketplaceQuery): MarketplaceListing[] {
   if (params.status) results = results.filter((l) => l.status === params.status);
   if (params.tag) results = results.filter((l) => l.tags.includes(params.tag as string));
   if (params.maxPriceUsd !== undefined) {
-    results = results.filter((l) => l.price.model === 'free' || (l.price.amountUsd ?? Infinity) <= (params.maxPriceUsd as number));
+    results = results.filter((l) => l.price.model === 'free' || (('amountUsd' in l.price ? l.price.amountUsd : Infinity) <= (params.maxPriceUsd as number)));
   }
   if (params.query) {
     const q = params.query.toLowerCase();
-    results = results.filter((l) => l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q) || l.tags.some((t) => t.includes(q)));
+    results = results.filter((l) => l.title.toLowerCase().includes(q) || l.description.toLowerCase().includes(q) || l.tags.some((t: string) => t.includes(q)));
   }
   return [...results].sort((a, b) => b.rating - a.rating);
 }

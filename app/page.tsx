@@ -36,12 +36,15 @@ import { GradientDivider } from "@/components/design-system/GradientDivider";
 import { CrystalButton } from "@/components/design-system/CrystalButton";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
 import { Box, Activity, ArrowRight, Lock, Sparkles, Compass, Store, Users, Landmark } from "lucide-react";
+import AAACinematicIntro from "@/components/intro/AAACinematicIntro";
+import DynamicTourismHero from "@/components/hero/DynamicTourismHero";
 
 export default function RDMDigitalHubHome() {
   const [activeView, setActiveView] = useState<string>("home");
   const [selectedNode, setSelectedNode] = useState<YUNNode | null>(null);
   const [isabellaOpen, setIsabellaOpen] = useState<boolean>(false);
   const [isabellaInitialPrompt, setIsabellaInitialPrompt] = useState<string>("");
+  const [showIntro, setShowIntro] = useState<boolean>(true);
 
 
   const quickJourneys = [
@@ -86,18 +89,20 @@ export default function RDMDigitalHubHome() {
   };
 
   return (
-    <YUNLayout
-      activeView={activeView}
-      setActiveView={(view) => {
-        setActiveView(view);
-        if (view !== "node-detail") setSelectedNode(null);
-      }}
-      selectedNode={selectedNode}
-      onSelectNode={handleSelectNode}
-      onOpenIsabella={() => setIsabellaOpen(true)}
-      isabellaOpen={isabellaOpen}
-    >
-      {/* 1. NODE DETAIL VIEW */}
+    <>
+      {showIntro && <AAACinematicIntro onComplete={() => setShowIntro(false)} />}
+      <YUNLayout
+        activeView={activeView}
+        setActiveView={(view) => {
+          setActiveView(view);
+          if (view !== "node-detail") setSelectedNode(null);
+        }}
+        selectedNode={selectedNode}
+        onSelectNode={handleSelectNode}
+        onOpenIsabella={() => setIsabellaOpen(true)}
+        isabellaOpen={isabellaOpen}
+      >
+        {/* 1. NODE DETAIL VIEW */}
       {activeView === "node-detail" && selectedNode && (
         <NodeDetailView
           node={selectedNode}
@@ -286,7 +291,16 @@ export default function RDMDigitalHubHome() {
       {/* 17. MAIN HOME VIEW — dashboard territorial sobrio */}
       {activeView === "home" && (
         <div className="space-y-16 pb-20">
-          {/* Hero: WebGL Crystal + narrativa del nodo */}
+          {/* Hero Turístico Dinámico de Ultra-Lujo */}
+          <section className="max-w-7xl mx-auto px-4 pt-4">
+            <DynamicTourismHero
+              onOpenIsabella={() => setIsabellaOpen(true)}
+              onReplayIntro={() => setShowIntro(true)}
+              onNavigate={(view) => setActiveView(view)}
+            />
+          </section>
+
+          {/* Hero 3D Crystal: WebGL + narrativa de gemelos digitales */}
           <CrystalHero3D
             onOpenIsabella={() => setIsabellaOpen(true)}
             onSelectNode={(nodeId) => {
@@ -546,6 +560,7 @@ export default function RDMDigitalHubHome() {
         onClose={() => setIsabellaOpen(false)}
         initialPrompt={isabellaInitialPrompt}
       />
-    </YUNLayout>
+      </YUNLayout>
+    </>
   );
 }
