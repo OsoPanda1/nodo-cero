@@ -350,6 +350,230 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Arena cinematográfica (GPU-only: transform / opacity / filter)      */
+/* ------------------------------------------------------------------ */
+
+.zr-arena {
+  isolation: isolate;
+}
+
+.zr-arena-bg {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(16, 185, 129, 0.14), transparent 60%),
+    radial-gradient(90% 80% at 15% 100%, rgba(56, 189, 248, 0.1), transparent 55%),
+    linear-gradient(180deg, #04241c 0%, #07121f 100%);
+}
+
+.zr-arena-grid {
+  background-image:
+    linear-gradient(rgba(52, 211, 153, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 211, 153, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(80% 70% at 50% 50%, black, transparent 85%);
+}
+
+.zr-arena-fog {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(103, 232, 249, 0.07) 45%,
+    transparent
+  );
+  animation: zrFogDrift 9s var(--ease-miner) infinite;
+  will-change: transform;
+}
+
+@keyframes zrFogDrift {
+  0%,
+  100% {
+    transform: translateX(-4%);
+  }
+  50% {
+    transform: translateX(4%);
+  }
+}
+
+.zr-aura {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: zrAuraPulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes zrAuraPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.14);
+  }
+}
+
+.zr-arena-idle {
+  animation: zrIdleFloat 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes zrIdleFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(0.9);
+  }
+  50% {
+    transform: translateY(-5px) scale(0.9);
+  }
+}
+
+.zr-flash-hurt {
+  animation: zrHurtFlash 0.45s ease-out;
+}
+
+@keyframes zrHurtFlash {
+  0% {
+    opacity: 0.55;
+    background: radial-gradient(
+      circle at 50% 45%,
+      rgba(244, 63, 94, 0.5),
+      transparent 70%
+    );
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.zr-flash-gold {
+  animation: zrGoldFlash 0.5s ease-out;
+}
+
+@keyframes zrGoldFlash {
+  0% {
+    opacity: 0.6;
+    background: radial-gradient(
+      circle at 50% 45%,
+      rgba(251, 191, 36, 0.6),
+      transparent 70%
+    );
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.zr-shake {
+  animation: zrShake 0.38s ease-out;
+}
+
+@keyframes zrShake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-5px, 3px, 0);
+  }
+  40% {
+    transform: translate3d(6px, -4px, 0);
+  }
+  60% {
+    transform: translate3d(-4px, -2px, 0);
+  }
+  80% {
+    transform: translate3d(3px, 2px, 0);
+  }
+}
+
+.zr-dmg-pop {
+  animation: zrDmgPop 0.95s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes zrDmgPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.6);
+  }
+  18% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.15);
+  }
+  30% {
+    transform: translate(-50%, -2px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(0.95);
+  }
+}
+
+.zr-seal-beam {
+  background: linear-gradient(
+    180deg,
+    rgba(52, 211, 153, 0),
+    rgba(52, 211, 153, 0.35) 18%,
+    rgba(52, 211, 153, 0.12) 60%,
+    rgba(52, 211, 153, 0.28) 92%,
+    rgba(52, 211, 153, 0.5)
+  );
+  animation: zrBeamRise 0.7s var(--ease-miner) both;
+}
+
+@keyframes zrBeamRise {
+  0% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+    opacity: 1;
+  }
+}
+
+.zr-sigil {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 55%, rgba(52, 211, 153, 0.18) 60%, transparent 68%),
+    conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(52, 211, 153, 0.8) 20deg,
+      transparent 40deg,
+      transparent 180deg,
+      rgba(52, 211, 153, 0.8) 200deg,
+      transparent 220deg
+    );
+  box-shadow:
+    0 0 26px rgba(52, 211, 153, 0.55),
+    inset 0 0 26px rgba(52, 211, 153, 0.35);
+  animation: zrSigilSpin 2.4s linear infinite;
+  will-change: transform;
+}
+
+@keyframes zrSigilSpin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Estado / alertas (semántica RDM)                                    */
 /* ------------------------------------------------------------------ */
 

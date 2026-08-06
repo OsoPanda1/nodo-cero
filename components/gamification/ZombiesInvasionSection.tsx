@@ -14,6 +14,7 @@ import {
 } from '@/lib/data/zombies-data';
 import ZombieCombat from './ZombieCombat';
 import ZombieSprite from './ZombieSprite';
+import ArenaFXCanvas from './fx/ArenaFXCanvas';
 import { emitYunEvent } from '@/lib/isabella/events';
 import { uuid } from '@/lib/isabella/utils';
 import { reportKill, reportMission, reportPrize, startSession } from '@/lib/gamification/client';
@@ -477,6 +478,11 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
             <div className="grid lg:grid-cols-[1fr_300px] gap-4">
               <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden relative">
                 <div ref={mapContainerRef} className="w-full h-[520px] z-0" />
+                <ArenaFXCanvas
+                  className="absolute inset-0 w-full h-full pointer-events-none z-[400]"
+                  ambientRate={0.7}
+                  initialBudget={60}
+                />
                 <div className="absolute top-3 left-3 z-[500] glass-panel rounded-xl px-3 py-2 text-[10px] font-mono text-slate-300">
                   <p className="text-slate-500 uppercase tracking-widest text-[9px] mb-0.5">Leyenda</p>
                   <p className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" /> Guardián (tú)</p>

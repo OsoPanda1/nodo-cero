@@ -1,10 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Battery, Ghost, Hourglass, MapPin, MessageSquare, Skull, Sparkles } from 'lucide-react';
 import {
   ZOMBIE_ARTIFACTS,
-  SEAL_ARTIFACT,
   ZombieArchetype,
   ZombieSpawn,
   TimeContext,
@@ -15,6 +14,7 @@ import {
   evasionRoll,
 } from '@/lib/data/zombies-data';
 import ZombieSprite from './ZombieSprite';
+import ArenaFXCanvas, { ArenaFXHandle } from './fx/ArenaFXCanvas';
 
 interface ZombieCombatProps {
   spawn: ZombieSpawn;
@@ -39,6 +39,12 @@ const RARITY_LABEL: Record<string, string> = { comun: 'Común', raro: 'Raro', ep
 
 const MAX_TURNS = 8;
 
+/* Dado de captura fuera del componente: el compilador exige pureza en
+   el render y el azar es impuro (se ejecuta solo en el handler). */
+function rollSeal(): number {
+  return Math.random();
+}
+
 export default function ZombieCombat({
   spawn,
   archetype,
@@ -59,14 +65,69 @@ export default function ZombieCombat({
   const [log, setLog] = useState<string[]>(['El zombie emerge entre la niebla del territorio.']);
   const [phase, setPhase] = useState<'fight' | 'result'>('fight');
   const [result, setResult] = useState<'captured' | 'escaped' | null>(null);
+  const [flash, setFlash] = useState<'none' | 'hurt' | 'gold'>('none');
+  const [popups, setPopups] = useState<{ id: number; text: string; color: string }[]>([]);
+  const fxRef = useRef<ArenaFXHandle>(null);
+  const popupIdRef = useRef(0);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const multiplier = useMemo(() => computeMultiplier(ctx, spawn.zone), [ctx, spawn.zone]);
+  const accent = archetype.color;
   const sealable = resistance <= archetype.resistance * 0.35;
   const sealChance = sealable
     ? captureChance(archetype, resistance, archetype.resistance, 0, lenteActive)
     : 0;
 
   const pushLog = (line: string) => setLog(prev => [line, ...prev].slice(0, 4));
+
+  const triggerFlash = (type: 'hurt' | 'gold') => {
+    setFlash(type);
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    flashTimerRef.current = setTimeout(() => setFlash('none'), 480);
+  };
+
+  const addPopup = (text: string, color: string) => {
+    const id = ++popupIdRef.current;
+    setPopups(prev => [...prev.slice(-3), { id, text, color }]);
+    if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    popupTimerRef.current = setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 950);
+  };
+
+  const emitHit = (color: string) => {
+    fxRef.current?.burst('spark', 24, {
+      x: 0.5,
+      y: 0.5,
+      normalize: true,
+      spread: 90,
+      spreadAngle: Math.PI,
+      speed: 130,
+      size: 2.8,
+      life: 0.75,
+      color,
+    });
+    fxRef.current?.emit('ring', { x: 0.5, y: 0.52, normalize: true, size: 16, growth: 140, life: 0.5, color });
+  };
+
+  const emitDodge = () => {
+    fxRef.current?.burst('fog', 6, {
+      x: 0.42,
+      y: 0.52,
+      normalize: true,
+      spread: 50,
+      spreadAngle: 0.8,
+      speed: 30,
+      size: 26,
+      life: 0.9,
+      color: '#67e8f9',
+    });
+    fxRef.current?.emit('ring', { x: 0.4, y: 0.55, normalize: true, size: 10, growth: 60, life: 0.35, color: '#94a3b8' });
+  };
+
+  const emitSeal = () => {
+    fxRef.current?.emit('beam', { x: 0.5, y: 0.35, normalize: true, color: '#34d399', vy: 190, size: 26, life: 1 });
+    fxRef.current?.emit('sigil', { x: 0.5, y: 0.5, normalize: true, size: 30, growth: 90, life: 0.9, color: '#fbbf24' });
+  };
 
   const tickTurn = () => {
     setTurnsLeft(t => {
@@ -111,6 +172,8 @@ export default function ZombieCombat({
       const dodged = evasionRoll(archetype, farolActive);
       if (dodged) {
         setSpriteFx('dodge');
+        emitDodge();
+        addPopup('ESQUIVA', '#94a3b8');
         pushLog(`${archetype.name} esquiva el ${artifact.name} y se hunde en la sombra.`);
       } else {
         const dmg = artifactDamage(artifact, archetype);
@@ -120,11 +183,18 @@ export default function ZombieCombat({
             setPhase('result');
             setResult('captured');
             setSpriteFx('captured');
+            emitSeal();
+            triggerFlash('gold');
+            addPopup(`-${dmg}`, '#fca5a5');
+            addPopup('¡CAPTURADO!', '#34d399');
             pushLog(`${archetype.name} se derrumba: captura garantizada.`);
           }
           return next;
         });
         setSpriteFx('hurt');
+        emitHit('#fbbf24');
+        triggerFlash('hurt');
+        addPopup(`-${dmg}`, '#fca5a5');
         pushLog(`${artifact.name} impacta: ${dmg} de daño contra ${archetype.name}.`);
       }
     }
@@ -133,15 +203,20 @@ export default function ZombieCombat({
 
   const fireSeal = () => {
     if (phase !== 'fight' || !sealable || sealCooldown > 0) return;
-    const roll = Math.random();
+    const roll = rollSeal();
     if (roll < sealChance) {
       setPhase('result');
       setResult('captured');
       setSpriteFx('captured');
+      emitSeal();
+      triggerFlash('gold');
+      addPopup('¡SELLO ACTIVO!', '#fbbf24');
       pushLog('¡El Sello RDM se activa! La cadena del Nodo lo contiene.');
     } else {
       setSealCooldown(1);
       setSpriteFx('dodge');
+      emitDodge();
+      addPopup('SELLO FALLÓ', '#f87171');
       pushLog('El Sello RDM vibra en el aire, pero el zombie se retuerce y escapa del lacre.');
     }
     tickTurn();
@@ -155,6 +230,13 @@ export default function ZombieCombat({
 
   const points = computePoints(archetype, ctx, spawn.zone);
   const pct = Math.round((resistance / archetype.resistance) * 100);
+
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      if (popupTimerRef.current) clearTimeout(popupTimerRef.current);
+    };
+  }, []);
 
   return (
     <div className="glass-panel rounded-2xl border border-emerald-500/30 overflow-hidden">
@@ -178,13 +260,38 @@ export default function ZombieCombat({
       </div>
 
       <div className="p-4 grid md:grid-cols-[200px_1fr] gap-4">
-        {/* Arena */}
-        <div className="relative h-52 rounded-xl bg-gradient-to-b from-emerald-950/60 to-slate-950 border border-white/10 flex items-center justify-center overflow-hidden">
-          <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-slate-950/80 to-transparent" />
-          <div className="scale-90">
+        {/* Arena cinematográfica */}
+        <div className={`relative h-52 rounded-xl overflow-hidden border border-white/10 zr-arena ${flash === 'hurt' ? 'zr-shake' : ''}`}>
+          <div className="absolute inset-0 zr-arena-bg" />
+          <div className="absolute inset-0 zr-arena-grid" />
+          <div className="absolute inset-0 zr-arena-fog" />
+          <ArenaFXCanvas className="absolute inset-0 w-full h-full pointer-events-none z-10" ambientRate={2.2} />
+          <div
+            className="zr-aura"
+            style={{ background: `radial-gradient(circle, ${accent}40, transparent 65%)` }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center z-20 zr-arena-idle">
             <ZombieSprite archetype={archetype} size={150} state={spriteFx} />
           </div>
-          <span className="absolute top-2 left-2 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
+          <div
+            className={`absolute inset-0 z-30 pointer-events-none ${flash === 'hurt' ? 'zr-flash-hurt' : ''} ${flash === 'gold' ? 'zr-flash-gold' : ''}`}
+          />
+          {phase === 'result' && result === 'captured' && (
+            <>
+              <div className="absolute inset-0 z-30 pointer-events-none zr-seal-beam" />
+              <div className="zr-sigil z-30 pointer-events-none" />
+            </>
+          )}
+          {popups.map(p => (
+            <span
+              key={p.id}
+              className="absolute z-40 zr-dmg-pop font-mono text-sm font-bold pointer-events-none"
+              style={{ left: '50%', top: '40%', color: p.color, textShadow: `0 0 14px ${p.color}` }}
+            >
+              {p.text}
+            </span>
+          ))}
+          <span className="absolute top-2 left-2 z-30 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
             Encuentro #{spawn.id.slice(-4)}
           </span>
         </div>
