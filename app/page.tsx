@@ -28,6 +28,7 @@ import { AssetDashboard } from "@/components/assets/AssetDashboard";
 import { GridDashboard } from "@/components/grid/GridDashboard";
 import { MarketplaceDashboard } from "@/components/marketplace/MarketplaceDashboard";
 import PaymentsSection from "@/components/payments/PaymentsSection";
+import RegisterSection from "@/components/register/RegisterSection";
 import { StatPill } from "@/components/design-system/StatPill";
 import { SectionHeader } from "@/components/design-system/SectionHeader";
 import { MetallicHeading } from "@/components/design-system/MetallicHeading";
@@ -77,11 +78,11 @@ export default function RDMDigitalHubHome() {
       {activeView === "map" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
           <header className="space-y-1">
-            <h2 className="text-2xl font-semibold text-white flex items-center gap-2">
-              <Box className="w-6 h-6 text-cyan-400" />
+            <h2 className="text-2xl font-semibold text-[#082f3b] flex items-center gap-2">
+              <Box className="w-6 h-6 text-[#0d4652]" />
               Gemelo Digital 2D/3D · Cartografía Phygital
             </h2>
-            <p className="text-xs text-slate-400 font-mono">
+            <p className="text-xs text-slate-600 font-mono">
               Vista táctica del distrito minero de Real del Monte, integrada al sistema de nodos YUN.
             </p>
           </header>
@@ -195,24 +196,51 @@ export default function RDMDigitalHubHome() {
       )}
 
       {/* 15c. GEMELO TERRITORIAL (TWINS) VIEW */}
-      {activeView === "twins" && <TwinsDashboard />}
+      {activeView === "twins" && (
+        <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+          <TwinsDashboard />
+        </div>
+      )}
 
       {/* 15d. CIUDAD IOC VIEW */}
-      {activeView === "city" && <CityDashboard />}
+      {activeView === "city" && (
+        <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+          <CityDashboard />
+        </div>
+      )}
 
       {/* 15e. EAM / APM VIEW */}
-      {activeView === "eam" && <AssetDashboard />}
+      {activeView === "eam" && (
+        <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+          <AssetDashboard />
+        </div>
+      )}
 
       {/* 15f. SMART GRID / AGUA VIEW */}
-      {activeView === "grid" && <GridDashboard />}
+      {activeView === "grid" && (
+        <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+          <GridDashboard />
+        </div>
+      )}
 
       {/* 15g. MARKETPLACE DIGITAL VIEW */}
-      {activeView === "digital-marketplace" && <MarketplaceDashboard />}
+      {activeView === "digital-marketplace" && (
+        <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+          <MarketplaceDashboard />
+        </div>
+      )}
 
       {/* 15h. PAGOS Y DONACIONES VIEW */}
       {activeView === "payments" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
           <PaymentsSection />
+        </div>
+      )}
+
+      {/* 15i. REGISTRO DE VECINOS Y NEGOCIOS VIEW */}
+      {activeView === "register" && (
+        <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+          <RegisterSection />
         </div>
       )}
 
@@ -330,13 +358,13 @@ export default function RDMDigitalHubHome() {
                 <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Turismo del Real: eventos, rutas y tradiciones
                 </MetallicHeading>
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-600 font-mono">
                   Feria del Paste, Semana Cornish, rutas mineras y los dichos que guardan la memoria del pueblo.
                 </p>
               </div>
               <button
                 onClick={() => setActiveView("tourism")}
-                className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-mono font-semibold transition-all flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-700 hover:text-[#082f3b] text-xs font-mono font-semibold transition-all flex items-center gap-2"
               >
                 <span>Explorar turismo</span>
                 <ArrowRight className="w-4 h-4" />
@@ -352,13 +380,13 @@ export default function RDMDigitalHubHome() {
                 <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Gemelo digital phygital 2D/3D
                 </MetallicHeading>
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-600 font-mono">
                   Mapeo vivo de minas históricas, pastelerías de Cornwall y sensores urbanos en el monte.
                 </p>
               </div>
               <button
                 onClick={() => setActiveView("map")}
-                className="px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:text-white text-xs font-mono font-semibold transition-all flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-700 hover:text-[#082f3b] text-xs font-mono font-semibold transition-all flex items-center gap-2"
               >
                 <span>Abrir mapa completo</span>
                 <ArrowRight className="w-4 h-4" />
@@ -374,13 +402,13 @@ export default function RDMDigitalHubHome() {
                 <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Economía phygital: pastes y platería ley .925
                 </MetallicHeading>
-                <p className="text-xs text-slate-400 font-mono">
+                <p className="text-xs text-slate-600 font-mono">
                   Comercio territorial verificado con sello criptográfico, conectado al gemelo digital.
                 </p>
               </div>
               <button
                 onClick={() => setActiveView("marketplace")}
-                className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 hover:text-white text-xs font-mono font-semibold transition-all flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-700 hover:text-[#082f3b] text-xs font-mono font-semibold transition-all flex items-center gap-2"
               >
                 <span>Ir al marketplace</span>
                 <ArrowRight className="w-4 h-4" />
@@ -392,16 +420,16 @@ export default function RDMDigitalHubHome() {
           {/* Telemetría y seguridad — vista ejecutiva */}
           <section className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-xl font-semibold text-[#082f3b] flex items-center gap-2">
+                <Activity className="w-5 h-5 text-[#3f9b78]" />
                 Telemetría urbana
               </h3>
               <TelemetryDashboard />
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                <Lock className="w-5 h-5 text-purple-400" />
+              <h3 className="text-xl font-semibold text-[#082f3b] flex items-center gap-2">
+                <Lock className="w-5 h-5 text-[#536b86]" />
                 Seguridad post‑cuántica
               </h3>
               <PostQuantumSecurity />

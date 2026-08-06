@@ -10,7 +10,9 @@
 /* ================================================================== */
 
 import { publishEvent } from '@/lib/core/events';
+import { constantTimeCompare } from '@/lib/security/trust';
 import type { UserPayment, MerchantPayout, PAYMENT_TYPES, PAYMENT_METHODS, CURRENCIES } from './contracts';
+import crypto from 'node:crypto';
 
 export type PaymentStatus = 'pending' | 'confirmed' | 'declined';
 
@@ -30,6 +32,7 @@ export interface PaymentIntent {
   status: PaymentStatus;
   createdAt: number;
   confirmedAt: number | null;
+  idempotencyKey?: string;
 }
 
 export interface PayoutRecord {
@@ -45,6 +48,9 @@ export interface MerchantAccount {
   merchantId: string;
   balance: number;
   payouts: PayoutRecord[];
+  /** Clave secreta del comercio (solo demo en memoria). Permite verificar
+   *  que quien solicita un retiro es el dueño del comercio (anti-IDOR). */
+  secret: string | null;
 }
 
 interface PaymentsStore {
@@ -67,13 +73,26 @@ function nextRef(): string {
   return `RDM-${Date.now().toString(36).toUpperCase()}${seq.toString(36).toUpperCase()}`;
 }
 
+function newSecret(): string {
+  const rand = crypto.randomBytes(24).toString('hex');
+  return `mk_${rand}`;
+}
+
 function sanitize(concept?: string): string {
   return (concept ?? '').replace(/[<>]/g, '').trim().slice(0, 80);
 }
 
-/** Crea una intención de pago (pendiente) y la emite al bus. */
+/** Crea una intención de pago (pendiente) y la emite al bus. Idempotente:
+ *  si la petición trae idempotencyKey y ya existe una intención con esa
+ *  clave, devuelve la existente sin duplicar el cargo. */
 export function createPayment(input: CreatePaymentInput): PaymentIntent {
   const store = getStore();
+
+  if (input.idempotencyKey) {
+    const existing = store.payments.find(p => p.idempotencyKey === input.idempotencyKey);
+    if (existing) return existing;
+  }
+
   const intent: PaymentIntent = {
     ref: nextRef(),
     type: input.type ?? 'donation',
@@ -85,6 +104,7 @@ export function createPayment(input: CreatePaymentInput): PaymentIntent {
     status: 'pending',
     createdAt: Date.now(),
     confirmedAt: null,
+    idempotencyKey: input.idempotencyKey,
   };
   store.payments.push(intent);
   publishEvent({
@@ -99,6 +119,7 @@ export function createPayment(input: CreatePaymentInput): PaymentIntent {
       currency: intent.currency,
       method: intent.method,
       merchantId: intent.merchantId,
+      idempotent: Boolean(input.idempotencyKey),
     },
     meta: { entityId: intent.ref },
   });
@@ -138,19 +159,37 @@ function merchantAccount(merchantId: string): MerchantAccount {
   const store = getStore();
   let account = store.merchants.get(merchantId);
   if (!account) {
-    account = { merchantId, balance: 0, payouts: [] };
+    account = { merchantId, balance: 0, payouts: [], secret: newSecret() };
     store.merchants.set(merchantId, account);
   }
   return account;
+}
+
+/** Devuelve la clave secreta del comercio (la emite en la primera alta).
+ *  El dueño la usa para firmar los retiros (nunca se expone en listados). */
+export function merchantSecret(merchantId: string): string {
+  return merchantAccount(merchantId).secret ?? '';
+}
+
+/** Verifica la clave de un comercio en tiempo constante (anti-IDOR). */
+export function verifyMerchantSecret(merchantId: string, secret: string): boolean {
+  const account = merchantAccount(merchantId);
+  if (!account.secret || !secret) return false;
+  return constantTimeCompare(account.secret, secret);
 }
 
 export function merchantBalance(merchantId: string): number {
   return getStore().merchants.get(merchantId)?.balance ?? 0;
 }
 
-/** Solicita un retiro de saldo al comercio (no excede el saldo). */
-export function requestPayout(input: MerchantPayout): { ok: boolean; reason?: string; payout?: PayoutRecord } {
+/** Solicita un retiro de saldo al comercio (no excede el saldo). Si se
+ *  provee `merchantSecret`, exige que coincida con la clave del comercio
+ *  (previene retirar saldo ajeno por adivinar el merchantId). */
+export function requestPayout(input: MerchantPayout, secret?: string): { ok: boolean; reason?: string; payout?: PayoutRecord } {
   const account = merchantAccount(input.merchantId);
+  if (secret !== undefined && !verifyMerchantSecret(input.merchantId, secret)) {
+    return { ok: false, reason: 'Clave de comercio inválida.' };
+  }
   if (account.balance < input.amount) {
     return { ok: false, reason: 'Saldo insuficiente.' };
   }

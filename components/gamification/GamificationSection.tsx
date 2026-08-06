@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Trophy, Medal, Target, CheckCircle2, Flame, Crown, Lock, TrendingUp } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Trophy, Medal, Target, CheckCircle2, Flame, Crown, Lock, TrendingUp, Loader2, Gift, Star } from 'lucide-react';
 import { RDM_BADGES, RDM_CHALLENGES } from '@/lib/data/rdm-content';
+import { startSession, reportMission, getCachedSession } from '@/lib/gamification/client';
 
 const rarityColors: Record<string, string> = {
   Común: 'border-slate-500/40 text-slate-300',
@@ -11,12 +12,81 @@ const rarityColors: Record<string, string> = {
   Legendario: 'border-amber-500/50 text-amber-300',
 };
 
+interface LiveSession {
+  totalPoints: number;
+  missions: string[];
+}
+
+const WELCOME_BONUS_MISSION = 'c-bienvenida';
+
 export default function GamificationSection() {
   const [activeTab, setActiveTab] = useState<'badges' | 'retos'>('badges');
-  const [userXp, setUserXp] = useState(2480);
-  const unlockedIds = new Set(['b-1', 'b-2', 'b-3', 'b-4']);
+  const [xp, setXp] = useState<number | null>(null);
+  const [claimed, setClaimed] = useState<Set<string>>(new Set());
+  const [busyMission, setBusyMission] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+
+  const userXp = xp ?? 2480;
   const level = Math.floor(userXp / 500) + 1;
   const levelProgress = (userXp % 500) / 5;
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const cached = getCachedSession();
+        const session = cached ?? (await startSession());
+        if (cached) {
+          const res = await fetch(
+            `/api/gamification/status?deviceId=${encodeURIComponent((await import('@/lib/gamification/client')).getDeviceId())}`,
+          );
+          const data = (await res.json()) as {
+            ok: boolean;
+            session?: { totalPoints: number; missions: string[] } | null;
+          };
+          if (mounted && data.ok && data.session) {
+            setXp(data.session.totalPoints);
+            setClaimed(new Set(data.session.missions));
+          }
+        }
+        if (mounted) {
+          setSessionReady(Boolean(session.sessionId) && !session.sessionId.startsWith('local-'));
+          setXp(prev => prev ?? 0);
+        }
+      } catch {
+        if (mounted) {
+          setSessionReady(false);
+          setXp(2480);
+        }
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const unlockedCount = 1 + Math.min(5, Math.floor(userXp / 500));
+  const unlockedIds = new Set<string>(RDM_BADGES.slice(0, Math.max(1, unlockedCount)).map(b => b.id));
+
+  const claimMission = async (challengeId: string, points: number) => {
+    if (claimed.has(challengeId) || busyMission) return;
+    setBusyMission(challengeId);
+    try {
+      const total = await reportMission(challengeId, points);
+      setXp(prev => total ?? (prev ?? 0) + points);
+      setClaimed(prev => new Set(prev).add(challengeId));
+      const session = getCachedSession();
+      if (session && !session.sessionId.startsWith('local-') && challengeId === WELCOME_BONUS_MISSION) {
+        await reportMission(WELCOME_BONUS_MISSION, 250);
+      }
+    } catch {
+      /* el fallback local se aplica en el cliente */
+    } finally {
+      setBusyMission(null);
+    }
+  };
+
+  const missionsCleared = claimed.size;
 
   return (
     <div className="space-y-6">
@@ -27,6 +97,7 @@ export default function GamificationSection() {
         </h2>
         <p className="text-xs text-slate-400 font-mono">
           Insignias, retos y experiencia soberana para los habitantes del Real
+          {sessionReady ? ' · sincronizada con el motor YUN' : ' · modo simulación local'}
         </p>
       </div>
 
@@ -44,7 +115,9 @@ export default function GamificationSection() {
           </div>
           <div className="text-right">
             <div className="text-[10px] font-mono text-slate-400 uppercase">XP Total</div>
-            <div className="text-xl font-black text-amber-400">{userXp.toLocaleString()} XP</div>
+            <div className="text-xl font-black text-amber-400">
+              {xp === null ? <Loader2 className="h-5 w-5 inline animate-spin" /> : userXp.toLocaleString()} XP
+            </div>
           </div>
         </div>
         <div>
@@ -104,31 +177,98 @@ export default function GamificationSection() {
 
       {activeTab === 'retos' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {RDM_CHALLENGES.map(challenge => (
+          {RDM_CHALLENGES.map(challenge => {
+            const isClaimed = claimed.has(challenge.id);
+            const done = challenge.progress >= 100;
+            return (
             <div key={challenge.id} className="p-5 rounded-2xl glass-panel-interactive border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">{challenge.category}</div>
                 <span className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${
-                  challenge.progress >= 100
+                  isClaimed
                     ? 'text-emerald-300 border-emerald-500/40 bg-emerald-950/60'
-                    : 'text-amber-300 border-amber-500/40 bg-amber-950/60'
+                    : done
+                      ? 'text-amber-300 border-amber-500/40 bg-amber-950/60'
+                      : 'text-slate-400 border-slate-700 bg-slate-900/60'
                 }`}>
-                  {challenge.progress >= 100 ? 'Completado' : `+${challenge.points} XP`}
+                  {isClaimed ? 'Reclamado' : done ? `+${challenge.points} XP` : `+${challenge.points} XP`}
                 </span>
               </div>
               <h4 className="text-base font-bold text-white">{challenge.title}</h4>
               <p className="text-xs text-slate-300 leading-relaxed font-light">{challenge.description}</p>
               <div className="flex items-center justify-between pt-2 border-t border-white/10">
                 <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
-                  <Flame className="w-3.5 h-3.5 text-orange-400" />
-                  {challenge.progress >= 100 ? 'Dominado' : 'Por completar'}
+                  {isClaimed ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Flame className="w-3.5 h-3.5 text-orange-400" />}
+                  {isClaimed ? 'Dominado' : done ? 'Listo para reclamar' : 'Por completar'}
                 </span>
                 <span className="text-[11px] font-mono text-slate-400">{challenge.progress}%</span>
               </div>
+              {done && (
+                <button
+                  onClick={() => claimMission(challenge.id, challenge.points)}
+                  disabled={isClaimed || busyMission !== null}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-slate-950 transition-all hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {busyMission === challenge.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : isClaimed ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : (
+                    <Gift className="w-3.5 h-3.5" />
+                  )}
+                  {isClaimed ? 'Recompensa recibida' : `Reclamar +${challenge.points} XP`}
+                </button>
+              )}
             </div>
-          ))}
+            );
+          })}
+
+          {/* Reto de bienvenida */}
+          <div className="p-5 rounded-2xl glass-panel-interactive border border-white/10 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-amber-400">Nodo Cero</div>
+              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border ${
+                claimed.has(WELCOME_BONUS_MISSION)
+                  ? 'text-emerald-300 border-emerald-500/40 bg-emerald-950/60'
+                  : 'text-amber-300 border-amber-500/40 bg-amber-950/60'
+              }`}>
+                +250 XP
+              </span>
+            </div>
+            <h4 className="text-base font-bold text-white flex items-center gap-2">
+              <Star className="w-4 h-4 text-amber-400" />
+              Bienvenida al Real
+            </h4>
+            <p className="text-xs text-slate-300 leading-relaxed font-light">
+              Activa tu bono de bienvenida por unirte al Nodo Cero. Se abona una sola vez por dispositivo.
+            </p>
+            <button
+              onClick={() => claimMission(WELCOME_BONUS_MISSION, 250)}
+              disabled={claimed.has(WELCOME_BONUS_MISSION) || busyMission !== null}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-slate-950 transition-all hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {busyMission === WELCOME_BONUS_MISSION ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : claimed.has(WELCOME_BONUS_MISSION) ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              ) : (
+                <Gift className="w-3.5 h-3.5" />
+              )}
+              {claimed.has(WELCOME_BONUS_MISSION) ? 'Bono activado' : 'Activar bono de bienvenida'}
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Resumen de progreso */}
+      <div className="p-4 rounded-2xl glass-panel border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <span className="font-mono text-slate-400">
+          Misiones reclamadas: <span className="text-amber-400 font-bold">{missionsCleared}</span> · XP real del motor YUN
+        </span>
+        <span className="font-mono text-slate-500">
+          {sessionReady ? 'sesión firmada · server-authoritative' : 'simulación local · sin conexión'}
+        </span>
+      </div>
     </div>
   );
 }

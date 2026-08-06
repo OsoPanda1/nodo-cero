@@ -6,7 +6,7 @@ import { TwinRelationDrawer } from '@/components/twins/TwinRelationDrawer';
 
 export default function TwinsPage() {
   return (
-    <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+    <div className="plano-tecnico p-6 md:p-10 min-h-[calc(100vh-4rem)] space-y-6">
       <header>
         <h1 className="text-2xl font-semibold text-slate-50">Gemelo Territorial</h1>
         <p className="mt-1 text-sm text-slate-400">

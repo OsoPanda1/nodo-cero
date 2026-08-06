@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const MAX_BODY_BYTES = 16 * 1024;
+export const MAX_BODY_BYTES = 16 * 1024;
 
 export function methodGuard(req: NextRequest, allowed: string[]): NextResponse | null {
   if (!allowed.includes(req.method)) {
@@ -27,11 +27,22 @@ export function jsonContentGuard(req: NextRequest): NextResponse | null {
   return null;
 }
 
-export async function parseJsonBody(req: NextRequest): Promise<Record<string, unknown>> {
+/** Lee el cuerpo crudo con límite de tamaño (una sola lectura). */
+export async function readJsonBodyRaw(req: NextRequest): Promise<string> {
   const raw = await req.text();
   if (raw.length > MAX_BODY_BYTES) {
     throw new Error('BODY_TOO_LARGE');
   }
+  return raw;
+}
+
+export async function parseJsonBody(req: NextRequest): Promise<Record<string, unknown>> {
+  const raw = await readJsonBodyRaw(req);
+  return parseJsonBodyFromRaw(raw);
+}
+
+/** Parsea un cuerpo crudo ya leído (usa el tamaño ya acotado). */
+export function parseJsonBodyFromRaw(raw: string): Record<string, unknown> {
   if (!raw) return {};
   const parsed = JSON.parse(raw) as unknown;
   if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {

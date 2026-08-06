@@ -20,6 +20,9 @@ export const userPaymentSchema = z.object({
   method: z.enum(PAYMENT_METHODS),
   concept: z.string().trim().max(80).optional(),
   merchantId: z.string().trim().max(64).optional(),
+  /** Clave de idempotencia: reenvíos con la misma clave no duplican el
+   *  cargo (protege contra doble clic y reintentos de red). */
+  idempotencyKey: z.string().trim().min(8).max(64).optional(),
 });
 
 /** Solicitud de retiro de un comercio del territorio. */

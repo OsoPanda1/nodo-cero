@@ -2,15 +2,11 @@ import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { addIncident, getIncident, listIncidents, updateIncident } from '@/lib/city/city-event-bus';
 import { autoTriageIncident, rankIncidents } from '@/lib/city/city-incident-engine';
-import type { CityDomain, CityIncident, CitySeverity, CityIncidentSource } from '@/lib/city/city-types';
+import type { CityIncident } from '@/lib/city/city-types';
+import { cityIncidentSchema, cityIncidentPatchSchema, type CityIncidentInput, type CityIncidentPatchInput } from '@/lib/city/api-contracts';
 
-const DOMAINS: CityDomain[] = ['police', 'fire', 'traffic', 'utilities', 'publicWorks', 'health', 'civilProtection', 'mobility', 'energy', 'water', 'environment'];
-const SEVERITIES: CitySeverity[] = ['low', 'medium', 'high', 'critical'];
-const SOURCES: CityIncidentSource[] = ['sensor', 'citizen', 'operator', 'integration', 'ai'];
-
-/* Ruta migrada al route-guard único (antes duplicaba enforceTrust
-   con assertServerOnly + verifyOrigin + rateLimit + parseJsonBody).
-   La validación manual de los cuerpos se conserva en cada handler. */
+/* Ruta migrada al route-guard único y a contratos zod
+   (cityIncidentSchema / cityIncidentPatchSchema). */
 
 export const GET = guardedRoute(
   {
@@ -25,36 +21,30 @@ export const GET = guardedRoute(
   },
 );
 
-export const POST = guardedRoute(
+export const POST = guardedRoute<CityIncidentInput>(
   {
     route: 'api:city:incidents',
     methods: ['POST'],
     rateLimit: 50,
+    schema: cityIncidentSchema,
   },
   async ({ body }) => {
-    const domain = DOMAINS.includes(body.domain as CityDomain) ? (body.domain as CityDomain) : null;
-    const severity = SEVERITIES.includes(body.severity as CitySeverity) ? (body.severity as CitySeverity) : 'medium';
-    const source = SOURCES.includes(body.source as CityIncidentSource) ? (body.source as CityIncidentSource) : 'operator';
-    if (!domain || typeof body.title !== 'string' || !body.title) {
-      return NextResponse.json({ ok: false, error: 'Campos requeridos: domain, title' }, { status: 400 });
-    }
-
     const draft: CityIncident = {
       id: `inc-${Math.random().toString(36).slice(2, 8)}`,
-      domain,
-      title: String(body.title).slice(0, 160),
-      description: typeof body.description === 'string' ? body.description.slice(0, 500) : '',
-      severity,
+      domain: body.domain,
+      title: body.title,
+      description: body.description ?? '',
+      severity: body.severity,
       status: 'open',
-      source,
+      source: body.source,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      tags: Array.isArray(body.tags) ? (body.tags as string[]).slice(0, 12) : [],
-      relatedEntityIds: Array.isArray(body.relatedEntityIds) ? (body.relatedEntityIds as string[]).slice(0, 12) : [],
+      tags: body.tags ?? [],
+      relatedEntityIds: body.relatedEntityIds ?? [],
     };
     const incident = addIncident(autoTriageIncident(draft));
 
-    if (body.id && typeof body.id === 'string') {
+    if (body.id) {
       const existing = getIncident(body.id);
       if (existing && incident) {
         return NextResponse.json({ ok: true, incident: existing }, { status: 200 });
@@ -65,24 +55,21 @@ export const POST = guardedRoute(
   },
 );
 
-export const PATCH = guardedRoute(
+export const PATCH = guardedRoute<CityIncidentPatchInput>(
   {
     route: 'api:city:incidents',
     methods: ['PATCH'],
     rateLimit: 50,
+    schema: cityIncidentPatchSchema,
   },
   async ({ body }) => {
-    const id = typeof body.id === 'string' ? body.id : null;
-    if (!id) return NextResponse.json({ ok: false, error: 'id requerido' }, { status: 400 });
-
-    const statuses: Array<CityIncident['status']> = ['open', 'triaged', 'assigned', 'mitigated', 'closed'];
     const patch: Parameters<typeof updateIncident>[1] = {};
-    if (statuses.includes(body.status as CityIncident['status'])) patch.status = body.status as CityIncident['status'];
-    if (SEVERITIES.includes(body.severity as CitySeverity)) patch.severity = body.severity as CitySeverity;
-    if (typeof body.description === 'string') patch.description = body.description;
-    if (Array.isArray(body.tags)) patch.tags = body.tags as string[];
+    if (body.status) patch.status = body.status;
+    if (body.severity) patch.severity = body.severity;
+    if (body.description !== undefined) patch.description = body.description;
+    if (body.tags !== undefined) patch.tags = body.tags;
 
-    const updated = updateIncident(id, patch);
+    const updated = updateIncident(body.id, patch);
     if (!updated) return NextResponse.json({ ok: false, error: 'Incidente no encontrado.' }, { status: 404 });
     return NextResponse.json({ ok: true, incident: updated });
   },

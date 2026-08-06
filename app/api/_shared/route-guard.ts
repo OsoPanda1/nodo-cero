@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { assertServerOnly, verifyOrigin, rateLimit } from '@/lib/security/trust';
 import { assertZeroTrust } from '@/lib/security/zero-trust';
-import { methodGuard, jsonContentGuard, parseJsonBody } from '@/lib/security/request-validator';
+import { methodGuard, jsonContentGuard, readJsonBodyRaw, parseJsonBodyFromRaw } from '@/lib/security/request-validator';
 import { apiErrorJson, rateLimitedJson, zodErrorJson, internalErrorJson } from '@/lib/core/contracts';
 import { publishEvent, runWithTrace, newTraceId, currentTrace } from '@/lib/core/events';
 
@@ -36,6 +36,17 @@ export interface GuardedRouteOptions {
   originRequired?: boolean;
   /** Aplica la cadena Zero Trust de 7 capas. Por defecto true. */
   zeroTrust?: boolean;
+  /** API keys aceptadas para la capa L6 de identidad. Si se define, la
+   *  ruta exige `x-rdm-api-key` con una de esas claves (fail-closed). */
+  zeroTrustApiKeys?: string[];
+  /** Exige firma HMAC del cuerpo (L1/L3). Requiere `zeroTrustHmacSecret`. */
+  zeroTrustRequiresSignature?: boolean;
+  /** Secreto HMAC para verificar la firma (jamás se loguea). */
+  zeroTrustHmacSecret?: string;
+  /** Pasa el cuerpo crudo a la capa L5 (Operación) para la detección de
+   *  PII/secretos. Actívalo solo en rutas que NO reciben emails o
+   *  teléfonos legítimos (p.ej. eventos de gamificación firmados). */
+  zeroTrustBody?: boolean;
   /** Contrato (zod) del cuerpo; si se define, el handler recibe el
    *  body ya validado y tipado. */
   schema?: z.ZodType;
@@ -69,6 +80,10 @@ export function guardedRoute<T = Record<string, unknown>>(
     rateLimit: limit = 30,
     originRequired = true,
     zeroTrust = true,
+    zeroTrustApiKeys,
+    zeroTrustRequiresSignature = false,
+    zeroTrustHmacSecret,
+    zeroTrustBody = false,
     schema,
     json = true,
     cacheControl,
@@ -106,8 +121,27 @@ export function guardedRoute<T = Record<string, unknown>>(
       const rl = rateLimit(req, route, limit);
       if (!rl.ok) return rateLimitedJson(rl.retryAfterMs);
 
+      /* Cuerpo crudo (una sola lectura) compartido entre zero-trust y zod. */
+      let rawBody: string | undefined;
+      if (json) {
+        const contentDenied = jsonContentGuard(req);
+        if (contentDenied) return contentDenied;
+        try {
+          rawBody = await readJsonBodyRaw(req);
+        } catch {
+          return apiErrorJson('BODY_TOO_LARGE', 413);
+        }
+      }
+
       if (zeroTrust) {
-        const zt = assertZeroTrust(req.headers, { route, limit });
+        const zt = assertZeroTrust(req.headers, {
+          route,
+          limit,
+          body: zeroTrustRequiresSignature || zeroTrustBody ? rawBody : undefined,
+          allowedKeys: zeroTrustApiKeys,
+          requiresSignature: zeroTrustRequiresSignature,
+          hmacSecret: zeroTrustHmacSecret,
+        });
         if (!zt.ok) return apiErrorJson(`Zero Trust denegado por capa: ${zt.deniedBy ?? 'unknown'}`, 403);
       }
 
@@ -116,11 +150,8 @@ export function guardedRoute<T = Record<string, unknown>>(
 
       let body: unknown = {};
       if (json) {
-        const contentDenied = jsonContentGuard(req);
-        if (contentDenied) return contentDenied;
-
         try {
-          body = await parseJsonBody(req);
+          body = parseJsonBodyFromRaw(rawBody ?? '');
         } catch {
           return apiErrorJson('BODY_INVALID', 400);
         }

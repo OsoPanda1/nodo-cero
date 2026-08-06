@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { getModels, registerModel } from '@/lib/twins/twin-store';
 import { TWIN_MODELS } from '@/lib/twins/dtdl';
-import type { TwinModelRecord } from '@/lib/twins/twin-types';
+import { twinModelSchema, type TwinModelInput } from '@/lib/twins/api-contracts';
 
-/* Ruta migrada al route-guard único (antes duplicaba enforceTrust
-   con assertServerOnly + verifyOrigin + rateLimit). La validación de
-   campos obligatorios (dtmi, name, schema) se conserva en el handler. */
+/* Ruta migrada al route-guard único y a contrato zod (twinModelSchema). */
 
 export const GET = guardedRoute(
   {
@@ -39,22 +37,20 @@ export const GET = guardedRoute(
   },
 );
 
-export const POST = guardedRoute<Partial<TwinModelRecord>>(
+export const POST = guardedRoute<TwinModelInput>(
   {
     route: 'api:twins:models',
     methods: ['POST'],
     rateLimit: 30,
+    schema: twinModelSchema,
   },
   async ({ body }) => {
-    if (!body.dtmi || !body.name || !body.schema) {
-      return NextResponse.json({ ok: false, error: 'Campos requeridos: dtmi, name, schema' }, { status: 400 });
-    }
-    const model: TwinModelRecord = {
+    const model = {
       id: body.id ?? body.dtmi,
-      dtmi: String(body.dtmi),
-      name: String(body.name),
-      version: Number(body.version ?? 1),
-      domain: body.domain ?? 'custom',
+      dtmi: body.dtmi,
+      name: body.name,
+      version: body.version,
+      domain: body.domain,
       schema: body.schema,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

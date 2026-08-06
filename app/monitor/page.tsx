@@ -12,7 +12,7 @@ const SystemMonitor = lazy(() =>
 
 export default function MonitorPage() {
   return (
-    <div className="space-y-6">
+    <div className="plano-tecnico p-4 md:p-8 min-h-[calc(100vh-4rem)] space-y-6">
       <LiveSystems />
       <AdminMonitor />
       <Suspense

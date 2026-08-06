@@ -128,12 +128,26 @@ describe('puente observabilidad -> bus YUN', () => {
     publishEvent({ type: 'api.route.error', source: 'guard', domain: 'security', data: { route: 'api:test:r', error: 'boom' } });
 
     const [status] = redMetrics.status('api:test:r');
-    expect(status.requests).toBe(3);
+    /* El hit solo marca la entrada; finished + error cuentan la petición
+       una sola vez (corrige el doble conteo de requests por petición). */
+    expect(status.requests).toBe(2);
     expect(status.errors).toBe(1);
 
     const report = sloManager.report('api.core.availability');
     expect(report?.total).toBe(2);
     expect(report?.errors).toBe(1);
+  });
+
+  it('alimenta el SLO de telemetría con los health-checks', () => {
+    wireObservabilityToBus();
+    publishEvent({ type: 'api.route.hit', source: 'guard', domain: 'security', data: { route: 'api:monitor:health' } });
+    publishEvent({ type: 'api.route.finished', source: 'guard', domain: 'security', data: { route: 'api:monitor:health', elapsedMs: 12 } });
+    publishEvent({ type: 'api.route.error', source: 'guard', domain: 'security', data: { route: 'api:monitor:health', error: 'boom' } });
+
+    const report = sloManager.report('api.telemetry.health');
+    expect(report?.total).toBe(2);
+    expect(report?.errors).toBe(1);
+    expect(report?.status).not.toBeUndefined();
   });
 
   it('ingesta todos los eventos del bus en el grafo causal', () => {

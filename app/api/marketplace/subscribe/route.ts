@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { getListing, listSubscriptions } from '@/lib/marketplace/marketplace-store';
 import { acquireListing } from '@/lib/marketplace/marketplace-search';
+import { subscribeSchema, type SubscribeInput } from '@/lib/marketplace/api-contracts';
 
-/* Ruta migrada al route-guard único (antes duplicaba enforceTrust con
-   assertServerOnly + verifyOrigin + rateLimit y el bloque
-   methodGuard + jsonContentGuard + parseJsonBody). */
+/* Ruta migrada al route-guard único y a contrato zod (subscribeSchema). */
 
 export const GET = guardedRoute(
   {
@@ -27,18 +26,15 @@ export const GET = guardedRoute(
   },
 );
 
-export const POST = guardedRoute(
+export const POST = guardedRoute<SubscribeInput>(
   {
     route: 'api:marketplace:subscribe',
     methods: ['POST'],
     rateLimit: 30,
+    schema: subscribeSchema,
   },
   async ({ body }) => {
-    const listingId = typeof body.listingId === 'string' ? body.listingId : null;
-    if (!listingId) return NextResponse.json({ ok: false, error: 'listingId requerido' }, { status: 400 });
-    const licensee = typeof body.licensee === 'string' && body.licensee ? String(body.licensee) : 'yun-node';
-
-    const result = acquireListing(listingId, licensee);
+    const result = acquireListing(body.listingId, body.licensee);
     if (!result.ok) return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
     return NextResponse.json({ ...result }, { status: 201 });
   },

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { monitor } from '@/lib/monitoring/monitor';
 import type { HealthStatus } from '@/lib/monitoring/monitor';
-import { verifyInternalKey, hasInternalKey } from '@/lib/security/keys';
+import { hasInternalKey, getInternalKey } from '@/lib/security/keys';
 import { getTwinInstances } from '@/lib/twins/twin-store';
 import { listIncidents } from '@/lib/city/city-event-bus';
 import { listAssets } from '@/lib/assets/asset-registry';
@@ -86,8 +86,9 @@ export const dynamic = 'force-dynamic';
 /* ------------------------------------------------------------------ */
 /* GET /api/monitor/health — salud de todos los dominios               */
 /* ------------------------------------------------------------------ */
-/* Ruta migrada al route-guard único. La clave interna MONITOR_API_KEY */
-/* se conserva dentro del handler (condicionada a hasInternalKey).     */
+/* Ruta migrada al route-guard único. La verificación de la clave      */
+/* interna MONITOR_API_KEY se delega en la capa L6 (Identidad) del     */
+/* guard (fail-closed) cuando la clave está configurada.               */
 /* ------------------------------------------------------------------ */
 export const GET = guardedRoute(
   {
@@ -95,15 +96,9 @@ export const GET = guardedRoute(
     methods: ['GET'],
     rateLimit: 120,
     json: false,
+    zeroTrustApiKeys: hasInternalKey('MONITOR_API_KEY') && getInternalKey('MONITOR_API_KEY') ? [getInternalKey('MONITOR_API_KEY') as string] : undefined,
   },
-  async ({ req }) => {
-    if (hasInternalKey('MONITOR_API_KEY')) {
-      const key = req.headers.get('x-rdm-api-key');
-      if (!verifyInternalKey('MONITOR_API_KEY', key)) {
-        return NextResponse.json({ ok: false, error: 'Clave de monitor no autorizada.' }, { status: 401 });
-      }
-    }
-
+  async () => {
     const checks = await monitor.healthSnapshot();
     const overall = monitor.overallHealth(checks);
 

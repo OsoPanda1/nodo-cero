@@ -11,7 +11,7 @@ export function MetallicHeading({
   className?: string;
 }) {
   return (
-    <Tag className={cn('font-editorial text-3xl sm:text-4xl font-semibold tracking-tight text-[#f5f0e8]', className)}>
+    <Tag className={cn('font-editorial text-3xl sm:text-4xl font-semibold tracking-tight text-[#082f3b]', className)}>
       {children}
     </Tag>
   );

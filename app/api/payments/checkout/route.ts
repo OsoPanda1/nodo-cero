@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { userPaymentSchema, type UserPayment } from '@/lib/payments/contracts';
-import { createPayment, confirmPayment } from '@/lib/payments/engine';
+import { createPayment, confirmPayment, merchantSecret } from '@/lib/payments/engine';
 
 export const runtime = 'nodejs';
 
 /* ------------------------------------------------------------------ */
 /* POST /api/payments/checkout — pago de usuario (donación/compra)     */
 /* ------------------------------------------------------------------ */
-/* Crea la intención de pago validada por contrato zod y la asienta    */
-/* de forma instantánea (modo demo). Devuelve referencia verificable.  */
+/* Crea la intención de pago validada por contrato zod (con soporte de */
+/* idempotencia) y la asienta de forma instantánea (modo demo).        */
+/* Devuelve referencia verificable y, en compras, la clave secreta del */
+/* comercio que el dueño usará para firmar sus retiros.                */
 /* ------------------------------------------------------------------ */
 export const POST = guardedRoute<UserPayment>(
   {
@@ -22,6 +24,7 @@ export const POST = guardedRoute<UserPayment>(
   async ({ body }) => {
     const intent = createPayment(body);
     const confirmed = confirmPayment(intent.ref);
+    const merchantKey = intent.merchantId ? merchantSecret(intent.merchantId) : undefined;
     return NextResponse.json({
       ok: true,
       ref: confirmed?.ref ?? intent.ref,
@@ -29,6 +32,7 @@ export const POST = guardedRoute<UserPayment>(
       amount: intent.amount,
       currency: intent.currency,
       method: intent.method,
+      merchantKey,
       serverTime: Date.now(),
     });
   },

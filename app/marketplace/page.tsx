@@ -3,5 +3,9 @@
 import { MarketplaceDashboard } from '@/components/marketplace/MarketplaceDashboard';
 
 export default function MarketplacePage() {
-  return <MarketplaceDashboard />;
+  return (
+    <div className="plano-tecnico min-h-[calc(100vh-4rem)]">
+      <MarketplaceDashboard />
+    </div>
+  );
 }

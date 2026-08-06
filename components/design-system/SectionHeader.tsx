@@ -28,10 +28,10 @@ export function SectionHeader({
           <span>{badge}</span>
         </div>
       )}
-      <h2 className="font-editorial text-3xl sm:text-4xl font-semibold tracking-tight text-[#f5f0e8]">
+      <h2 className="font-editorial text-3xl sm:text-4xl font-semibold tracking-tight text-[#082f3b]">
         {title}
       </h2>
-      {description && <p className="text-sm leading-relaxed text-slate-300 font-light">{description}</p>}
+      {description && <p className="text-sm leading-relaxed text-slate-600 font-light">{description}</p>}
       <GradientDivider />
     </header>
   );

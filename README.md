@@ -275,7 +275,10 @@ vvvvvvv-main/
 │   │   ├── city/                    # ioc, events, incidents, mobility, response, infrastructure, scorecard
 │   │   ├── assets/                  # register, health, maintenance, failures, score
 │   │   ├── grid/                    # power, water, topology, balance, alerts
-│   │   └── marketplace/             # models, offers, publish, subscribe, license
+│   │   ├── marketplace/             # models, offers, publish, subscribe, license
+│   │   ├── payments/                # checkout, status, merchant/payout (idempotente + secret)
+│   │   ├── auth/register/           # Identity: registro de ciudadanos y comercios
+│   │   └── monitor/health/          # Health con zero-trust L6 (API key interna)
 │   ├── twins/page.tsx               # Gemelo Digital
 │   ├── city/page.tsx                # IOC Urbano
 │   ├── assets/page.tsx              # EAM/APM
@@ -305,6 +308,8 @@ vvvvvvv-main/
 │   ├── assets/                     # Motores EAM/APM
 │   ├── grid/                       # Motores smart grid/agua
 │   ├── marketplace/                # Motores del marketplace
+│   ├── identity/                   # Registro de ciudadanos/comercios (store + contratos zod)
+│   ├── payments/                   # Motor de pagos idempotente con secretos de comercio
 │   ├── isabella/                   # Núcleo cognitivo C.R.O.W.N. + gateway + DMS
 │   └── data/                       # rdm-data, rdm-tourism, rdm-territorial, zombies-data
 ├── app/api/_shared/route-guard.ts  # Guard transversal único de las rutas API
@@ -312,7 +317,7 @@ vvvvvvv-main/
 ├── supabase/migrations/
 │   ├── 001_create_isabella_tables.sql   # Capa cognitiva (sessions, memory, decisions, audit)
 │   └── 002_create_territorial_domains.sql  # Twins, assets, work_orders, incidents, grid + RLS
-├── tests/                          # 26 archivos · 222 tests (vitest)
+├── tests/                          # 27 archivos · 238 tests (vitest)
 ├── RFC-0001.md                     # Manifiesto C.R.O.W.N.
 ├── AGENTS.md                       # Convenciones para agentes de IA
 ├── vitest.config.mts
@@ -343,9 +348,10 @@ vvvvvvv-main/
 16. **Datos reales conectados** — `lib/data/rdm-territorial.ts` convierte los 15 POIs y 35 nodos YUN en gemelos, activos, nodos de red e incidentes (deja de ser mock).
 17. **Base de datos Supabase/Postgres** — Migración `002` con tablas de twins, activos, órdenes, incidentes y nodos de red, seeds y Row Level Security.
 18. **Núcleo transversal (Fase 1)** — `lib/core/` (utils, bus YUN unificado con trace/correlation, contrato de entorno zod, contratos de rutas), trust canónica en `lib/security/trust.ts`, **route-guard único** (`app/api/_shared/route-guard.ts`) que reemplaza ~30 copias de `enforceTrust`, y scripts de calidad (`audit-project`, `check-env`, `check-contracts`).
-19. **Migración total al route-guard (Fase 2a)** — Las **36 rutas** de API usan `guardedRoute`; las 5 de Isabella conservan su cadena soberana (clasificación automática de `check-contracts`). Los buses de city y monitor se unificaron al bus YUN con guardia anti-lazo (Fase 2b/2c).
+19. **Migración total al route-guard (Fase 2a)** — Las **46 rutas** de API usan `guardedRoute`; las de Isabella conservan su cadena soberana (clasificación automática de `check-contracts`). Los buses de city y monitor se unificaron al bus YUN con guardia anti-lazo (Fase 2b/2c).
 20. **Visual AAA con latencia casi cero (Fase 3)** — Motor de calidad adaptativa por FPS, partículas con pool, arena cinematográfica y sprite enriquecido de los zombies (ver sección 11).
 21. **Fabric cognitivo YUN (Fase 4)** — Observabilidad (`lib/observability`: SLO con presupuestos de error, métricas RED, grafo causal de eventos) y guardianía (`lib/guardian`: Guardian Kernel con deny-by-default, mínimo privilegio, idempotencia, reversibilidad y escalación humana), conectados al bus YUN y expuestos en `GET /api/observability/status`.
+22. **F5 — Endurecimiento P0/P1** — Dominio **Identity** (`lib/identity/`, `POST /api/auth/register` con contratos zod y store) integrado a la SPA (`RegisterSection`); **pagos endurecidos** (`lib/payments/`): `idempotencyKey`, claves de comercio `mk_` con verificación en tiempo constante y anti-IDOR en retiros; **observabilidad** con métricas RED exactas (un solo registro por petición) y SLO `api.telemetry.health`; **route-guard** ampliado con capas L3/L5/L6 (zero-trust de API keys con HMAC opcional) y **8 rutas migradas a contratos zod** (`lib/{gamification,city,marketplace,twins}/api-contracts.ts`).
 
 ---
 
@@ -365,26 +371,27 @@ vvvvvvv-main/
 - `vercel.json` con headers de seguridad y `npm install --legacy-peer-deps`.
 - `next.config.ts` saneado.
 - Build y lint **100% limpios**.
-- 222 tests automatizados en Vitest.
+- 238 tests automatizados en Vitest (27 archivos).
 
 ### Modernización del Núcleo (Fases 1–4)
 - **F1 — Núcleo transversal**: `lib/core/` (bus YUN unificado, entorno tipado, contratos zod), trust canónica y route-guard único; scripts de calidad bloqueantes (`audit`, `check:env`, `check:contracts`).
-- **F2 — Migración de rutas y buses**: 36 rutas migradas al `guardedRoute` (+5 soberanas de Isabella); buses de city y monitor unificados al bus YUN con **guardia anti-lazo** (`lib/monitoring/bridge.ts`).
-- **F3 — Visual AAA de gamificación**: calidad adaptativa por FPS (`AdaptiveQuality`), partículas con pool sin GC (`FxEngine`), arena cinematográfica GPU-only, sprite enriquecido y overlay atmosférico; **222/222 tests**.
+- **F2 — Migración de rutas y buses**: 46 rutas migradas al `guardedRoute`; buses de city y monitor unificados al bus YUN con **guardia anti-lazo** (`lib/monitoring/bridge.ts`).
+- **F3 — Visual AAA de gamificación**: calidad adaptativa por FPS (`AdaptiveQuality`), partículas con pool sin GC (`FxEngine`), arena cinematográfica GPU-only, sprite enriquecido y overlay atmosférico; **238/238 tests**.
 - **F4 — Fabric cognitivo YUN**: `lib/observability` (SLO con presupuestos de error, métricas RED con percentiles, grafo causal de eventos) y `lib/guardian` (Kernel deny-by-default con idempotencia, reversibilidad y escalación humana), puente `wireObservabilityToBus` anti-lazo y nueva ruta `GET /api/observability/status`.
+- **F5 — Endurecimiento y organización P0/P1**: dominio **Identity** (`lib/identity/` + `POST /api/auth/register` con contrato zod y store en memoria, emisor al bus YUN) y `RegisterSection` en la SPA; **pagos endurecidos** (`lib/payments/engine.ts`): intención idempotente por `idempotencyKey`, `MerchantAccount` con secreto `mk_*` verificado en tiempo constante y anti-IDOR en `requestPayout`; observabilidad RED exacta y SLO de telemetría; **route-guard** con opciones de zero-trust L3/L5/L6 (API keys, firma HMAC opcional, body) y lectura única del cuerpo; migración a contratos zod de las rutas `gamification/session`, `city/{incidents,events}`, `marketplace/{subscribe,license}` y `twins/{models,instances,simulate}`; gamificación conectada al motor (ruta `GET /api/gamification/status` y retos reclamables con puntos server-authoritative). **238 tests en 27 archivos**.
 
 ---
 
 ## Pruebas Automatizadas
 
 ```bash
-npm test          # Vitest run — 26 archivos · 222 tests
+npm test          # Vitest run — 27 archivos · 238 tests
 npx tsc --noEmit  # Typecheck completo
 npm run lint      # ESLint
 npm run build     # Build de producción
 npm run audit     # Consistencia del código (bloquea as never / require())
 npm run check:env # Entorno contra el contrato tipado
-npm run check:contracts  # Adopción del route-guard único (36 migradas + 5 soberanas)
+npm run check:contracts  # Adopción del route-guard único (46 migradas)
 npm run quality   # Todo en cadena (audit + env + contracts + lint + types + test)
 ```
 
@@ -416,7 +423,8 @@ Cobertura por dominio:
 | `tests/env.test.ts` | Contrato tipado del entorno |
 | `tests/bus-bridges.test.ts` | Puentes city/monitor ↔ bus YUN (anti-lazo) |
 | `tests/gamification-visual.test.ts` | Calidad adaptativa (FPS) y motor de partículas con pool |
-| `tests/observability.test.ts` | SLO/presupuestos, métricas RED, grafo causal, puente al bus |
+| `tests/observability.test.ts` | SLO/presupuestos, métricas RED exactas, grafo causal, puente al bus |
+| `tests/payments.test.ts` | Idempotencia de pagos, secretos de comercio, anti-IDOR en retiros |
 | `tests/guardian.test.ts` | Guardian Kernel: deny-by-default, idempotencia, escalación |
 
 ## Documentación Técnica
@@ -460,14 +468,14 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 | Build de producción (`next build`) | ✅ Exitoso (0 errores TS) |
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 222/222 (26 archivos) |
+| Tests (`vitest`) | ✅ 238/238 (27 archivos) |
 | Datos del territorio (POIs, nodos, turismo) | ✅ 15 POIs · 35 nodos · 8 eventos · 5 rutas |
 | Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
 | IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
 | EAM/APM | ✅ Salud · falla · mantenimiento · APM Score |
 | Smart Grid/Agua | ✅ Balance · topología · alertas |
 | Marketplace | ✅ Ofertas · licencias · suscripción |
-| Zero Trust en APIs | ✅ Origin · rate limit · fail-closed · route-guard único (36+5) |
+| Zero Trust en APIs | ✅ Origin · rate limit · fail-closed · route-guard único (46) |
 | Bus YUN unificado | ✅ Envelope + traceId/correlationId · anti-lazo |
 | Visual de gamificación | ✅ Calidad adaptativa · FX con pool · arena cinematográfica |
 | Fabric cognitivo YUN | ✅ Observabilidad (SLO/RED/grafo) · Guardian Kernel · `/api/observability/status` |
@@ -523,7 +531,7 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
-npm test                         # Vitest (222 tests)
+npm test                         # Vitest (238 tests)
 npm run audit                    # Consistencia del código
 npm run check:env                # Entorno contra el contrato
 npm run check:contracts          # Adopción del route-guard

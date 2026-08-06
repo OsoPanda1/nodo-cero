@@ -5,6 +5,11 @@
 /* cada evento alimenta el grafo causal; los eventos api.route.*       */
 /* alimentan RED y el SLO de disponibilidad. Solo ESCUCHA, nunca       */
 /* publica, por lo que no puede crear lazos.                           */
+/*                                                                     */
+/* RED cuenta UNA vez por petición: `api.route.hit` es solo la marca   */
+/* de entrada (no suma métricas); `finished`/`error` son los que       */
+/* registran el resultado. El SLO de telemetría (api.telemetry.health) */
+/* se alimenta con el health-check (api:monitor:health).               */
 /* ================================================================== */
 
 import { subscribe } from '@/lib/core/events';
@@ -22,14 +27,22 @@ export function wireObservabilityToBus(): void {
     if (!route) return;
 
     if (envelope.type === 'api.route.hit') {
-      redMetrics.record({ route, ok: true, durationMs: 0 });
+      /* Solo marca la entrada; no cuenta en RED para evitar el doble
+         conteo que ocurría al registrar hit + finished por petición. */
+      return;
     } else if (envelope.type === 'api.route.finished') {
       const elapsedMs = typeof envelope.data.elapsedMs === 'number' ? envelope.data.elapsedMs : 0;
       redMetrics.record({ route, ok: true, durationMs: elapsedMs });
       sloManager.recordOutcome('api.core.availability', { ok: true });
+      if (route === 'api:monitor:health') {
+        sloManager.recordOutcome('api.telemetry.health', { ok: true });
+      }
     } else if (envelope.type === 'api.route.error') {
       redMetrics.record({ route, ok: false, durationMs: 0 });
       sloManager.recordOutcome('api.core.availability', { ok: false });
+      if (route === 'api:monitor:health') {
+        sloManager.recordOutcome('api.telemetry.health', { ok: false });
+      }
     }
   });
 }

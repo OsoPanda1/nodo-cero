@@ -44,6 +44,7 @@ export default function PaymentsSection() {
   const [result, setResult] = useState<CheckoutResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [merchantSecret, setMerchantSecret] = useState('');
 
   const finalAmount = customAmount ? Number(customAmount) : amount;
 
@@ -73,6 +74,9 @@ export default function PaymentsSection() {
         return;
       }
       setResult(data);
+      if (typeof (data as unknown as { merchantKey?: string }).merchantKey === 'string') {
+        setMerchantSecret((data as unknown as { merchantKey: string }).merchantKey);
+      }
     } catch {
       setError('Error de red al procesar el pago.');
     } finally {
@@ -92,7 +96,10 @@ export default function PaymentsSection() {
     try {
       const res = await fetch('/api/payments/merchant/payout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-rdm-merchant-secret': merchantSecret,
+        },
         body: JSON.stringify({ merchantId: payoutMerchant, amount: amountValue, method: payoutMethod }),
       });
       const data = (await res.json()) as CheckoutResult;
@@ -343,7 +350,8 @@ export default function PaymentsSection() {
             Retiro de saldo para comercios
           </h3>
           <p className="text-xs text-slate-400">
-            Los comercios reciben el 100% del importe de cada venta phygital. Solicita tu retiro por SPEI o PayPal.
+            Los comercios reciben el 100% del importe de cada venta phygital. Solicita tu retiro por SPEI o PayPal
+            firmándolo con la clave secreta de tu comercio (se emite con cada venta confirmada).
           </p>
           <div>
             <label className="mb-1 block text-xs text-slate-400">Comercio</label>
@@ -370,6 +378,11 @@ export default function PaymentsSection() {
               className="w-full rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
             />
           </div>
+          {merchantSecret && (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 font-mono text-[11px] text-emerald-300 break-all">
+              Clave de comercio activa: {merchantSecret.slice(0, 18)}… (se envía en cada retiro)
+            </div>
+          )}
           <div className="flex gap-2">
             {(['spei', 'paypal'] as const).map(m => (
               <button

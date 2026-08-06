@@ -2,10 +2,9 @@ import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { getListing, listSubscriptions } from '@/lib/marketplace/marketplace-store';
 import { checkLicense, usageEntitlement } from '@/lib/marketplace/marketplace-license';
+import { licenseCheckSchema, type LicenseCheckInput } from '@/lib/marketplace/api-contracts';
 
-/* Ruta migrada al route-guard único (antes duplicaba enforceTrust con
-   assertServerOnly + verifyOrigin + rateLimit y el bloque
-   methodGuard + jsonContentGuard + parseJsonBody). */
+/* Ruta migrada al route-guard único y a contrato zod (licenseCheckSchema). */
 
 export const GET = guardedRoute(
   {
@@ -31,20 +30,17 @@ export const GET = guardedRoute(
   },
 );
 
-export const POST = guardedRoute(
+export const POST = guardedRoute<LicenseCheckInput>(
   {
     route: 'api:marketplace:license',
     methods: ['POST'],
     rateLimit: 60,
+    schema: licenseCheckSchema,
   },
   async ({ body }) => {
-    const listingId = typeof body.listingId === 'string' ? body.listingId : null;
-    if (!listingId) return NextResponse.json({ ok: false, error: 'listingId requerido' }, { status: 400 });
-    const licensee = typeof body.licensee === 'string' && body.licensee ? String(body.licensee) : 'yun-node';
-
-    const listing = getListing(listingId);
+    const listing = getListing(body.listingId);
     if (!listing) return NextResponse.json({ ok: false, error: 'Listado no encontrado.' }, { status: 404 });
-    const subscription = listSubscriptions().find((s) => s.listingId === listingId && s.licensee === licensee);
+    const subscription = listSubscriptions().find((s) => s.listingId === body.listingId && s.licensee === body.licensee);
 
     const check = checkLicense(listing, subscription);
     return NextResponse.json({ ok: true, check, entitlement: usageEntitlement(listing, subscription) });

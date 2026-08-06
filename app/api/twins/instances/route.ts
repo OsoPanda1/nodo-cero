@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { getTwinInstance, getTwinInstances, upsertTwinInstance } from '@/lib/twins/twin-store';
-import type { TwinInstanceRecord } from '@/lib/twins/twin-types';
+import { twinInstanceSchema, type TwinInstanceInput } from '@/lib/twins/api-contracts';
 
-/* Ruta migrada al route-guard único (antes duplicaba enforceTrust
-   con assertServerOnly + verifyOrigin + rateLimit). La validación de
-   campos obligatorios (id, modelId, name) se conserva en el handler. */
+/* Ruta migrada al route-guard único y a contrato zod (twinInstanceSchema). */
 
 export const GET = guardedRoute(
   {
@@ -24,26 +22,24 @@ export const GET = guardedRoute(
   },
 );
 
-export const POST = guardedRoute<Partial<TwinInstanceRecord>>(
+export const POST = guardedRoute<TwinInstanceInput>(
   {
     route: 'api:twins:instances',
     methods: ['POST'],
     rateLimit: 40,
+    schema: twinInstanceSchema,
   },
   async ({ body }) => {
-    if (!body.id || !body.modelId || !body.name) {
-      return NextResponse.json({ ok: false, error: 'Campos requeridos: id, modelId, name' }, { status: 400 });
-    }
-    const instance: TwinInstanceRecord = {
-      id: String(body.id),
-      modelId: String(body.modelId),
-      name: String(body.name),
-      externalRef: typeof body.externalRef === 'string' ? body.externalRef : undefined,
-      lat: typeof body.lat === 'number' ? body.lat : undefined,
-      lng: typeof body.lng === 'number' ? body.lng : undefined,
-      properties: (body.properties ?? {}) as Record<string, unknown>,
-      telemetry: (body.telemetry ?? {}) as Record<string, unknown>,
-      status: body.status ?? 'healthy',
+    const instance = {
+      id: body.id,
+      modelId: body.modelId,
+      name: body.name,
+      externalRef: body.externalRef,
+      lat: body.lat,
+      lng: body.lng,
+      properties: body.properties,
+      telemetry: body.telemetry,
+      status: body.status,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
