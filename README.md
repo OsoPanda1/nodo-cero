@@ -97,7 +97,7 @@ Chat con **Google Gemini 2.5 Flash** (con fallback a modo simulación local segu
 Los **35 nodos** organizados por núcleo, con búsqueda, vista de detalle con métricas en vivo, medidores de señal, prueba de endpoint y consulta directa a Isabella.
 
 ### 11. Zombies RDM Invasion (juego geolocalizado)
-Gamificación tipo *Pokémon GO* sobre el gemelo digital: spawns de zombies en los 15 POIs reales, combate por turnos, captura con Sello RDM, bestiario, inventario, misiones y tienda de premios. Incluye capa **server-authoritative** de puntos con HMAC (`lib/gamification/*`, `/api/gamification/*`) para evitar trampas.
+Gamificación tipo *Pokémon GO* sobre el gemelo digital: spawns de zombies en los 15 POIs reales, combate por turnos, captura con Sello RDM, bestiario, inventario, misiones y tienda de premios. Incluye capa **server-authoritative** de puntos con HMAC (`lib/gamification/*`, `/api/gamification/*`) para evitar trampas. La capa visual es **calidad AAA con latencia casi cero**: motor de **calidad adaptativa** (`lib/gamification/visual/quality.ts`) que mide el FPS real y degrada/recupera efectos sin interrumpir el input; lienzo de partículas con **pool sin GC por fotograma** (`lib/gamification/visual/fx-engine.ts` + `ArenaFXCanvas`); arena cinematográfica con niebla, rejilla, aura, sacudida, destellos, popups de daño, rayo y sello de captura; sprite SVG procedimental con ojos, heridas y sello giratorio, y overlay atmosférico sobre el mapa Leaflet.
 
 ### 12. CROWN Gateway y Dead Man Switch
 Pasarela federada de la flota de IA con políticas de acceso, registro de emergencias y **Dead Man Switch** (`lib/isabella/dead-man-switch.ts`): si el operador deja de reportarse, se activan protocolos de emergencia automáticos.
@@ -294,21 +294,25 @@ vvvvvvv-main/
 │   └── ...                          # 3D, isabella, map, nodes, phygital, security, telemetry, tourism
 ├── lib/
 │   ├── core/                       # Núcleo transversal: utils, events (bus YUN), env, contracts
+│   ├── security/                   # trust (canónica), zero-trust, keys, auth tokens
+│   ├── observability/              # Fabric cognitivo YUN: SLO, métricas RED, grafo causal, bridge
+│   ├── guardian/                   # Guardian Kernel: deny-by-default, autonomía, escalación humana
+│   ├── resilience/                 # Reintentos, circuit breaker, bulkhead (unificados)
+│   ├── monitoring/                 # MetricsRegistry, tracer, correlator, alertas, bridge al bus
+│   ├── gamification/               # Anticheat y puntos firmados (+ visual/ calidad adaptativa)
 │   ├── twins/ dtdl/ ngsi/          # Motores del gemelo digital
 │   ├── city/                       # Motores del IOC urbano
 │   ├── assets/                     # Motores EAM/APM
 │   ├── grid/                       # Motores smart grid/agua
 │   ├── marketplace/                # Motores del marketplace
 │   ├── isabella/                   # Núcleo cognitivo C.R.O.W.N. + gateway + DMS
-│   ├── gamification/               # Anticheat y puntos firmados
-│   ├── security/                   # trust (canónica), zero-trust, keys, auth tokens
 │   └── data/                       # rdm-data, rdm-tourism, rdm-territorial, zombies-data
 ├── app/api/_shared/route-guard.ts  # Guard transversal único de las rutas API
 ├── scripts/                        # audit-project, check-env, check-contracts
 ├── supabase/migrations/
 │   ├── 001_create_isabella_tables.sql   # Capa cognitiva (sessions, memory, decisions, audit)
 │   └── 002_create_territorial_domains.sql  # Twins, assets, work_orders, incidents, grid + RLS
-├── tests/                          # 22 archivos · 195 tests (vitest)
+├── tests/                          # 26 archivos · 222 tests (vitest)
 ├── RFC-0001.md                     # Manifiesto C.R.O.W.N.
 ├── AGENTS.md                       # Convenciones para agentes de IA
 ├── vitest.config.mts
@@ -338,6 +342,10 @@ vvvvvvv-main/
 15. **Zero Trust en todas las APIs** — `enforceTrust` (server-only + origin + rate limit), `constantTimeCompare`, gateway *fail-closed*, Dead Man Switch.
 16. **Datos reales conectados** — `lib/data/rdm-territorial.ts` convierte los 15 POIs y 35 nodos YUN en gemelos, activos, nodos de red e incidentes (deja de ser mock).
 17. **Base de datos Supabase/Postgres** — Migración `002` con tablas de twins, activos, órdenes, incidentes y nodos de red, seeds y Row Level Security.
+18. **Núcleo transversal (Fase 1)** — `lib/core/` (utils, bus YUN unificado con trace/correlation, contrato de entorno zod, contratos de rutas), trust canónica en `lib/security/trust.ts`, **route-guard único** (`app/api/_shared/route-guard.ts`) que reemplaza ~30 copias de `enforceTrust`, y scripts de calidad (`audit-project`, `check-env`, `check-contracts`).
+19. **Migración total al route-guard (Fase 2a)** — Las **36 rutas** de API usan `guardedRoute`; las 5 de Isabella conservan su cadena soberana (clasificación automática de `check-contracts`). Los buses de city y monitor se unificaron al bus YUN con guardia anti-lazo (Fase 2b/2c).
+20. **Visual AAA con latencia casi cero (Fase 3)** — Motor de calidad adaptativa por FPS, partículas con pool, arena cinematográfica y sprite enriquecido de los zombies (ver sección 11).
+21. **Fabric cognitivo YUN (Fase 4)** — Observabilidad (`lib/observability`: SLO con presupuestos de error, métricas RED, grafo causal de eventos) y guardianía (`lib/guardian`: Guardian Kernel con deny-by-default, mínimo privilegio, idempotencia, reversibilidad y escalación humana), conectados al bus YUN y expuestos en `GET /api/observability/status`.
 
 ---
 
@@ -357,20 +365,26 @@ vvvvvvv-main/
 - `vercel.json` con headers de seguridad y `npm install --legacy-peer-deps`.
 - `next.config.ts` saneado.
 - Build y lint **100% limpios**.
-- 100 tests automatizados en Vitest.
+- 222 tests automatizados en Vitest.
+
+### Modernización del Núcleo (Fases 1–4)
+- **F1 — Núcleo transversal**: `lib/core/` (bus YUN unificado, entorno tipado, contratos zod), trust canónica y route-guard único; scripts de calidad bloqueantes (`audit`, `check:env`, `check:contracts`).
+- **F2 — Migración de rutas y buses**: 36 rutas migradas al `guardedRoute` (+5 soberanas de Isabella); buses de city y monitor unificados al bus YUN con **guardia anti-lazo** (`lib/monitoring/bridge.ts`).
+- **F3 — Visual AAA de gamificación**: calidad adaptativa por FPS (`AdaptiveQuality`), partículas con pool sin GC (`FxEngine`), arena cinematográfica GPU-only, sprite enriquecido y overlay atmosférico; **222/222 tests**.
+- **F4 — Fabric cognitivo YUN**: `lib/observability` (SLO con presupuestos de error, métricas RED con percentiles, grafo causal de eventos) y `lib/guardian` (Kernel deny-by-default con idempotencia, reversibilidad y escalación humana), puente `wireObservabilityToBus` anti-lazo y nueva ruta `GET /api/observability/status`.
 
 ---
 
 ## Pruebas Automatizadas
 
 ```bash
-npm test          # Vitest run — 23 archivos · 198 tests
+npm test          # Vitest run — 26 archivos · 222 tests
 npx tsc --noEmit  # Typecheck completo
 npm run lint      # ESLint
 npm run build     # Build de producción
 npm run audit     # Consistencia del código (bloquea as never / require())
 npm run check:env # Entorno contra el contrato tipado
-npm run check:contracts  # Adopción del route-guard único
+npm run check:contracts  # Adopción del route-guard único (36 migradas + 5 soberanas)
 npm run quality   # Todo en cadena (audit + env + contracts + lint + types + test)
 ```
 
@@ -401,6 +415,9 @@ Cobertura por dominio:
 | `tests/contracts.test.ts` | Contratos zod de las rutas |
 | `tests/env.test.ts` | Contrato tipado del entorno |
 | `tests/bus-bridges.test.ts` | Puentes city/monitor ↔ bus YUN (anti-lazo) |
+| `tests/gamification-visual.test.ts` | Calidad adaptativa (FPS) y motor de partículas con pool |
+| `tests/observability.test.ts` | SLO/presupuestos, métricas RED, grafo causal, puente al bus |
+| `tests/guardian.test.ts` | Guardian Kernel: deny-by-default, idempotencia, escalación |
 
 ## Documentación Técnica
 
@@ -443,14 +460,17 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 | Build de producción (`next build`) | ✅ Exitoso (0 errores TS) |
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 198/198 (23 archivos) |
+| Tests (`vitest`) | ✅ 222/222 (26 archivos) |
 | Datos del territorio (POIs, nodos, turismo) | ✅ 15 POIs · 35 nodos · 8 eventos · 5 rutas |
 | Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
 | IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
 | EAM/APM | ✅ Salud · falla · mantenimiento · APM Score |
 | Smart Grid/Agua | ✅ Balance · topología · alertas |
 | Marketplace | ✅ Ofertas · licencias · suscripción |
-| Zero Trust en APIs | ✅ Origin · rate limit · fail-closed |
+| Zero Trust en APIs | ✅ Origin · rate limit · fail-closed · route-guard único (36+5) |
+| Bus YUN unificado | ✅ Envelope + traceId/correlationId · anti-lazo |
+| Visual de gamificación | ✅ Calidad adaptativa · FX con pool · arena cinematográfica |
+| Fabric cognitivo YUN | ✅ Observabilidad (SLO/RED/grafo) · Guardian Kernel · `/api/observability/status` |
 | Supabase/Postgres | ✅ Migraciones 001 y 002 con RLS |
 | **Pendiente** | Setear `GEMINI_API_KEY`, `APP_URL`, `MEXA_OPERATOR_KEY` y `GAMIFICATION_HMAC_SECRET` en Vercel Secrets · Desplegar en Vercel · Conectar servicios Supabase a las APIs |
 
@@ -503,7 +523,7 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
-npm test                         # Vitest (195 tests)
+npm test                         # Vitest (222 tests)
 npm run audit                    # Consistencia del código
 npm run check:env                # Entorno contra el contrato
 npm run check:contracts          # Adopción del route-guard
