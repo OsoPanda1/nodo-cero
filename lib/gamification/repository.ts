@@ -7,6 +7,7 @@
 /* ================================================================== */
 
 import 'server-only';
+import type { JSONValue } from 'postgres';
 import { getRedis, isPostgresConfigured, nsKey, sql } from '@/lib/core/persistence';
 import type { GamificationSession, LeaderboardEntry } from './contracts';
 
@@ -20,7 +21,7 @@ export async function persistSession(session: GamificationSession): Promise<void
       (id, device_id, started_at, ended_at, kills, total_points, data, updated_at)
     values (
       ${session.id}, ${session.deviceId}, ${session.startedAt}, ${session.endedAt ?? null},
-      ${session.kills}, ${session.totalPoints}, ${db.json(session as unknown as Record<string, unknown>)}, now()
+      ${session.kills}, ${session.totalPoints}, ${db.json(session as unknown as JSONValue)}, now()
     )
     on conflict (id) do update set
       ended_at = excluded.ended_at,
@@ -39,7 +40,7 @@ export async function persistLeaderboardEntry(entry: LeaderboardEntry): Promise<
         (device_id, display_name, points, kills, data, updated_at)
       values (
         ${entry.deviceId}, ${entry.name}, ${entry.points}, ${entry.captures},
-        ${db.json(entry as unknown as Record<string, unknown>)}, ${entry.updatedAt}
+        ${db.json(entry as unknown as JSONValue)}, ${entry.updatedAt}
       )
       on conflict (device_id) do update set
         display_name = excluded.display_name,
@@ -52,7 +53,15 @@ export async function persistLeaderboardEntry(entry: LeaderboardEntry): Promise<
   const redis = getRedis();
   if (redis) {
     await redis.zadd(LEADERBOARD_ZSET, { score: entry.points, member: entry.deviceId });
-    await redis.hset(nsKey('gamification', 'entry', entry.deviceId), entry as unknown as Record<string, unknown>);
+    await redis.hset(nsKey('gamification', 'entry', entry.deviceId), {
+      id: entry.id,
+      actorId: entry.actorId,
+      deviceId: entry.deviceId,
+      name: entry.name,
+      points: entry.points,
+      captures: entry.captures,
+      updatedAt: entry.updatedAt,
+    });
   }
 }
 

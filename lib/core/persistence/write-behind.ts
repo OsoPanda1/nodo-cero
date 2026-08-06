@@ -14,6 +14,7 @@
 /* ================================================================== */
 
 import 'server-only';
+import { after as nextAfter } from 'next/server';
 
 type PersistTask = () => Promise<unknown>;
 
@@ -42,19 +43,10 @@ function state(): WriteBehindState {
   return g.__rdmWriteBehind;
 }
 
-/** Carga perezosa de `after` de next/server sin romper en runtimes que no
- *  lo exponen. */
-let afterFn: ((task: () => void) => void) | null | undefined;
-function getAfter(): ((task: () => void) => void) | null {
-  if (afterFn !== undefined) return afterFn;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const mod = require('next/server') as { after?: (task: () => void) => void };
-    afterFn = typeof mod.after === 'function' ? mod.after : null;
-  } catch {
-    afterFn = null;
-  }
-  return afterFn;
+/** Referencia estática a `after` de Next.js: evita `require()` dinámico y
+ *  mantiene el patrón write-behind compatible con el auditor del repo. */
+function getAfter(): (task: () => void) => void {
+  return nextAfter;
 }
 
 async function run(label: string, task: PersistTask): Promise<void> {

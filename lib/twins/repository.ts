@@ -6,6 +6,7 @@
 /* ================================================================== */
 
 import 'server-only';
+import type { JSONValue } from 'postgres';
 import { isPostgresConfigured, sql } from '@/lib/core/persistence';
 import type { TwinGraphEdge, TwinInstanceRecord, TwinModelRecord } from './twin-types';
 
@@ -14,7 +15,7 @@ export async function upsertModel(model: TwinModelRecord): Promise<void> {
   const db = sql();
   await db`
     insert into public.twin_models (id, data, created_at, updated_at)
-    values (${model.id}, ${db.json(model as unknown as Record<string, unknown>)}, ${model.createdAt}, ${model.updatedAt})
+    values (${model.id}, ${db.json(model as unknown as JSONValue)}, ${model.createdAt}, ${model.updatedAt})
     on conflict (id) do update set data = excluded.data, updated_at = excluded.updated_at
   `;
 }
@@ -27,7 +28,7 @@ export async function upsertInstance(i: TwinInstanceRecord): Promise<void> {
       (id, model_id, name, external_ref, lat, lng, properties, telemetry, status, created_at, updated_at)
     values (
       ${i.id}, ${i.modelId}, ${i.name}, ${i.externalRef ?? null}, ${i.lat ?? null}, ${i.lng ?? null},
-      ${db.json(i.properties)}, ${db.json(i.telemetry)}, ${i.status}, ${i.createdAt}, ${i.updatedAt}
+      ${db.json(i.properties as unknown as JSONValue)}, ${db.json(i.telemetry as unknown as JSONValue)}, ${i.status}, ${i.createdAt}, ${i.updatedAt}
     )
     on conflict (id) do update set
       name = excluded.name, external_ref = excluded.external_ref,
