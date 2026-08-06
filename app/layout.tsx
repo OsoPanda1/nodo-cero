@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 const SITE_URL = 'https://rdm-digital-hub.vercel.app';
@@ -86,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className="min-h-screen bg-[#f4f6f2] text-[#283038]"
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
