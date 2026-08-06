@@ -111,8 +111,9 @@ Lectura tipada: `const env = getEnv();`. Validación CI: `npm run check:env`.
 - **F1 (hecha):** núcleo transversal (utils, eventos, entorno, contratos),
   trust canónica en lib/security, route-guard único, 4 rutas ejemplares,
   scripts de calidad + docs.
-- **F2:** telemetría por dominio (emitir métricas de cada dominio al monitor)
-  y migración del resto de rutas al guard.
+- **F2 (hecha):** migración completa de rutas al guard (35/35 con el resto
+  soberanas de Isabella); restan la telemetría por dominio (emitir métricas
+  de cada dominio al monitor) y unificar los buses restantes al bus YUN.
 - **F3:** modelo de gobernanza de contratos ↔ dominios (semver automático).
 - **F4:** unificación de circuit breakers/rate limiters y limpieza de estilo
   restante.

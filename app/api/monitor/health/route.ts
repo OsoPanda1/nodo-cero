@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { monitor } from '@/lib/monitoring/monitor';
 import type { HealthStatus } from '@/lib/monitoring/monitor';
-import { assertServerOnly } from '@/lib/security/trust';
 import { verifyInternalKey, hasInternalKey } from '@/lib/security/keys';
-import { assertZeroTrust } from '@/lib/security/zero-trust';
 import { getTwinInstances } from '@/lib/twins/twin-store';
 import { listIncidents } from '@/lib/city/city-event-bus';
 import { listAssets } from '@/lib/assets/asset-registry';
@@ -87,28 +86,31 @@ export const dynamic = 'force-dynamic';
 /* ------------------------------------------------------------------ */
 /* GET /api/monitor/health — salud de todos los dominios               */
 /* ------------------------------------------------------------------ */
-export async function GET(req: NextRequest) {
-  const server = assertServerOnly('Monitor Health');
-  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
-
-  const zt = assertZeroTrust(req.headers, { route: '/api/monitor/health', limit: 120 });
-  if (!zt.ok) {
-    return NextResponse.json({ ok: false, error: `Zero Trust: ${zt.deniedBy}` }, { status: 403 });
-  }
-
-  if (hasInternalKey('MONITOR_API_KEY')) {
-    const key = req.headers.get('x-rdm-api-key');
-    if (!verifyInternalKey('MONITOR_API_KEY', key)) {
-      return NextResponse.json({ ok: false, error: 'Clave de monitor no autorizada.' }, { status: 401 });
+/* Ruta migrada al route-guard único. La clave interna MONITOR_API_KEY */
+/* se conserva dentro del handler (condicionada a hasInternalKey).     */
+/* ------------------------------------------------------------------ */
+export const GET = guardedRoute(
+  {
+    route: 'api:monitor:health',
+    methods: ['GET'],
+    rateLimit: 120,
+    json: false,
+  },
+  async ({ req }) => {
+    if (hasInternalKey('MONITOR_API_KEY')) {
+      const key = req.headers.get('x-rdm-api-key');
+      if (!verifyInternalKey('MONITOR_API_KEY', key)) {
+        return NextResponse.json({ ok: false, error: 'Clave de monitor no autorizada.' }, { status: 401 });
+      }
     }
-  }
 
-  const checks = await monitor.healthSnapshot();
-  const overall = monitor.overallHealth(checks);
+    const checks = await monitor.healthSnapshot();
+    const overall = monitor.overallHealth(checks);
 
-  monitor.metrics.set('health_up', overall.up, {});
-  monitor.metrics.set('health_degraded', overall.degraded, {});
-  monitor.metrics.set('health_down', overall.down, {});
+    monitor.metrics.set('health_up', overall.up, {});
+    monitor.metrics.set('health_degraded', overall.degraded, {});
+    monitor.metrics.set('health_down', overall.down, {});
 
-  return NextResponse.json({ ok: true, overall, checkedAt: Date.now(), checks });
-}
+    return NextResponse.json({ ok: true, overall, checkedAt: Date.now(), checks });
+  },
+);

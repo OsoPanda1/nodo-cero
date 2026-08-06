@@ -1,28 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { assertServerOnly, rateLimit, verifyOrigin } from '@/lib/isabella/trust';
+import { NextResponse } from 'next/server';
+import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { signSessionToken, verifySessionToken } from '@/lib/security/auth-tokens';
-import { jsonContentGuard, methodGuard, parseJsonBody, requiredString } from '@/lib/security/request-validator';
+import { requiredString } from '@/lib/security/request-validator';
 import { createSession, endSession, getActiveSessionByDevice, getSession } from '@/lib/gamification/store';
 import { uuid } from '@/lib/isabella/utils';
 
 export const runtime = 'nodejs';
-const ROUTE_ID = 'api:gamification:session';
-const RATE_LIMIT = 20;
 
-function enforceTrust(req: NextRequest): NextResponse | null {
-  const server = assertServerOnly('GAMIFICATION');
-  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
-  const origin = verifyOrigin(req);
-  if (!origin.ok) return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
-  const rl = rateLimit(req, ROUTE_ID, RATE_LIMIT);
-  if (!rl.ok) {
-    return NextResponse.json(
-      { ok: false, error: 'Límite de sesiones del Nodo alcanzado. Reintenta en un momento.' },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } },
-    );
-  }
-  return null;
-}
+/* Ruta migrada al route-guard único (antes duplicaba enforceTrust
+   con assertServerOnly + verifyOrigin + rateLimit). La validación de
+   campos y la verificación de token se conservan en los handlers. */
 
 async function startSession(body: Record<string, unknown>) {
   const missingField = requiredString(body, 'deviceId');
@@ -103,24 +90,16 @@ async function endSessionHandler(body: Record<string, unknown>) {
   return NextResponse.json({ ok: true, sessionId: ended.id, endedAt: ended.endedAt, totalPoints: ended.totalPoints });
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const denied = enforceTrust(req);
-  if (denied) return denied;
-
-  const methodDenied = methodGuard(req, ['POST']);
-  if (methodDenied) return methodDenied;
-  const contentDenied = jsonContentGuard(req);
-  if (contentDenied) return contentDenied;
-
-  let body: Record<string, unknown>;
-  try {
-    body = await parseJsonBody(req);
-  } catch {
-    return NextResponse.json({ ok: false, error: 'BODY_INVALID' }, { status: 400 });
-  }
-
-  const action = typeof body.action === 'string' ? body.action : 'start';
-  if (action === 'start') return startSession(body);
-  if (action === 'end') return endSessionHandler(body);
-  return NextResponse.json({ ok: false, error: 'Acción no soportada (start | end).' }, { status: 400 });
-}
+export const POST = guardedRoute(
+  {
+    route: 'api:gamification:session',
+    methods: ['POST'],
+    rateLimit: 20,
+  },
+  async ({ body }) => {
+    const action = typeof body.action === 'string' ? body.action : 'start';
+    if (action === 'start') return startSession(body);
+    if (action === 'end') return endSessionHandler(body);
+    return NextResponse.json({ ok: false, error: 'Acción no soportada (start | end).' }, { status: 400 });
+  },
+);

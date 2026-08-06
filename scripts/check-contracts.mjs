@@ -30,7 +30,25 @@ const routes = findRoutes(join(root, 'app/api'));
 const migrated = [];
 const legacy = [];
 
+/* Rutas soberanas de Isabella: aplican su propia cadena vía
+   lib/isabella/http.ts (razonamiento/firma/exposición); NO deben
+   adoptar el guard transversal. Listado explícito para que el
+   reporte las clasifique y no queden sin contar. */
+const SOVEREIGN = [
+  'app/api/isabella/route.ts',
+  'app/api/isabella/chat/route.ts',
+  'app/api/isabella/isa/reason/route.ts',
+  'app/api/isabella/crypto/sign/route.ts',
+  'app/api/isabella/crypto/verify/route.ts',
+];
+const sovereign = [];
+
 for (const route of routes) {
+  const rel = relative(root, route).replace(/\\/g, '/');
+  if (SOVEREIGN.includes(rel)) {
+    sovereign.push(route);
+    continue;
+  }
   const src = readFileSync(route, 'utf8');
   if (/guardedRoute/.test(src) || /@\/app\/api\/_shared\/route-guard/.test(src)) {
     migrated.push(route);
@@ -43,6 +61,8 @@ for (const route of routes) {
 console.log(`\x1b[36mCONTRACTS\x1b[0m · ${routes.length} rutas en app/api`);
 console.log(`\x1b[32m  ✓ ${migrated.length} migradas al route-guard\x1b[0m`);
 for (const route of migrated) console.log(`    ${relative(root, route)}`);
+console.log(`\x1b[34m  • ${sovereign.length} soberanas de Isabella (cadena propia)\x1b[0m`);
+for (const route of sovereign) console.log(`    ${relative(root, route)}`);
 console.log(`\x1b[33m  ✗ ${legacy.length} pendientes de migrar\x1b[0m`);
 for (const route of legacy) console.log(`    ${relative(root, route)}`);
 

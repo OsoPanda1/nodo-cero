@@ -1,29 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { assertServerOnly, rateLimit, verifyOrigin } from '@/lib/isabella/trust';
+import { NextResponse } from 'next/server';
+import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { seedGridLinks, seedPowerNodes, seedWaterNodes } from '@/lib/grid/grid-network';
 
-const ROUTE_ID = 'api:grid:topology';
-const RATE_LIMIT = 40;
+/* Ruta migrada al route-guard único (antes duplicaba enforceTrust con
+   assertServerOnly + verifyOrigin + rateLimit). */
 
-function enforceTrust(req: NextRequest): NextResponse | null {
-  const server = assertServerOnly('SMART GRID');
-  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
-  const origin = verifyOrigin(req);
-  if (!origin.ok) return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
-  const rl = rateLimit(req, ROUTE_ID, RATE_LIMIT);
-  if (!rl.ok) {
-    return NextResponse.json(
-      { ok: false, error: 'Límite de consultas de red alcanzado. Reintenta en un momento.' },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } },
-    );
-  }
-  return null;
-}
-
-export async function GET(req: NextRequest): Promise<NextResponse> {
-  const denied = enforceTrust(req);
-  if (denied) return denied;
-  const power = seedPowerNodes();
-  const water = seedWaterNodes();
-  return NextResponse.json({ ok: true, nodes: [...power, ...water], links: seedGridLinks(power, water) });
-}
+export const GET = guardedRoute(
+  {
+    route: 'api:grid:topology',
+    methods: ['GET'],
+    rateLimit: 40,
+    json: false,
+  },
+  async () => {
+    const power = seedPowerNodes();
+    const water = seedWaterNodes();
+    return NextResponse.json({ ok: true, nodes: [...power, ...water], links: seedGridLinks(power, water) });
+  },
+);
