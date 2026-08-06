@@ -13,7 +13,7 @@ Tests: Vitest (`npm test`). Validación de contratos: zod (ya instalado).
 ```bash
 npx tsc --noEmit      # tipos
 npm run lint          # eslint
-npm test              # vitest (195+ tests)
+npm test              # vitest (198+ tests)
 npm run audit         # consistencia del código (bloquea as never / require())
 npm run check:env     # entorno contra el contrato
 npm run check:contracts  # adopción del route-guard

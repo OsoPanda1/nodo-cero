@@ -92,6 +92,20 @@ runWithTrace({ traceId }, () => {
 - Los emisores de cliente no deben importar `lib/core/events` estáticamente
   (usa `node:async_hooks`); usa `import()` dinámico si es imprescindible.
 
+### Buses conectados al YUN
+
+- **Isabella** (`lib/isabella/events.ts` → `emitYunEvent`) y **gamificación**
+  (`lib/gamification/events.ts`) publican directo.
+- **City** (`lib/city/city-event-bus.ts`): `publishCityEvent` refleja al bus
+  unificado (`city.<tipo>`, severidad mapeada) vía `import()` dinámico.
+- **Monitor** (`lib/monitoring/events.ts`): el `EventCorrelator.emit` refleja
+  al bus (`monitor.<tipo>`) y `lib/monitoring/bridge.ts` hace el camino
+  inverso (bus → correlator) con guardia anti-lazo. Se activa desde
+  `app/api/monitor/state/route.ts`.
+- **Messaging y notifications** (`lib/messaging/bus.ts`, `lib/notifications/`)
+  son buses de UI en el cliente (localStorage): quedan fuera del bus YUN por
+  diseño; no deben arrastrar `node:async_hooks` al bundle de cliente.
+
 ## Entorno
 
 Toda variable se documenta en `lib/core/env/index.ts` y en `.env.example`.
@@ -112,8 +126,10 @@ Lectura tipada: `const env = getEnv();`. Validación CI: `npm run check:env`.
   trust canónica en lib/security, route-guard único, 4 rutas ejemplares,
   scripts de calidad + docs.
 - **F2 (hecha):** migración completa de rutas al guard (35/35 con el resto
-  soberanas de Isabella); restan la telemetría por dominio (emitir métricas
-  de cada dominio al monitor) y unificar los buses restantes al bus YUN.
+  soberanas de Isabella) y unificación de buses al YUN (city + monitor
+  reflejan al bus; el monitor se alimenta del bus vía
+  `lib/monitoring/bridge.ts` con guardia anti-lazo). Los buses de UI de
+  cliente (messaging, notifications) quedan fuera por diseño.
 - **F3:** modelo de gobernanza de contratos ↔ dominios (semver automático).
 - **F4:** unificación de circuit breakers/rate limiters y limpieza de estilo
   restante.

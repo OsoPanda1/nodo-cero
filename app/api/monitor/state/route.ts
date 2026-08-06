@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { monitor } from '@/lib/monitoring/monitor';
+import { wireMonitorToUnifiedBus } from '@/lib/monitoring/bridge';
 import { verifyInternalKey, hasInternalKey } from '@/lib/security/keys';
 
 export const dynamic = 'force-dynamic';
+
+/* Conecta el bus YUN unificado al correlator del monitor (idempotente):
+   los eventos de dominio y de rutas quedan consultables aquí. */
+wireMonitorToUnifiedBus();
 
 /* ------------------------------------------------------------------ */
 /* GET /api/monitor/state — estado completo del sistema                */

@@ -166,7 +166,34 @@ export function publishCityEvent(event: Omit<CityEvent, 'id' | 'timestamp'>): Ci
       /* handler defectuoso: nunca rompe el bus */
     }
   }
+  mirrorToUnifiedBus(full);
   return full;
+}
+
+/* Publica además en el bus YUN unificado (solo servidor). El import es
+   dinámico para no arrastrar node:async_hooks al bundle de cliente. */
+function mirrorToUnifiedBus(event: CityEvent): void {
+  if (typeof window !== 'undefined') return;
+  void import('@/lib/core/events')
+    .then(({ publishEvent }) => {
+      publishEvent({
+        type: `city.${event.type}`,
+        source: 'city-event-bus',
+        domain: event.domain,
+        severity: mapCitySeverity(event.severity),
+        data: { ...event.payload, eventId: event.id },
+        meta: { entityId: event.id },
+      });
+    })
+    .catch(() => {
+      /* el bus nunca debe bloquear la emisión original */
+    });
+}
+
+function mapCitySeverity(severity: CitySeverity): 'info' | 'warning' | 'critical' {
+  if (severity === 'critical') return 'critical';
+  if (severity === 'high') return 'warning';
+  return 'info';
 }
 
 export function subscribeCityEvents(handler: (event: CityEvent) => void): () => void {

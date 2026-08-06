@@ -48,7 +48,29 @@ export class EventCorrelator {
     };
     this.buffer.push(event);
     if (this.buffer.length > MAX_EVENTS) this.buffer.shift();
+    this.emitMirror(event);
     return event;
+  }
+
+  /* Publica además en el bus YUN unificado (solo servidor). El import es
+     dinámico para no arrastrar node:async_hooks al bundle de cliente. */
+  private emitMirror(event: SystemEvent): void {
+    if (typeof window !== 'undefined') return;
+    void import('@/lib/core/events')
+      .then(({ publishEvent }) => {
+        publishEvent({
+          type: `monitor.${event.type}`,
+          source: event.source,
+          domain: 'telemetry',
+          severity: event.severity,
+          correlationId: event.correlationId,
+          data: event.payload ?? {},
+          meta: { entityId: event.id },
+        });
+      })
+      .catch(() => {
+        /* el bus nunca debe bloquear la emisión original */
+      });
   }
 
   query(options: {

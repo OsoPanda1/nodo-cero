@@ -364,7 +364,7 @@ vvvvvvv-main/
 ## Pruebas Automatizadas
 
 ```bash
-npm test          # Vitest run — 22 archivos · 195 tests
+npm test          # Vitest run — 23 archivos · 198 tests
 npx tsc --noEmit  # Typecheck completo
 npm run lint      # ESLint
 npm run build     # Build de producción
@@ -400,6 +400,7 @@ Cobertura por dominio:
 | `tests/events.test.ts` | Bus YUN unificado (envelope, DLQ, traza) |
 | `tests/contracts.test.ts` | Contratos zod de las rutas |
 | `tests/env.test.ts` | Contrato tipado del entorno |
+| `tests/bus-bridges.test.ts` | Puentes city/monitor ↔ bus YUN (anti-lazo) |
 
 ## Documentación Técnica
 
@@ -442,7 +443,7 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 | Build de producción (`next build`) | ✅ Exitoso (0 errores TS) |
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 195/195 (22 archivos) |
+| Tests (`vitest`) | ✅ 198/198 (23 archivos) |
 | Datos del territorio (POIs, nodos, turismo) | ✅ 15 POIs · 35 nodos · 8 eventos · 5 rutas |
 | Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
 | IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
