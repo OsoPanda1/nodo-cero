@@ -1,30 +1,24 @@
 import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
-import { monitor } from '@/lib/monitoring/monitor';
-import { wireMonitorToUnifiedBus } from '@/lib/monitoring/bridge';
 import { wireObservabilityToBus } from '@/lib/observability/bridge';
+import { sloManager, redMetrics, eventGraph } from '@/lib/observability';
+import { guardian } from '@/lib/guardian';
 import { verifyInternalKey, hasInternalKey } from '@/lib/security/keys';
 
 export const dynamic = 'force-dynamic';
 
-/* Conecta el bus YUN unificado al correlator del monitor (idempotente):
-   los eventos de dominio y de rutas quedan consultables aquí. */
-wireMonitorToUnifiedBus();
-
-/* Conecta el bus YUN al fabric de observabilidad (SLO, RED, grafo). */
+/* Conecta el fabric de observabilidad al bus YUN (idempotente). */
 wireObservabilityToBus();
 
 /* ------------------------------------------------------------------ */
-/* GET /api/monitor/state — estado completo del sistema                */
-/* Protegida con MONITOR_API_KEY (si está configurada).               */
+/* GET /api/observability/status — estado del fabric cognitivo YUN     */
 /* ------------------------------------------------------------------ */
-/* Ruta migrada al route-guard único. El guard ahora aplica también    */
-/* verifyOrigin (comportamiento intencional). La clave interna         */
-/* MONITOR_API_KEY se conserva dentro del handler.                     */
+/* Resumen de SLO/presupuestos de error, métricas RED por ruta, grafo  */
+/* causal de eventos y estado del Guardian Kernel.                     */
 /* ------------------------------------------------------------------ */
 export const GET = guardedRoute(
   {
-    route: 'api:monitor:state',
+    route: 'api:observability:status',
     methods: ['GET'],
     rateLimit: 120,
     json: false,
@@ -37,10 +31,13 @@ export const GET = guardedRoute(
       }
     }
 
-    const snapshot = monitor.statusSnapshot();
     return NextResponse.json({
       ok: true,
-      ...snapshot,
+      slos: sloManager.reports(),
+      red: redMetrics.status(),
+      graph: eventGraph.summary(),
+      guardian: guardian.status(),
+      auditTail: guardian.auditTrail(10),
     });
   },
 );
