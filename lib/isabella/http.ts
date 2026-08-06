@@ -12,24 +12,52 @@ import { crownGatewayGenerate } from './crown-gateway';
 import { CanonicalDomain } from './intention-parser';
 import { uuid } from './utils';
 import { assertServerOnly, constantTimeCompare, rateLimit, verifyOrigin } from './trust';
+import { enforceZeroTrustHeaders } from '@/lib/security/zero-trust';
+import { monitor } from '@/lib/monitoring/monitor';
 
 /* ------------------------------------------------------------------ */
 /* HARDENING ZERO TRUST — aplicado a toda la superficie de entrada     */
 /* ------------------------------------------------------------------ */
 function enforceTrust(req: NextRequest, key: string, limit: number): NextResponse | null {
   const server = assertServerOnly('ISA API');
-  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
+  if (!server.ok) {
+    monitor.metrics.inc('trust.denied', { reason: 'client-side' });
+    return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
+  }
 
+  /* CAPA Nº 2: origin canónico (anti-CSRF). */
   const origin = verifyOrigin(req);
-  if (!origin.ok) return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
+  if (!origin.ok) {
+    monitor.metrics.inc('trust.denied', { reason: 'origin' });
+    return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
+  }
 
+  /* CAPA Nº 4: rate limit del Nodo. */
   const rl = rateLimit(req, key, limit);
   if (!rl.ok) {
+    monitor.metrics.inc('trust.denied', { reason: 'rate-limit' });
     return NextResponse.json(
       { ok: false, error: 'Límite de peticiones del Nodo alcanzado. Reintenta en un momento.' },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } }
     );
   }
+
+  /* CADENA COMPLETA: 7 capas de Zero Trust (una por federación YUN). */
+  const zt = enforceZeroTrustHeaders(req.headers, { route: key, limit });
+  if (!zt.ok) {
+    monitor.metrics.inc('trust.denied', { reason: zt.deniedBy ?? 'zero-trust' });
+    monitor.events.emit('trust.denied', 'zero-trust', 'warning', {
+      route: key,
+      layer: zt.deniedBy,
+      federation: zt.federation,
+    });
+    return NextResponse.json(
+      { ok: false, error: `Zero Trust: ${zt.deniedBy} (federación ${zt.federation})` },
+      { status: 403 },
+    );
+  }
+
+  monitor.metrics.inc('api.requests', { route: key });
   return null;
 }
 

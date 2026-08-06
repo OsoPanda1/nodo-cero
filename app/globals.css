@@ -1,125 +1,149 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
-/* ------------------------------------------------------------------ */
-/* Núcleo temático RDM Crystal OS                                     */
-/* ------------------------------------------------------------------ */
+/* ================================================================== */
+/* RDM Digital Hub — Nocturno Minero                                  */
+/* Spec oficial OsoPanda1: dorado minero, terracota, navy, neblina,   */
+/* plata, esmeralda (patrimonio) y rojo (riesgo).                     */
+/* Fuentes: Playfair Display (títulos) + DM Sans (UI)                 */
+/* ================================================================== */
+
 @layer base {
   :root {
-    /* Fondo y superficies */
-    --bg-dark: #02030a;
-    --bg-deep: radial-gradient(circle at 0% 0%, #0f172a, #020617 45%, #000000);
-    --surface-glass-soft: rgba(10, 16, 28, 0.72);
-    --surface-glass-strong: rgba(12, 18, 30, 0.85);
+    /* Fondo y superficies — Nocturno Minero */
+    --bg-deep-0: #020617;
+    --bg-deep-1: #0a0b0e;
+    --bg-deep: radial-gradient(circle at 0% 0%, #0a0b0e, #020617 45%, #000000);
+    --surface-glass-soft: rgba(10, 11, 14, 0.78);
+    --surface-glass-strong: rgba(13, 15, 20, 0.9);
 
-    /* Bordes cristalinos */
-    --border-crystal-soft: rgba(255, 255, 255, 0.10);
-    --border-crystal-strong: rgba(255, 255, 255, 0.20);
+    /* Paleta oficial */
+    --gold: #c8a356;
+    --gold-light: #d4b26a;
+    --gold-dark: #b8944c;
+    --gold-amber: #facc15;
+    --terracotta: #b85c3c;
+    --navy: #1e3a5f;
+    --silver: #9ca3af;
+    --cream: #f5f0e8;
+    --emerald: #10b981;
+    --neblina: #38bdf8;
+    --risk-red: #b91c1c;
 
-    /* Paleta glow */
-    --glow-cyan: rgba(34, 211, 238, 0.55);
-    --glow-purple: rgba(168, 85, 247, 0.55);
-    --glow-gold: rgba(234, 179, 8, 0.55);
+    /* Bordes */
+    --border-soft: rgba(200, 163, 86, 0.18);
+    --border-strong: rgba(200, 163, 86, 0.42);
+    --border-neblina: rgba(56, 189, 248, 0.32);
+
+    /* Glows sobrios (minería, no neón) */
+    --glow-gold: rgba(200, 163, 86, 0.4);
+    --glow-emerald: rgba(16, 185, 129, 0.35);
+    --glow-neblina: rgba(56, 189, 248, 0.3);
 
     /* Tipografía */
-    --text-primary: #e5f0ff;
-    --text-muted: rgba(148, 163, 184, 0.9);
+    --text-primary: #eef2f7;
+    --text-muted: rgba(156, 163, 175, 0.92);
 
     /* Canales zombies */
     --zc-default: #f43f5e;
     --zc-player: #34d399;
 
-    /* Curvas de movimiento */
-    --ease-crystal: cubic-bezier(0.16, 1, 0.3, 1);
+    /* Curvas */
+    --ease-miner: cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   body {
     background: var(--bg-deep);
     color: var(--text-primary);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-      Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: var(--font-dm-sans), system-ui, -apple-system, "Segoe UI",
+      Roboto, sans-serif;
     overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-patrimonial {
+    font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
   }
 }
 
 /* ------------------------------------------------------------------ */
-/* Superficies cristal y paneles holográficos                         */
+/* Superficies y paneles                                               */
 /* ------------------------------------------------------------------ */
 
 .glass-panel {
   background: var(--surface-glass-soft);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid var(--border-crystal-soft);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  border: 1px solid var(--border-soft);
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.75),
-    inset 0 0 18px rgba(255, 255, 255, 0.03);
+    0 18px 40px rgba(0, 0, 0, 0.7),
+    inset 0 0 18px rgba(212, 178, 106, 0.025);
 }
 
 .glass-panel-interactive {
   background: var(--surface-glass-strong);
-  backdrop-filter: blur(22px) saturate(1.5);
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
-  border: 1px solid var(--border-crystal-strong);
-  transition: all 0.32s var(--ease-crystal);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--border-soft);
+  transition: all 0.3s var(--ease-miner);
 }
 
 .glass-panel-interactive:hover {
-  background: rgba(18, 28, 52, 0.92);
-  border-color: rgba(56, 189, 248, 0.55);
+  background: rgba(16, 20, 30, 0.95);
+  border-color: var(--border-strong);
   box-shadow:
-    0 0 30px rgba(56, 189, 248, 0.32),
-    inset 0 0 22px rgba(255, 255, 255, 0.06);
+    0 0 28px var(--glow-gold),
+    inset 0 0 22px rgba(212, 178, 106, 0.05);
   transform: translateY(-3px) scale(1.01);
 }
 
 /* ------------------------------------------------------------------ */
-/* Bordes iridiscentes y lattice de glow                              */
+/* Borde minero (dorado → plata) — sustituye al iridescente cian       */
 /* ------------------------------------------------------------------ */
 
-.iridescent-border {
+.miner-border {
   position: relative;
   border: 1px solid transparent;
   background-clip: padding-box;
 }
 
-.iridescent-border::before {
+.miner-border::before {
   content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   background: linear-gradient(
     135deg,
-    #00f2fe,
-    #4facfe,
-    #000000,
-    #b224ef,
-    #7579ff,
-    #f39c12,
-    #00f2fe
+    #c8a356,
+    #d4b26a,
+    #b8944c,
+    #9ca3af,
+    #c8a356
   );
-  background-size: 400% 400%;
+  background-size: 300% 300%;
   z-index: -1;
-  animation: rainbowGlow 9s ease infinite;
-}
-
-.crystal-glow-cyan {
-  box-shadow: 0 0 36px -6px var(--glow-cyan);
-}
-
-.crystal-glow-purple {
-  box-shadow: 0 0 36px -6px var(--glow-purple);
+  animation: goldFlow 8s ease infinite;
 }
 
 .crystal-glow-gold {
-  box-shadow: 0 0 36px -6px var(--glow-gold);
+  box-shadow: 0 0 32px -6px var(--glow-gold);
+}
+
+.crystal-glow-emerald {
+  box-shadow: 0 0 32px -6px var(--glow-emerald);
+}
+
+.crystal-glow-neblina {
+  box-shadow: 0 0 32px -6px var(--glow-neblina);
 }
 
 /* ------------------------------------------------------------------ */
-/* Animaciones — movimiento territorial inmersivo                     */
+/* Animaciones                                                         */
 /* ------------------------------------------------------------------ */
 
-@keyframes rainbowGlow {
+@keyframes goldFlow {
   0% {
     background-position: 0% 50%;
   }
@@ -145,11 +169,11 @@
   0%,
   100% {
     opacity: 0.45;
-    filter: drop-shadow(0 0 14px rgba(34, 211, 238, 0.7));
+    filter: drop-shadow(0 0 12px var(--glow-gold));
   }
   50% {
-    opacity: 0.96;
-    filter: drop-shadow(0 0 28px rgba(168, 85, 247, 0.85));
+    opacity: 0.95;
+    filter: drop-shadow(0 0 24px var(--glow-emerald));
   }
 }
 
@@ -179,11 +203,6 @@
   animation: pulseGlow 4.2s ease-in-out infinite;
 }
 
-.animate-rainbow-glow {
-  animation: rainbowGlow 11s linear infinite;
-  background-size: 320% 320%;
-}
-
 .animate-shimmer {
   animation: shimmer 2.6s linear infinite;
 }
@@ -197,7 +216,7 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Scrollbar — rail cristalino sutil                                  */
+/* Scrollbar — rail minero                                             */
 /* ------------------------------------------------------------------ */
 
 ::-webkit-scrollbar {
@@ -206,20 +225,20 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(3, 4, 8, 0.95);
+  background: rgba(2, 6, 23, 0.95);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.35);
+  background: rgba(200, 163, 86, 0.4);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.65);
+  background: rgba(212, 178, 106, 0.7);
 }
 
 /* ------------------------------------------------------------------ */
-/* Leaflet — piel de mapa territorial                                 */
+/* Leaflet — piel territorial                                          */
 /* ------------------------------------------------------------------ */
 
 .leaflet-container {
@@ -230,20 +249,20 @@
 }
 
 .leaflet-popup-content-wrapper {
-  background: rgba(10, 16, 28, 0.95) !important;
+  background: rgba(10, 11, 14, 0.96) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid var(--border-soft);
   backdrop-filter: blur(14px) saturate(1.2);
   border-radius: 0.75rem !important;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.58) !important;
 }
 
 .leaflet-popup-tip {
-  background: rgba(10, 16, 28, 0.95) !important;
+  background: rgba(10, 11, 14, 0.96) !important;
 }
 
 /* ------------------------------------------------------------------ */
-/* Zombies RDM Invasion — marcadores y pulso de territorio            */
+/* Zombies RDM Invasion                                                */
 /* ------------------------------------------------------------------ */
 
 @keyframes zrPulse {
@@ -328,4 +347,28 @@
   color: var(--text-muted);
   font-family: ui-monospace, monospace;
   margin-top: 0.15rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Estado / alertas (semántica RDM)                                    */
+/* ------------------------------------------------------------------ */
+
+.rdm-ok {
+  color: var(--emerald);
+}
+
+.rdm-warn {
+  color: var(--gold-amber);
+}
+
+.rdm-risk {
+  color: var(--risk-red);
+}
+
+.rdm-silver {
+  color: var(--silver);
+}
+
+.rdm-gold {
+  color: var(--gold-light);
 }

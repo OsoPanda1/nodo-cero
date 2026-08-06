@@ -352,7 +352,7 @@ vvvvvvv-main/
 ## Pruebas Automatizadas
 
 ```bash
-npm test          # Vitest run — 12 archivos · 100 tests
+npm test          # Vitest run — 19 archivos · 164 tests
 npx tsc --noEmit  # Typecheck completo
 npm run lint      # ESLint
 npm run build     # Build de producción
@@ -374,6 +374,25 @@ Cobertura por dominio:
 | `tests/dead-man-switch.test.ts` | Interruptor de emergencia |
 | `tests/gateway-policy.test.ts` | Políticas del gateway |
 | `tests/rules.test.ts` | Reglas del dominio |
+| `tests/monitoring.test.ts` | Métricas, trazas, eventos, alertas, monitor |
+| `tests/resilience.test.ts` | Reintentos, circuit breaker, bulkhead |
+| `tests/zero-trust.test.ts` | Cadena de 7 capas + key vault |
+| `tests/isa-core.test.ts` | Núcleo soberano ISA (sin dependencias externas) |
+| `tests/features.test.ts` | Notificaciones, mensajería, geolocalización |
+| `tests/governance.test.ts` | Contratos de API y políticas de despliegue |
+| `tests/system.test.ts` | Caché TTL y planos lazy |
+
+## Documentación Técnica
+
+| Documento | Contenido |
+|---|---|
+| `docs/adr-0001-isa-soberano.md` | Núcleo soberano ISA (fin de la dependencia de Gemini) |
+| `docs/adr-0002-zero-trust-7-capas.md` | Cadena Zero Trust de 7 capas |
+| `docs/adr-0003-observabilidad.md` | Monitor General del Nodo Cero |
+| `docs/c4-contexto.md` | Diagrama C4 de contexto, contenedores y componentes |
+| `docs/catalogo-apis.md` | 10 contratos de API (semver + ciclo de vida) |
+| `docs/mapa-dominios.md` | Dominios ↔ código ↔ federación YUN |
+| `docs/guia-desarrollador.md` | Convenciones, cómo añadir dominios/APIs, resiliencia y caché |
 
 ---
 

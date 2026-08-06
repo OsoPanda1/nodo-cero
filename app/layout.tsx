@@ -1,8 +1,23 @@
 import type { Metadata, Viewport } from 'next';
+import { Playfair_Display, DM_Sans } from 'next/font/google';
 import './globals.css';
 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
+
+const SITE_URL = 'https://rdm-digital-hub.vercel.app';
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://rdm-digital-hub.vercel.app'),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'RDM Digital Hub — Nodo Cero | Real del Monte, Hidalgo',
     template: '%s | RDM Digital Hub — Nodo Cero',
@@ -74,22 +89,24 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#02030a',
+  themeColor: '#020617',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className="min-h-screen bg-[radial-gradient(circle_at_0%_0%,#0f172a,#020617_45%,#000)] text-slate-100">
+      <body
+        className={`min-h-screen bg-[radial-gradient(circle_at_0%_0%,#0a0b0e,#020617_45%,#000)] text-slate-100 ${playfair.variable} ${dmSans.variable}`}
+      >
         <div className="flex min-h-screen flex-col">
           {/* Shell superior: nombre del sistema y nodo */}
-          <header className="border-b border-white/5 bg-black/30 backdrop-blur-xl">
+          <header className="border-b border-amber-900/20 bg-black/40 backdrop-blur-xl">
             <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
               <div className="flex flex-col">
-                <span className="text-xs font-medium tracking-[0.18em] text-slate-400">
+                <span className="text-xs font-medium tracking-[0.18em] text-amber-200/70">
                   SISTEMA OPERATIVO TERRITORIAL
                 </span>
-                <span className="text-sm font-semibold text-slate-100">
+                <span className="font-patrimonial text-sm font-semibold text-cream-100 text-[#f5f0e8]">
                   RDM Digital Hub — Nodo Cero · Real del Monte, Hidalgo
                 </span>
               </div>
@@ -105,7 +122,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
 
           {/* Pie sobrio con identidad */}
-          <footer className="border-t border-white/5 bg-black/40 backdrop-blur-xl">
+          <footer className="border-t border-amber-900/20 bg-black/50 backdrop-blur-xl">
             <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
               <span className="text-xs text-slate-500">
                 © {new Date().getFullYear()} TAMV Online Network · RDM Digital Hub

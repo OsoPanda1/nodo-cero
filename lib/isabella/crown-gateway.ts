@@ -20,6 +20,7 @@
 import { CanonicalDomain } from './intention-parser';
 import { guardPrompt } from './prompt-guard';
 import { isEmergency, emergencyAudit } from './dead-man-switch';
+import { isaReason } from './isa-core';
 
 export type ProviderKind = 'genai' | 'openai-compatible' | 'cloudflare' | 'ollama' | 'simulation';
 export type TrustZone = 'green' | 'amber' | 'red';
@@ -366,7 +367,15 @@ async function callProvider(id: string, request: GatewayRequest, signal: AbortSi
     case 'openai-compatible': return callOpenAICompatible(p, system, request.prompt, signal);
     case 'cloudflare': return callCloudflare(p, system, request.prompt, signal);
     case 'ollama': return callOllama(p, system, request.prompt, signal);
-    case 'simulation': return request.fallbackText;
+    case 'simulation': {
+      /* NÚCLEO SOBERANO: la simulación ES el motor ISA offline. Responde
+         desde la base de conocimiento local, sin egress ni APIs externas. */
+      try {
+        return isaReason(request.prompt).answer;
+      } catch {
+        return request.fallbackText;
+      }
+    }
   }
 }
 
