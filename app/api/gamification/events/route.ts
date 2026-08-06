@@ -1,32 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { assertServerOnly, rateLimit, verifyOrigin } from '@/lib/isabella/trust';
+import { NextResponse } from 'next/server';
+import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { verifySessionToken } from '@/lib/security/auth-tokens';
-import { jsonContentGuard, methodGuard, parseJsonBody, requiredString } from '@/lib/security/request-validator';
 import { applyEvent } from '@/lib/gamification/points-engine';
 import { recordGameplayEvent } from '@/lib/gamification/events';
 import { getSession } from '@/lib/gamification/store';
+import { gameplayEventSchema, type GameplayEventInput } from '@/lib/core/contracts';
 import type { GameplayEvent, SpawnZone, ZombieRarity } from '@/lib/gamification/contracts';
 
 export const runtime = 'nodejs';
-const ROUTE_ID = 'api:gamification:events';
-const RATE_LIMIT = 60;
 
-const VALID_TYPES = ['kill-zombie', 'wave-completed', 'combo', 'mission-completed', 'prize-redeemed'];
-
-function enforceTrust(req: NextRequest): NextResponse | null {
-  const server = assertServerOnly('GAMIFICATION');
-  if (!server.ok) return NextResponse.json({ ok: false, error: server.error }, { status: 403 });
-  const origin = verifyOrigin(req);
-  if (!origin.ok) return NextResponse.json({ ok: false, error: origin.reason }, { status: 403 });
-  const rl = rateLimit(req, ROUTE_ID, RATE_LIMIT);
-  if (!rl.ok) {
-    return NextResponse.json(
-      { ok: false, error: 'Límite de eventos del Nodo alcanzado. Reintenta en un momento.' },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)) } },
-    );
-  }
-  return null;
-}
+/* Ruta ejemplar migrada al route-guard único. La validación de tipo y
+   sessionId ahora la ejerce el contrato gameplayEventSchema (zod). */
 
 function clampNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
@@ -102,57 +86,40 @@ function buildGameplayEvent(body: Record<string, unknown>): GameplayEvent | null
   }
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const denied = enforceTrust(req);
-  if (denied) return denied;
+export const POST = guardedRoute<GameplayEventInput>(
+  {
+    route: 'api:gamification:events',
+    methods: ['POST'],
+    rateLimit: 60,
+    schema: gameplayEventSchema,
+  },
+  async ({ body }) => {
+    const session = getSession(body.sessionId);
+    if (!session) {
+      return NextResponse.json({ ok: false, error: 'Sesión no encontrada. Inicia una sesión primero.' }, { status: 404 });
+    }
 
-  const methodDenied = methodGuard(req, ['POST']);
-  if (methodDenied) return methodDenied;
-  const contentDenied = jsonContentGuard(req);
-  if (contentDenied) return contentDenied;
+    const tokenCheck = verifySessionToken(body.token ?? '', session.id, session.deviceId);
+    if (!tokenCheck.ok) {
+      return NextResponse.json({ ok: false, error: `Token inválido: ${tokenCheck.reason}` }, { status: 401 });
+    }
 
-  let body: Record<string, unknown>;
-  try {
-    body = await parseJsonBody(req);
-  } catch {
-    return NextResponse.json({ ok: false, error: 'BODY_INVALID' }, { status: 400 });
-  }
+    const event = buildGameplayEvent(body as unknown as Record<string, unknown>);
+    if (!event) {
+      return NextResponse.json({ ok: false, error: 'Evento malformado.' }, { status: 400 });
+    }
 
-  const type = typeof body.type === 'string' ? body.type : '';
-  if (!VALID_TYPES.includes(type)) {
-    return NextResponse.json({ ok: false, error: `Tipo de evento no soportado (${VALID_TYPES.join(', ')}).` }, { status: 400 });
-  }
+    const result = applyEvent(event);
 
-  const missing = requiredString(body, 'sessionId');
-  if (missing) {
-    return NextResponse.json({ ok: false, error: `Campo requerido: ${missing}` }, { status: 400 });
-  }
+    if (result.accepted) {
+      recordGameplayEvent({
+        sessionId: session.id,
+        actorId: session.actorId,
+        eventType: body.type,
+        payload: { ...event, pointsAwarded: result.pointsAwarded } as unknown as Record<string, unknown>,
+      });
+    }
 
-  const session = getSession(String(body.sessionId));
-  if (!session) {
-    return NextResponse.json({ ok: false, error: 'Sesión no encontrada. Inicia una sesión primero.' }, { status: 404 });
-  }
-
-  const tokenCheck = verifySessionToken(String(body.token ?? ''), session.id, session.deviceId);
-  if (!tokenCheck.ok) {
-    return NextResponse.json({ ok: false, error: `Token inválido: ${tokenCheck.reason}` }, { status: 401 });
-  }
-
-  const event = buildGameplayEvent(body);
-  if (!event) {
-    return NextResponse.json({ ok: false, error: 'Evento malformado.' }, { status: 400 });
-  }
-
-  const result = applyEvent(event);
-
-  if (result.accepted) {
-    recordGameplayEvent({
-      sessionId: session.id,
-      actorId: session.actorId,
-      eventType: type,
-      payload: { ...event, pointsAwarded: result.pointsAwarded } as unknown as Record<string, unknown>,
-    });
-  }
-
-  return NextResponse.json(result, { status: result.ok ? 200 : 500 });
-}
+    return NextResponse.json(result, { status: result.ok ? 200 : 500 });
+  },
+);

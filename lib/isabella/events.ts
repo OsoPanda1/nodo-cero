@@ -67,7 +67,33 @@ export function emitYunEvent(input: {
     console.log(`[YUN-EVENT][${event.event_type}][${event.domain}][${event.trace_id}]`);
   }
 
+  /* Publica además en el bus YUN unificado (solo servidor). El import
+     es dinámico para no arrastrar node:async_hooks al bundle cliente. */
+  if (!isClient()) {
+    void import('@/lib/core/events')
+      .then(({ publishEvent }) => {
+        publishEvent({
+          type: event.event_type,
+          source: event.source ?? 'isabella-s-mind',
+          domain: event.domain,
+          data: { ...event.payload, entityId: event.entity_id },
+          traceId: event.trace_id,
+          severity: mapSeverity(event.severity),
+          meta: { federation: event.federation_id, entityId: event.entity_id },
+        });
+      })
+      .catch(() => {
+        /* el bus nunca debe bloquear la emisión original */
+      });
+  }
+
   return event;
+}
+
+function mapSeverity(value?: string): 'info' | 'warning' | 'critical' {
+  if (value === 'error' || value === 'critical') return 'critical';
+  if (value === 'warn' || value === 'warning') return 'warning';
+  return 'info';
 }
 
 export function getYunEvents(traceId?: string): YunEvent[] {

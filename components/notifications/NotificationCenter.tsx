@@ -20,9 +20,9 @@ const SEVERITY_DOT: Record<string, string> = {
 
 export function NotificationCenter() {
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<RdmNotification[]>([]);
-  const [unread, setUnread] = useState(0);
-  const [soundOn, setSoundOn] = useState(true);
+  const [items, setItems] = useState<RdmNotification[]>(() => recentNotifications(30));
+  const [unread, setUnread] = useState(() => unreadCount());
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
 
   const refresh = useCallback(() => {
     setItems(recentNotifications(30));
@@ -30,8 +30,6 @@ export function NotificationCenter() {
   }, []);
 
   useEffect(() => {
-    refresh();
-    setSoundOn(isSoundEnabled());
     const unsubscribe = subscribeNotifications(notification => {
       refresh();
       if (notification.sound) playSound(notification.severity === 'critical' ? 'critical' : 'success');

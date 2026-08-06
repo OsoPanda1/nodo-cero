@@ -18,7 +18,7 @@
 /* ================================================================== */
 
 import crypto from 'node:crypto';
-import { constantTimeCompare } from '@/lib/isabella/trust';
+import { constantTimeCompare } from '@/lib/security/trust';
 
 export type InternalKeyName =
   | 'ISA_API_KEY'

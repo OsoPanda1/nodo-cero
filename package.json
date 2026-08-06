@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "clean": "next clean"
+    "clean": "next clean",
+    "audit": "node scripts/audit-project.mjs",
+    "check:env": "node scripts/check-env.mjs",
+    "check:contracts": "node scripts/check-contracts.mjs",
+    "quality": "npm run audit && npm run check:env && npm run check:contracts && npm run lint && npx tsc --noEmit && npm test"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -27,7 +31,8 @@
     "react-dom": "^19.2.1",
     "recharts": "^3.10.1",
     "tailwind-merge": "^3.3.1",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.11",

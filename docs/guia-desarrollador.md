@@ -8,7 +8,9 @@ cp .env.example .env.local   # completa claves opcionales
 npm run dev
 ```
 
-Scripts: `npm test` (vitest), `npx tsc --noEmit`, `npm run lint`, `npm run build`.
+Scripts: `npm test` (vitest), `npx tsc --noEmit`, `npm run lint`, `npm run build`,
+`npm run audit` (consistencia), `npm run check:env` (entorno), `npm run check:contracts`
+(adopción del route-guard) y `npm run quality` (todo en cadena).
 
 ## Convenciones
 
@@ -21,14 +23,19 @@ Scripts: `npm test` (vitest), `npx tsc --noEmit`, `npm run lint`, `npm run build
   (paleta `--gold`, `--terracotta`, `--emerald`, `--neblina`, …). Usar variables,
   `.glass-panel`, `.miner-border`; fuentes `--font-playfair` (títulos) y
   `--font-dm-sans` (UI). No reintroducir el tema holográfico cian/púrpura.
+- **Núcleo transversal:** todo lo genérico vive en `lib/core/` (utils, eventos,
+  entorno, contratos). La capa de trust canónica vive en `lib/security/trust.ts`
+  (lib/isabella/trust.ts es barril de compatibilidad).
 
 ## Cómo añadir un dominio
 
 1. Crear el store en `lib/<dominio>/` (síncrono, importable sin efectos de lado).
-2. Exponer rutas en `app/api/<dominio>/` protegidas con `assertServerOnly` y
-   `assertZeroTrust`.
-3. Registrar un health check en `app/api/monitor/health/route.ts` con
-   `monitor.registerHealth(name, fn)` (usa `require()` para evitar ciclos).
+2. Exponer rutas en `app/api/<dominio>/` con el route-guard único:
+   `import { guardedRoute } from '@/app/api/_shared/route-guard'`.
+   Ver `docs/guia-modularizacion.md` para el patrón.
+3. Registrar un health check de solo lectura en
+   `app/api/monitor/health/route.ts` con `monitor.registerHealth(name, fn)`
+   (imports estáticos; nunca `require()` ni re-siembra de estado).
 4. Registrar el contrato en `lib/governance/contracts.ts` (semver + lifecycle).
 5. Añadir tests en `tests/<dominio>.test.ts`.
 
@@ -62,6 +69,9 @@ stopThirdPlane('poda');
 - `enforceZeroTrustHeaders(headers, options)` evalúa las 7 capas; con
   `requiresSignature: true` exige `x-rdm-signature` (HMAC con `hmacSecret`).
 - Claves internas en `.env` con rotación `_V2/_V3`; nunca se registran.
+- El route-guard (`app/api/_shared/route-guard.ts`) aplica la cadena completa
+  (server-only → origen → rate limit → Zero Trust → método → JSON → contrato)
+  y emite telemetría al bus unificado (`lib/core/events`).
 
 ## Documentos
 

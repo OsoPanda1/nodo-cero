@@ -3,14 +3,14 @@
 /* ------------------------------------------------------------------ */
 /* Cada evento de juego aceptado se convierte en un evento territorial  */
 /* más: se inserta en la memoria de Isabella (scope territorial, tags   */
-/* de gamificación) y se publica en el bus YUN (dominio gameplay) para  */
-/* que ARGUS/LUMEN lo auditen. Así un "zombie kill" es un evento del    */
-/* territorio, como visitar un POI o completar una ruta.                */
+/* de gamificación) y se publica en el bus YUN unificado (dominio      */
+/* gameplay) para que ARGUS/LUMEN lo auditen. Así un "zombie kill" es   */
+/* un evento del territorio, como visitar un POI o completar una ruta.  */
 /* ------------------------------------------------------------------ */
 
-import { emitYunEvent } from '@/lib/isabella/events';
+import { publishEvent } from '@/lib/core/events';
 import { addMemoryItem } from '@/lib/isabella/memory';
-import { uuid } from '@/lib/isabella/utils';
+import { uuid } from '@/lib/core/utils';
 
 export interface GameplayEventRecord {
   sessionId: string;
@@ -20,17 +20,16 @@ export interface GameplayEventRecord {
 }
 
 export function recordGameplayEvent(record: GameplayEventRecord): void {
-  const traceId = uuid();
   const tags = ['gamificacion', 'zombies', record.eventType];
 
-  emitYunEvent({
-    eventType: `gameplay.${record.eventType}`,
+  publishEvent({
+    type: `gameplay.${record.eventType}`,
     domain: 'gameplay',
-    traceId,
+    traceId: uuid(),
     source: 'yun-gamification',
-    entityId: record.sessionId,
     severity: 'info',
-    payload: { ...record.payload, sessionId: record.sessionId, actorId: record.actorId },
+    data: { ...record.payload, sessionId: record.sessionId, actorId: record.actorId },
+    meta: { entityId: record.sessionId },
   });
 
   try {

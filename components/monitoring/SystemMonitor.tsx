@@ -83,10 +83,14 @@ export function SystemMonitor() {
   }, []);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    /* Carga inicial + polling del monitor: la primera lectura es
+       intencional y el setState ocurre tras un await (nunca síncrono). */
     void load();
     if (polling) {
       pollRef.current = setInterval(() => void load(), 4000);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };

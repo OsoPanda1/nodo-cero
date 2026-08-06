@@ -9,7 +9,7 @@
 /* ------------------------------------------------------------------ */
 
 import crypto from 'node:crypto';
-import { constantTimeCompare } from '@/lib/isabella/trust';
+import { constantTimeCompare } from '@/lib/security/trust';
 
 const TOKEN_TTL_MS = 6 * 60 * 60 * 1000;
 

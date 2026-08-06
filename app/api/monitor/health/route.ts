@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { monitor } from '@/lib/monitoring/monitor';
 import type { HealthStatus } from '@/lib/monitoring/monitor';
-import { assertServerOnly } from '@/lib/isabella/trust';
+import { assertServerOnly } from '@/lib/security/trust';
 import { verifyInternalKey, hasInternalKey } from '@/lib/security/keys';
 import { assertZeroTrust } from '@/lib/security/zero-trust';
+import { getTwinInstances } from '@/lib/twins/twin-store';
+import { listIncidents } from '@/lib/city/city-event-bus';
+import { listAssets } from '@/lib/assets/asset-registry';
+import { seedPowerNodes, seedWaterNodes } from '@/lib/grid/grid-network';
+import { listListings } from '@/lib/marketplace/marketplace-store';
+import { getGatewayStatus } from '@/lib/isabella/crown-gateway';
+import { getGamificationStats } from '@/lib/gamification/store';
 
 /* ------------------------------------------------------------------ */
 /* Health checks por dominio del Nodo Cero                             */
+/* ------------------------------------------------------------------ */
+/* Todos los chequeos son de SOLO LECTURA: no se re-siembra ni se      */
+/* muta estado (los builders de grid son puros y deterministas).       */
 /* ------------------------------------------------------------------ */
 function registerDomainHealth(): void {
   const register = (name: string, fn: () => { status: HealthStatus; detail: string }) =>
     monitor.registerHealth(name, fn);
 
   register('twins', () => {
-    const { getTwinInstances } = require('@/lib/twins/twin-store') as typeof import('@/lib/twins/twin-store');
     const count = getTwinInstances().length;
     return {
       status: count > 0 ? 'up' : 'degraded',
@@ -22,7 +31,6 @@ function registerDomainHealth(): void {
   });
 
   register('city-ioc', () => {
-    const { listIncidents } = require('@/lib/city/city-event-bus') as typeof import('@/lib/city/city-event-bus');
     const count = listIncidents().length;
     return {
       status: count > 0 ? 'up' : 'degraded',
@@ -31,7 +39,6 @@ function registerDomainHealth(): void {
   });
 
   register('eam-assets', () => {
-    const { listAssets } = require('@/lib/assets/asset-registry') as typeof import('@/lib/assets/asset-registry');
     const count = listAssets().length;
     return {
       status: count > 0 ? 'up' : 'degraded',
@@ -40,7 +47,6 @@ function registerDomainHealth(): void {
   });
 
   register('grid', () => {
-    const { seedPowerNodes, seedWaterNodes } = require('@/lib/grid/grid-network') as typeof import('@/lib/grid/grid-network');
     const power = seedPowerNodes().length;
     const water = seedWaterNodes().length;
     return {
@@ -50,7 +56,6 @@ function registerDomainHealth(): void {
   });
 
   register('marketplace', () => {
-    const { listListings } = require('@/lib/marketplace/marketplace-store') as typeof import('@/lib/marketplace/marketplace-store');
     const count = listListings().length;
     return {
       status: count > 0 ? 'up' : 'degraded',
@@ -59,7 +64,6 @@ function registerDomainHealth(): void {
   });
 
   register('isabella', () => {
-    const { getGatewayStatus } = require('@/lib/isabella/crown-gateway') as typeof import('@/lib/isabella/crown-gateway');
     const status = getGatewayStatus();
     return {
       status: status.providers?.length > 0 ? 'up' : 'degraded',
@@ -68,7 +72,6 @@ function registerDomainHealth(): void {
   });
 
   register('gamification', () => {
-    const { getGamificationStats } = require('@/lib/gamification/store') as typeof import('@/lib/gamification/store');
     const stats = getGamificationStats();
     return {
       status: 'up',

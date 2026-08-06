@@ -22,7 +22,7 @@ import {
   sanitizeForLog,
   getRateLimitKey,
   allowedOrigins,
-} from '@/lib/isabella/trust';
+} from '@/lib/security/trust';
 
 export const YUN_FEDERATIONS = [
   'decision',

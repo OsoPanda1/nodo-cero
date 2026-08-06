@@ -1,29 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { handleIsabellaReason } from '@/lib/isabella/http';
+import { reasonSchema } from '@/lib/core/contracts';
 
 const ROUTE_ID = 'api:isabella:isa:reason';
 const REQUIRED_FIELDS = ['query', 'context', 'mode'] as const;
-
-type ReasonRequestBody = {
-  query: string;
-  context?: Record<string, unknown>;
-  mode?: 'trace' | 'answer' | 'audit';
-};
-
-function isReasonBody(value: unknown): value is ReasonRequestBody {
-  if (typeof value !== 'object' || value === null) return false;
-
-  const body = value as Record<string, unknown>;
-
-  const hasQuery = typeof body.query === 'string' && body.query.trim().length > 0;
-  const hasMode =
-    body.mode === undefined ||
-    body.mode === 'trace' ||
-    body.mode === 'answer' ||
-    body.mode === 'audit';
-
-  return hasQuery && hasMode;
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const startedAt = Date.now();
@@ -78,7 +58,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    if (!isReasonBody(body)) {
+    // Contrato ejecutable: valida y tipa la carga de razonamiento.
+    const parsed = reasonSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         {
           route: ROUTE_ID,
@@ -87,6 +69,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message:
             'La carga de razonamiento debe incluir al menos: query (string no vacía) y un modo válido (trace | answer | audit).',
           required: REQUIRED_FIELDS,
+          details: parsed.error.issues.map(i => ({
+            path: i.path.join('.'),
+            message: i.message,
+          })),
         },
         { status: 400 },
       );

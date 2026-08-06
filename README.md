@@ -211,13 +211,21 @@ Cliente (React SPA)
 
 ### Capa de confianza (Zero Trust)
 
-Todas las APIs de dominio aplican `enforceTrust(req)` en `lib/isabella/trust.ts`:
+Toda la superficie de entrada pasa por el **route-guard único**
+(`app/api/_shared/route-guard.ts`), que aplica en orden:
 
 1. `assertServerOnly()` — rechaza ejecución fuera del servidor.
 2. `verifyOrigin(req)` — valida `Origin`/`Referer` contra `APP_URL`.
 3. `rateLimit(req, ROUTE_ID, RATE_LIMIT)` — límite por ruta con `Retry-After`.
+4. `assertZeroTrust()` — cadena de 7 capas YUN (fail-closed).
+5. Guardas de método/JSON y validación de cuerpo con **contratos zod**
+   (`lib/core/contracts`), emitiendo telemetría al bus unificado (`lib/core/events`).
 
-Además: **comparación en tiempo constante** (`constantTimeCompare`) para claves de operador, gateway con *fail-closed* (`lib/isabella/gateway-policy.ts`), PII redactada y auditabilidad vía `isabella_audit_logs`.
+La trust canónica vive en `lib/security/trust.ts` (`lib/isabella/trust.ts` es
+barril de compatibilidad). Además: **comparación en tiempo constante**
+(`constantTimeCompare`) para claves de operador, gateway con *fail-closed*
+(`lib/isabella/gateway-policy.ts`), PII redactada y auditabilidad vía
+`isabella_audit_logs`.
 
 ---
 
@@ -285,20 +293,24 @@ vvvvvvv-main/
 │   ├── gamification/                # Zombies RDM Invasion
 │   └── ...                          # 3D, isabella, map, nodes, phygital, security, telemetry, tourism
 ├── lib/
-│   ├── twins/ dtdl/ ngsi/           # Motores del gemelo digital
-│   ├── city/                        # Motores del IOC urbano
-│   ├── assets/                      # Motores EAM/APM
-│   ├── grid/                        # Motores smart grid/agua
-│   ├── marketplace/                 # Motores del marketplace
-│   ├── isabella/                    # Núcleo cognitivo C.R.O.W.N. + trust + gateway + DMS
-│   ├── gamification/                # Anticheat y puntos firmados
-│   ├── security/                    # Auth tokens y validación de requests
-│   └── data/                        # rdm-data, rdm-tourism, rdm-territorial, zombies-data
+│   ├── core/                       # Núcleo transversal: utils, events (bus YUN), env, contracts
+│   ├── twins/ dtdl/ ngsi/          # Motores del gemelo digital
+│   ├── city/                       # Motores del IOC urbano
+│   ├── assets/                     # Motores EAM/APM
+│   ├── grid/                       # Motores smart grid/agua
+│   ├── marketplace/                # Motores del marketplace
+│   ├── isabella/                   # Núcleo cognitivo C.R.O.W.N. + gateway + DMS
+│   ├── gamification/               # Anticheat y puntos firmados
+│   ├── security/                   # trust (canónica), zero-trust, keys, auth tokens
+│   └── data/                       # rdm-data, rdm-tourism, rdm-territorial, zombies-data
+├── app/api/_shared/route-guard.ts  # Guard transversal único de las rutas API
+├── scripts/                        # audit-project, check-env, check-contracts
 ├── supabase/migrations/
 │   ├── 001_create_isabella_tables.sql   # Capa cognitiva (sessions, memory, decisions, audit)
 │   └── 002_create_territorial_domains.sql  # Twins, assets, work_orders, incidents, grid + RLS
-├── tests/                          # 12 archivos · 100 tests (vitest)
+├── tests/                          # 22 archivos · 195 tests (vitest)
 ├── RFC-0001.md                     # Manifiesto C.R.O.W.N.
+├── AGENTS.md                       # Convenciones para agentes de IA
 ├── vitest.config.mts
 ├── .env.example
 ├── next.config.ts
@@ -352,10 +364,14 @@ vvvvvvv-main/
 ## Pruebas Automatizadas
 
 ```bash
-npm test          # Vitest run — 19 archivos · 164 tests
+npm test          # Vitest run — 22 archivos · 195 tests
 npx tsc --noEmit  # Typecheck completo
 npm run lint      # ESLint
 npm run build     # Build de producción
+npm run audit     # Consistencia del código (bloquea as never / require())
+npm run check:env # Entorno contra el contrato tipado
+npm run check:contracts  # Adopción del route-guard único
+npm run quality   # Todo en cadena (audit + env + contracts + lint + types + test)
 ```
 
 Cobertura por dominio:
@@ -381,6 +397,9 @@ Cobertura por dominio:
 | `tests/features.test.ts` | Notificaciones, mensajería, geolocalización |
 | `tests/governance.test.ts` | Contratos de API y políticas de despliegue |
 | `tests/system.test.ts` | Caché TTL y planos lazy |
+| `tests/events.test.ts` | Bus YUN unificado (envelope, DLQ, traza) |
+| `tests/contracts.test.ts` | Contratos zod de las rutas |
+| `tests/env.test.ts` | Contrato tipado del entorno |
 
 ## Documentación Técnica
 
@@ -393,6 +412,7 @@ Cobertura por dominio:
 | `docs/catalogo-apis.md` | 10 contratos de API (semver + ciclo de vida) |
 | `docs/mapa-dominios.md` | Dominios ↔ código ↔ federación YUN |
 | `docs/guia-desarrollador.md` | Convenciones, cómo añadir dominios/APIs, resiliencia y caché |
+| `docs/guia-modularizacion.md` | Modularización por fases: núcleo transversal, route-guard, contratos |
 
 ---
 
@@ -422,7 +442,7 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 | Build de producción (`next build`) | ✅ Exitoso (0 errores TS) |
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 100/100 |
+| Tests (`vitest`) | ✅ 195/195 (22 archivos) |
 | Datos del territorio (POIs, nodos, turismo) | ✅ 15 POIs · 35 nodos · 8 eventos · 5 rutas |
 | Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
 | IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
@@ -482,7 +502,11 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
-npm test                         # Vitest (100 tests)
+npm test                         # Vitest (195 tests)
+npm run audit                    # Consistencia del código
+npm run check:env                # Entorno contra el contrato
+npm run check:contracts          # Adopción del route-guard
+npm run quality                  # Todo en cadena
 npx tsc --noEmit                 # Typecheck
 ```
 

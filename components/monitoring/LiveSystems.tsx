@@ -22,8 +22,8 @@ import { Crosshair, MessageSquare, BellRing } from 'lucide-react';
 export function LiveSystems() {
   const [geo, setGeo] = useState<GeoPosition | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<RdmMessage[]>([]);
-  const [unread, setUnread] = useState(0);
+  const [messages, setMessages] = useState<RdmMessage[]>(() => inboxFor('operador', 8));
+  const [unread, setUnread] = useState(() => unreadFor('operador'));
   const [draft, setDraft] = useState('');
 
   const refreshMessages = useCallback(() => {
@@ -32,7 +32,6 @@ export function LiveSystems() {
   }, []);
 
   useEffect(() => {
-    refreshMessages();
     const unsubscribeTopic = subscribeTopic('canal-nodo', () => refreshMessages());
     const unsubscribeNotif = subscribeNotifications(() => refreshMessages());
 
