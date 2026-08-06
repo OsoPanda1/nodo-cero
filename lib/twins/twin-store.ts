@@ -1,5 +1,7 @@
 import type { TwinGraphEdge, TwinInstanceRecord, TwinModelRecord, TwinStatus } from './twin-types';
 import { RDM_POIS, RDM_NODES_35 } from '@/lib/data/rdm-data';
+import { registerHydrator, schedulePersist } from '@/lib/core/persistence';
+import { loadEdges, loadInstances, loadModels, upsertEdge, upsertInstance, upsertModel } from './repository';
 
 const MODEL_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -152,9 +154,21 @@ function seed(store: TwinStoreShape): void {
   }
 }
 
+/** Carga inicial desde Postgres: fusiona lo persistido sobre la semilla
+ *  (los registros persistidos ganan por id). */
+registerHydrator('twins', async () => {
+  const store = getStore();
+  const [models, instances, edges] = await Promise.all([loadModels(), loadInstances(), loadEdges()]);
+  for (const model of models) store.models.set(model.id, model);
+  for (const instance of instances) store.instances.set(instance.id, instance);
+  for (const edge of edges) store.edges.set(edge.id, edge);
+});
+
 export function registerModel(model: TwinModelRecord): TwinModelRecord {
   const store = getStore();
-  store.models.set(model.id, { ...model, createdAt: model.createdAt || now(), updatedAt: now() });
+  const next = { ...model, createdAt: model.createdAt || now(), updatedAt: now() };
+  store.models.set(model.id, next);
+  schedulePersist('twins.model', () => upsertModel(next));
   return model;
 }
 
@@ -171,6 +185,7 @@ export function upsertTwinInstance(instance: TwinInstanceRecord): TwinInstanceRe
     updatedAt: now(),
   };
   store.instances.set(instance.id, next);
+  schedulePersist('twins.instance', () => upsertInstance(next));
   return next;
 }
 
@@ -190,6 +205,7 @@ export function getTwinInstance(id: string): TwinInstanceRecord | undefined {
 export function addTwinEdge(edge: TwinGraphEdge): TwinGraphEdge {
   const store = getStore();
   store.edges.set(edge.id, edge);
+  schedulePersist('twins.edge', () => upsertEdge(edge));
   return edge;
 }
 

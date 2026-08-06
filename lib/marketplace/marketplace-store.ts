@@ -1,4 +1,6 @@
 import type { MarketplaceListing, Subscription } from './marketplace-types';
+import { registerHydrator, schedulePersist } from '@/lib/core/persistence';
+import { loadListings, loadSubscriptions, upsertListing, upsertSubscription } from './repository';
 
 const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
 
@@ -106,6 +108,21 @@ export function getMarketplaceStore(): MarketplaceStore {
   return g.__rdmMarketplace;
 }
 
+/** Carga inicial desde Postgres: los listings/suscripciones persistidos
+ *  se fusionan con el catálogo semilla (los persistidos ganan por id). */
+registerHydrator('marketplace', async () => {
+  const [listings, subscriptions] = await Promise.all([loadListings(), loadSubscriptions()]);
+  const store = getMarketplaceStore();
+  for (const listing of listings) {
+    const idx = store.listings.findIndex((l) => l.id === listing.id);
+    if (idx >= 0) store.listings[idx] = listing;
+    else store.listings.push(listing);
+  }
+  for (const sub of subscriptions) {
+    if (!store.subscriptions.some((s) => s.id === sub.id)) store.subscriptions.push(sub);
+  }
+});
+
 export function listListings(): MarketplaceListing[] {
   return getMarketplaceStore().listings;
 }
@@ -127,6 +144,7 @@ export function publishListing(listing: Omit<MarketplaceListing, 'id' | 'slug' |
     updatedAt: new Date().toISOString(),
   };
   store.listings.push(full);
+  schedulePersist('marketplace.listing', () => upsertListing(full));
   return full;
 }
 
@@ -143,6 +161,7 @@ export function subscribeListing(listingId: string, licensee: string): Subscript
     usageCount: 0,
   };
   store.subscriptions.push(subscription);
+  schedulePersist('marketplace.subscription', () => upsertSubscription(subscription));
   return subscription;
 }
 
