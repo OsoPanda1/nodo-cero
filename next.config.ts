@@ -8,7 +8,7 @@ const securityHeaders = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org",
+    "img-src 'self' data: blob: https://*.basemaps.cartocdn.com https://*.tile.openstreetmap.org https://images.unsplash.com",
     "media-src 'self' blob: data:",
     "font-src 'self' data:",
     "connect-src 'self' ws: wss:",
@@ -42,13 +42,17 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   images: {
-    // Images are served locally from /public/images (real photos of Real del Monte).
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
     deviceSizes: [375, 640, 750, 828, 1080, 1200, 1920],
     formats: ['image/avif', 'image/webp'],
   },
-  // Standalone build keeps the deployment self-contained (Cloud Run / Docker compatible).
-  output: 'standalone',
+  // Vercel handles serverless output natively. Standalone mode is only for Docker / self-hosted environments.
+  output: process.env.VERCEL ? undefined : undefined,
   // Next.js 16 usa Turbopack por defecto; la config webpack legacy solo se aplica con --webpack.
   turbopack: {},
   transpilePackages: ['motion', 'three', '@react-three/fiber'],
