@@ -35,13 +35,45 @@ import { MetallicHeading } from "@/components/design-system/MetallicHeading";
 import { GradientDivider } from "@/components/design-system/GradientDivider";
 import { CrystalButton } from "@/components/design-system/CrystalButton";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
-import { Box, Activity, ArrowRight, Radio, Lock, Sparkles } from "lucide-react";
+import { Box, Activity, ArrowRight, Lock, Sparkles, Compass, Store, Users, Landmark } from "lucide-react";
 
 export default function RDMDigitalHubHome() {
   const [activeView, setActiveView] = useState<string>("home");
   const [selectedNode, setSelectedNode] = useState<YUNNode | null>(null);
   const [isabellaOpen, setIsabellaOpen] = useState<boolean>(false);
   const [isabellaInitialPrompt, setIsabellaInitialPrompt] = useState<string>("");
+
+
+  const quickJourneys = [
+    {
+      id: "tourism",
+      title: "Visitar Real del Monte",
+      description: "Rutas, eventos, gastronomía y leyendas en una entrada clara para visitantes.",
+      icon: <Compass className="w-5 h-5" />,
+      accent: "#0d4652",
+    },
+    {
+      id: "marketplace",
+      title: "Comprar local",
+      description: "Pastes, plata .925 y experiencias verificadas sin perderte en módulos técnicos.",
+      icon: <Store className="w-5 h-5" />,
+      accent: "#c89a45",
+    },
+    {
+      id: "register",
+      title: "Unirme al ecosistema",
+      description: "Registro de vecinos, negocios y comunidad para activar beneficios del Nodo.",
+      icon: <Users className="w-5 h-5" />,
+      accent: "#d97832",
+    },
+    {
+      id: "city",
+      title: "Operar el territorio",
+      description: "Acceso ejecutivo a ciudad IOC, gemelos, red de agua/energía y activos críticos.",
+      icon: <Landmark className="w-5 h-5" />,
+      accent: "#536b86",
+    },
+  ];
 
   const handleOpenIsabellaWithPrompt = (prompt: string) => {
     setIsabellaInitialPrompt(prompt);
@@ -262,6 +294,43 @@ export default function RDMDigitalHubHome() {
               if (found) handleSelectNode(found);
             }}
           />
+
+          {/* Guía rápida: reduce complejidad y orienta por intención */}
+          <section className="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
+            <div className="rounded-[2rem] border border-white/70 bg-white/82 p-5 shadow-[0_24px_80px_rgba(13,70,82,0.14)] backdrop-blur-2xl">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div className="space-y-1">
+                  <p className="font-rdm-mono text-[10px] uppercase tracking-[0.28em] text-[#c89a45]">Entrada inteligente</p>
+                  <h2 className="font-patrimonial text-2xl font-bold text-[#082f3b]">¿Qué quieres hacer hoy?</h2>
+                  <p className="max-w-2xl text-sm leading-relaxed text-[#536b86]">
+                    El ecosistema completo sigue disponible, pero estas rutas priorizan las decisiones más comunes para llegar rápido sin abrumarte.
+                  </p>
+                </div>
+                <CrystalButton variant="ghost" onClick={() => setIsabellaOpen(true)} className="px-5 py-3 text-xs font-bold">
+                  <Sparkles className="w-4 h-4 text-[#0d4652]" />
+                  <span>Necesito guía personalizada</span>
+                </CrystalButton>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {quickJourneys.map((journey) => (
+                  <button
+                    key={journey.id}
+                    onClick={() => setActiveView(journey.id)}
+                    className="group rounded-2xl border border-[#c9d0d4]/70 bg-[#fbfcfa]/88 p-4 text-left shadow-sm transition-all hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(13,70,82,0.12)]"
+                  >
+                    <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-sm" style={{ background: journey.accent }}>
+                      {journey.icon}
+                    </span>
+                    <span className="block font-patrimonial text-base font-bold text-[#082f3b]">{journey.title}</span>
+                    <span className="mt-1 block text-xs leading-relaxed text-[#536b86]">{journey.description}</span>
+                    <span className="mt-3 inline-flex items-center gap-1 font-rdm-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: journey.accent }}>
+                      Entrar <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* Banda de indicadores clave del territorio — cápsulas de cristal */}
           <section className="max-w-7xl mx-auto px-6 -mt-14 relative z-10">

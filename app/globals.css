@@ -40,7 +40,11 @@
     --glow-emerald: rgba(16, 185, 129, 0.35);
     --glow-neblina: rgba(56, 189, 248, 0.3);
 
-    /* Tipografía */
+    /* Tipografía: fallbacks locales para builds reproducibles en Vercel/offline */
+    --font-playfair: Georgia, "Times New Roman", serif;
+    --font-dm-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-editorial: Georgia, "Times New Roman", serif;
+    --font-rdm-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
     --text-primary: #eef2f7;
     --text-muted: rgba(156, 163, 175, 0.92);
 

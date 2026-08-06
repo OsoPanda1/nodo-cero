@@ -1,32 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Playfair_Display, DM_Sans, Cormorant_Garamond, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  display: 'swap',
-});
-
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  variable: '--font-editorial',
-  display: 'swap',
-  weight: ['400', '500', '600', '700'],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-rdm-mono',
-  display: 'swap',
-  weight: ['400', '500', '700'],
-});
 
 const SITE_URL = 'https://rdm-digital-hub.vercel.app';
 
@@ -110,7 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" suppressHydrationWarning className="bg-[#f4f6f2]">
       <body
-        className={`min-h-screen bg-[#f4f6f2] text-[#283038] ${playfair.variable} ${dmSans.variable} ${cormorant.variable} ${jetbrainsMono.variable}`}
+        className="min-h-screen bg-[#f4f6f2] text-[#283038]"
       >
         {children}
       </body>

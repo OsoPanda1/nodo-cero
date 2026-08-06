@@ -3,6 +3,7 @@
 /* ================================================================== */
 
 import 'server-only';
+import type { JSONValue } from 'postgres';
 import { isPostgresConfigured, sql } from '@/lib/core/persistence';
 import type { MarketplaceListing, Subscription } from './marketplace-types';
 
@@ -16,7 +17,7 @@ export async function upsertListing(l: MarketplaceListing): Promise<void> {
     values (
       ${l.id}, ${l.slug}, ${l.type}, ${l.title}, ${l.description ?? null},
       ${l.provider ?? null}, ${l.publisher ?? null}, ${l.status},
-      ${db.json(l.price as unknown as Record<string, unknown>)},
+      ${db.json(l.price as unknown as JSONValue)},
       ${l.rating}, ${l.ratingCount}, ${l.downloads},
       ${l.tags ?? []}, ${l.compatibleDomains ?? []}, ${l.createdAt}, ${l.updatedAt}
     )
