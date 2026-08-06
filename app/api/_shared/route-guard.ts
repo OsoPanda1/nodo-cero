@@ -41,6 +41,10 @@ export interface GuardedRouteOptions {
   schema?: z.ZodType;
   /** Espera cuerpo JSON. Pon a false en rutas de solo lectura (GET). */
   json?: boolean;
+  /** Cabecera Cache-Control de la respuesta. Por defecto las rutas GET
+   *  (solo lectura) reciben caché pública corta con stale-while-revalidate
+   *  para bajar latencia; pasa 'no-store' en rutas dinámicas/monitor. */
+  cacheControl?: string | null;
 }
 
 export interface GuardedRouteContext<T> {
@@ -67,7 +71,13 @@ export function guardedRoute<T = Record<string, unknown>>(
     zeroTrust = true,
     schema,
     json = true,
+    cacheControl,
   } = options;
+
+  const defaultCache =
+    cacheControl === undefined && methods.length === 1 && methods[0] === 'GET' && json === false
+      ? 'public, max-age=30, s-maxage=60, stale-while-revalidate=120'
+      : cacheControl ?? null;
 
   return (req) =>
     runWithTrace({ traceId: newTraceId() }, async () => {
@@ -127,6 +137,9 @@ export function guardedRoute<T = Record<string, unknown>>(
       try {
         const response = await handler({ req, route, traceId, body: body as T });
         emit('api.route.finished', { route, elapsedMs: Date.now() - startedAt });
+        if (defaultCache && !response.headers.has('Cache-Control')) {
+          response.headers.set('Cache-Control', defaultCache);
+        }
         return response;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);

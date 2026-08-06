@@ -6,7 +6,8 @@ import {
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe, 
   ChevronRight, ChevronDown, Search, Menu, X, Radio, Sparkles, 
   Map, Database, Key, ShoppingBag, ArrowUpRight, Lock, Zap,
-  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network
+  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network,
+  HandCoins
 } from 'lucide-react';
 
 interface YUNLayoutProps {
@@ -73,16 +74,16 @@ export default function YUNLayout({
             }}
             className="flex items-center gap-3 group text-left"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 via-purple-500 to-amber-400 p-0.5 shadow-[0_0_20px_rgba(6,182,212,0.5)] group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-black text-xs text-white">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#c9d0d4] via-[#f2cc76] to-[#2e9cff] p-0.5 shadow-[0_0_20px_rgba(242,204,118,0.4)] group-hover:scale-105 transition-transform">
+              <div className="w-full h-full bg-[#082f3b] rounded-[10px] flex items-center justify-center font-black text-xs text-white">
                 RDM
               </div>
             </div>
 
             <div>
-              <h1 className="text-sm font-black tracking-wider text-white flex items-center gap-1.5">
+              <h1 className="font-patrimonial text-sm font-bold tracking-wider text-white flex items-center gap-1.5">
                 RDM DIGITAL HUB
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#0d4652] text-[#f2cc76] border border-[#c89a45]/40">
                   NODO CERO
                 </span>
               </h1>
@@ -114,8 +115,15 @@ export default function YUNLayout({
         {/* Quick Launch Buttons */}
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setActiveView('payments')}
+            className="crystal-button crystal-button-gold px-3.5 py-1.5 text-xs font-bold"
+          >
+            <HandCoins className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Donar</span>
+          </button>
+          <button
             onClick={onOpenIsabella}
-            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-xs font-bold shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] transition-all flex items-center gap-1.5"
+            className="crystal-button px-3.5 py-1.5 text-xs font-bold"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-200" />
             <span className="hidden sm:inline">Isabella AI</span>
@@ -179,6 +187,7 @@ export default function YUNLayout({
                 { id: 'tourism', label: 'Turismo y Eventos', icon: <Map className="w-4 h-4 text-rose-400" /> },
                 { id: 'map', label: 'Gemelo Digital 2D/3D', icon: <Map className="w-4 h-4 text-amber-400" /> },
                 { id: 'marketplace', label: 'Marketplace Pastes & Plata', icon: <ShoppingBag className="w-4 h-4 text-rose-400" /> },
+                { id: 'payments', label: 'Pagos y Donaciones', icon: <HandCoins className="w-4 h-4 text-emerald-400" /> },
                 { id: 'telemetry', label: 'Telemetría y Sensores', icon: <Activity className="w-4 h-4 text-emerald-400" /> },
                 { id: 'security', label: 'Criptografía Post-Cuántica', icon: <Key className="w-4 h-4 text-purple-400" /> },
                 { id: 'art', label: 'Arte y Artesanos', icon: <Palette className="w-4 h-4 text-orange-400" /> },

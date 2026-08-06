@@ -2,6 +2,7 @@
 
 import { Suspense, lazy } from 'react';
 import { LiveSystems } from '@/components/monitoring/LiveSystems';
+import { AdminMonitor } from '@/components/monitoring/AdminMonitor';
 
 /* El SystemMonitor se carga en el plano 2 (lazy) para que el plano 1
    (los sistemas en vivo) se renderice al instante. */
@@ -13,6 +14,7 @@ export default function MonitorPage() {
   return (
     <div className="space-y-6">
       <LiveSystems />
+      <AdminMonitor />
       <Suspense
         fallback={
           <div className="glass-panel animate-pulse rounded-2xl p-6">

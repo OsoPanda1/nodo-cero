@@ -32,12 +32,20 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Baja latencia: quita header de framework, compresión y keep-alive.
+  poweredByHeader: false,
+  compress: true,
+  httpAgentOptions: {
+    keepAlive: true,
+  },
   typescript: {
     ignoreBuildErrors: false,
   },
   images: {
     // Images are served locally from /public/images (real photos of Real del Monte).
     remotePatterns: [],
+    deviceSizes: [375, 640, 750, 828, 1080, 1200, 1920],
+    formats: ['image/avif', 'image/webp'],
   },
   // Standalone build keeps the deployment self-contained (Cloud Run / Docker compatible).
   output: 'standalone',
@@ -50,6 +58,13 @@ const nextConfig: NextConfig = {
         // Apply security headers to all routes
         source: '/:path*',
         headers: securityHeaders,
+      },
+      {
+        // Assets inmutables: caché de largo plazo (baja latencia de recarga)
+        source: '/images/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
       },
     ];
   },

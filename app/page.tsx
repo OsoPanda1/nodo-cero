@@ -27,8 +27,14 @@ import { CityDashboard } from "@/components/city/CityDashboard";
 import { AssetDashboard } from "@/components/assets/AssetDashboard";
 import { GridDashboard } from "@/components/grid/GridDashboard";
 import { MarketplaceDashboard } from "@/components/marketplace/MarketplaceDashboard";
+import PaymentsSection from "@/components/payments/PaymentsSection";
+import { StatPill } from "@/components/design-system/StatPill";
+import { SectionHeader } from "@/components/design-system/SectionHeader";
+import { MetallicHeading } from "@/components/design-system/MetallicHeading";
+import { GradientDivider } from "@/components/design-system/GradientDivider";
+import { CrystalButton } from "@/components/design-system/CrystalButton";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
-import { Box, Activity, ArrowRight, Radio, Lock } from "lucide-react";
+import { Box, Activity, ArrowRight, Radio, Lock, Sparkles } from "lucide-react";
 
 export default function RDMDigitalHubHome() {
   const [activeView, setActiveView] = useState<string>("home");
@@ -203,6 +209,13 @@ export default function RDMDigitalHubHome() {
       {/* 15g. MARKETPLACE DIGITAL VIEW */}
       {activeView === "digital-marketplace" && <MarketplaceDashboard />}
 
+      {/* 15h. PAGOS Y DONACIONES VIEW */}
+      {activeView === "payments" && (
+        <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+          <PaymentsSection />
+        </div>
+      )}
+
       {/* 16. ABOUT VIEW */}
       {activeView === "about" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
@@ -222,68 +235,45 @@ export default function RDMDigitalHubHome() {
             }}
           />
 
-          {/* Banda de indicadores clave del territorio */}
-          <section className="max-w-7xl mx-auto px-6 -mt-10 relative z-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                {
-                  value: "35",
-                  label: "Nodos YUN soberanos",
-                  sub: "7 núcleos heptafederados",
-                  color: "text-cyan-400 border-cyan-500/30",
-                },
-                {
-                  value: "15",
-                  label: "Puntos de interés phygital",
-                  sub: "Minas, templos y miradores",
-                  color: "text-amber-400 border-amber-500/30",
-                },
-                {
-                  value: "500",
-                  label: "Años de historia",
-                  sub: "De la Real de Minas a 2026",
-                  color: "text-rose-400 border-rose-500/30",
-                },
-                {
-                  value: "4.9",
-                  label: "Índice turístico",
-                  sub: "Pueblo Mágico certificado",
-                  color: "text-emerald-400 border-emerald-500/30",
-                },
-              ].map((stat, idx) => (
-                <article
-                  key={idx}
-                  className={`p-5 rounded-2xl glass-panel border ${stat.color} text-center shadow-[0_0_28px_rgba(6,182,212,0.1)]`}
-                >
-                  <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                    {stat.value}
-                  </div>
-                  <div className="mt-1 text-xs font-mono font-semibold text-white">
-                    {stat.label}
-                  </div>
-                  <div className="mt-0.5 text-[10px] font-mono text-slate-400">
-                    {stat.sub}
-                  </div>
-                </article>
-              ))}
+          {/* Banda de indicadores clave del territorio — cápsulas de cristal */}
+          <section className="max-w-7xl mx-auto px-6 -mt-14 relative z-10">
+            <div className="crystal-card p-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatPill
+                  value="35"
+                  label="Nodos YUN soberanos"
+                  sub="7 núcleos heptafederados"
+                  color="#2e9cff"
+                />
+                <StatPill
+                  value="15"
+                  label="Puntos de interés"
+                  sub="Minas, templos y miradores"
+                  color="#f2cc76"
+                />
+                <StatPill
+                  value="500"
+                  label="Años de historia"
+                  sub="De la Real de Minas a 2026"
+                  color="#d97832"
+                />
+                <StatPill
+                  value="4.9"
+                  label="Índice turístico"
+                  sub="Pueblo Mágico certificado"
+                  color="#3f9b78"
+                />
+              </div>
             </div>
           </section>
 
           {/* Núcleos YUN — arquitectura heptafederada */}
           <section className="max-w-7xl mx-auto px-6 space-y-8">
-            <header className="max-w-3xl mx-auto text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-xs font-mono text-cyan-400">
-                <Radio className="w-3.5 h-3.5 text-cyan-400" />
-                ARQUITECTURA HEPTAFEDERADA YUN
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">
-                Siete núcleos soberanos para el territorio
-              </h2>
-              <p className="text-sm text-slate-300 font-light">
-                Cada núcleo gobierna un conjunto de nodos YUN que articulan
-                historia, economía, seguridad y gemelo digital en tiempo real.
-              </p>
-            </header>
+            <SectionHeader
+              badge="ARQUITECTURA HEPTAFEDERADA YUN"
+              title="Siete núcleos soberanos para el territorio"
+              description="Cada núcleo gobierna un conjunto de nodos YUN que articulan historia, economía, seguridad y gemelo digital en tiempo real."
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {YUN_CORES.map((core) => {
@@ -337,9 +327,9 @@ export default function RDMDigitalHubHome() {
           <section className="max-w-7xl mx-auto px-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <h3 className="text-2xl font-semibold text-white">
+                <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Turismo del Real: eventos, rutas y tradiciones
-                </h3>
+                </MetallicHeading>
                 <p className="text-xs text-slate-400 font-mono">
                   Feria del Paste, Semana Cornish, rutas mineras y los dichos que guardan la memoria del pueblo.
                 </p>
@@ -359,9 +349,9 @@ export default function RDMDigitalHubHome() {
           <section className="max-w-7xl mx-auto px-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <h3 className="text-2xl font-semibold text-white">
+                <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Gemelo digital phygital 2D/3D
-                </h3>
+                </MetallicHeading>
                 <p className="text-xs text-slate-400 font-mono">
                   Mapeo vivo de minas históricas, pastelerías de Cornwall y sensores urbanos en el monte.
                 </p>
@@ -381,9 +371,9 @@ export default function RDMDigitalHubHome() {
           <section className="max-w-7xl mx-auto px-6 space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="space-y-1">
-                <h3 className="text-2xl font-semibold text-white">
+                <MetallicHeading as="h3" className="text-2xl sm:text-3xl">
                   Economía phygital: pastes y platería ley .925
-                </h3>
+                </MetallicHeading>
                 <p className="text-xs text-slate-400 font-mono">
                   Comercio territorial verificado con sello criptográfico, conectado al gemelo digital.
                 </p>
@@ -417,9 +407,42 @@ export default function RDMDigitalHubHome() {
               <PostQuantumSecurity />
             </div>
           </section>
+
+          {/* Panel de identidad — Anubis Villaseñor */}
+          <section className="max-w-7xl mx-auto px-6">
+            <div className="crystal-card p-8 md:p-12 text-center">
+              <div className="crystal-badge mx-auto mb-5">
+                <Sparkles className="w-3.5 h-3.5 text-[#d97832]" />
+                <span>Autoría e identidad</span>
+              </div>
+              <p className="font-editorial text-2xl sm:text-3xl font-medium text-[#082f3b]">
+                Una plataforma creada y arquitectada por
+              </p>
+              <p className="rdm-metallic-text font-editorial text-4xl sm:text-6xl font-semibold tracking-tight mt-3">
+                Anubis Villaseñor
+              </p>
+              <p className="font-rdm-mono text-xs tracking-[0.28em] uppercase text-[#536b86] mt-4">
+                Sistemas territoriales · Inteligencia cognitiva · Gobernanza digital · Experiencias inmersivas
+              </p>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <CrystalButton onClick={() => setActiveView("about")} className="px-7 py-3.5 text-sm font-bold">
+                  <span>Conocer la plataforma</span>
+                  <ArrowRight className="w-4 h-4" />
+                </CrystalButton>
+                <CrystalButton variant="ghost" onClick={() => setIsabellaOpen(true)} className="px-7 py-3.5 text-sm font-semibold">
+                  <Sparkles className="w-4 h-4 text-[#0d4652]" />
+                  <span>Hablar con Isabella</span>
+                </CrystalButton>
+              </div>
+              <GradientDivider className="mt-8" />
+              <p className="font-rdm-mono text-[10px] tracking-widest text-[#536b86]">
+                NODO CERO · RDM DIGITAL · REAL DEL MONTE, HIDALGO
+              </p>
+            </div>
+          </section>
+
         </div>
       )}
-
       {/* Asistente Isabella AI flotante */}
       <IsabellaChat
         isOpen={isabellaOpen}

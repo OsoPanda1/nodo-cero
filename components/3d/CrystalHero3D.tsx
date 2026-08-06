@@ -2,17 +2,23 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Play, Sparkles, ShieldCheck, Zap, Globe, Cpu, Radio, Volume2, VolumeX } from 'lucide-react';
+import { Play, Sparkles, ShieldCheck, Cpu, Radio, Volume2, VolumeX, ArrowRight } from 'lucide-react';
 
 interface CrystalHero3DProps {
   onOpenIsabella: () => void;
   onSelectNode: (nodeId: string) => void;
 }
 
+/* Paleta RDM para el cristal: platino, oro, azul eléctrico y petróleo. */
+const CORE_COLORS = [0x2e9cff, 0xf2cc76, 0xd97832, 0x3f9b78, 0x0d4652, 0xc9d0d4, 0xc89a45];
+
 export default function CrystalHero3D({ onOpenIsabella, onSelectNode }: CrystalHero3DProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [reducedMotion] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false,
+  );
 
   useEffect(() => {
     if (!showTrailerModal) return;
@@ -27,147 +33,139 @@ export default function CrystalHero3D({ onOpenIsabella, onSelectNode }: CrystalH
     const container = mountRef.current;
     if (!container) return;
 
-    // Scene Setup
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x04060a, 0.035);
-
     const camera = new THREE.PerspectiveCamera(
       60,
       container.clientWidth / container.clientHeight,
       0.1,
-      1000
+      1000,
     );
     camera.position.set(0, 1.5, 6.5);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x04060a, 0);
+    renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
+    // Iluminación de galería: luz suave de estudio + acentos de metal noble.
+    scene.add(new THREE.AmbientLight(0xffffff, 1.05));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(4, 6, 5);
+    scene.add(keyLight);
 
-    const pointLightCyan = new THREE.PointLight(0x00f0ff, 3, 20);
-    pointLightCyan.position.set(3, 4, 3);
-    scene.add(pointLightCyan);
+    const goldLight = new THREE.PointLight(0xf2cc76, 3.4, 22);
+    goldLight.position.set(-3, 2, 3);
+    scene.add(goldLight);
 
-    const pointLightPurple = new THREE.PointLight(0xa855f7, 3, 20);
-    pointLightPurple.position.set(-3, -2, 2);
-    scene.add(pointLightPurple);
+    const blueLight = new THREE.PointLight(0x2e9cff, 2.8, 22);
+    blueLight.position.set(3, -2, 4);
+    scene.add(blueLight);
 
-    const pointLightGold = new THREE.PointLight(0xeab308, 2, 15);
-    pointLightGold.position.set(0, 3, -4);
-    scene.add(pointLightGold);
-
-    // Main Crystal Node (Icosahedron / Crystal Cluster)
+    // Cristal principal — cuarzo translúcido con alma de plata.
     const geometry = new THREE.IcosahedronGeometry(1.8, 1);
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0x06b6d4,
-      metalness: 0.2,
-      roughness: 0.1,
-      transmission: 0.85,
-      ior: 1.5,
+      color: 0xd8e8f2,
+      metalness: 0.45,
+      roughness: 0.06,
+      transmission: 0.9,
+      ior: 1.55,
       thickness: 1.2,
       transparent: true,
-      opacity: 0.8,
-      wireframe: false,
+      opacity: 0.9,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
+      clearcoatRoughness: 0.05,
+      envMapIntensity: 1.4,
     });
-
     const crystalMesh = new THREE.Mesh(geometry, material);
     scene.add(crystalMesh);
 
-    // Outer Wireframe Hologram Ring
+    // Holograma exterior — malla de platino.
     const wireGeo = new THREE.IcosahedronGeometry(2.3, 2);
     const wireMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
+      color: 0xf2cc76,
       wireframe: true,
       transparent: true,
-      opacity: 0.25,
+      opacity: 0.18,
     });
     const wireMesh = new THREE.Mesh(wireGeo, wireMat);
     scene.add(wireMesh);
 
-    // Orbiting Satellite Nodes (Representing 7 Cores)
+    // Anillos orbitales (7 núcleos heptafederados).
+    const ringGeo = new THREE.TorusGeometry(3.1, 0.008, 8, 128);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xc9d0d4, transparent: true, opacity: 0.5 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI / 2.6;
+    scene.add(ring);
+
     const satellites: THREE.Mesh[] = [];
-    const coreColors = [0x00f0ff, 0xa855f7, 0xeab308, 0x10b981, 0xf43f5e, 0x8b5cf6, 0x06b6d4];
     for (let i = 0; i < 7; i++) {
-      const satGeo = new THREE.OctahedronGeometry(0.22, 0);
+      const satGeo = new THREE.OctahedronGeometry(0.2, 0);
       const satMat = new THREE.MeshStandardMaterial({
-        color: coreColors[i],
-        emissive: coreColors[i],
-        emissiveIntensity: 0.6,
-        roughness: 0.2,
+        color: CORE_COLORS[i],
+        emissive: CORE_COLORS[i],
+        emissiveIntensity: 0.55,
+        roughness: 0.18,
+        metalness: 0.6,
       });
       const satMesh = new THREE.Mesh(satGeo, satMat);
       satellites.push(satMesh);
       scene.add(satMesh);
     }
 
-    // Floating Particles
-    const particlesCount = 200;
+    // Partículas flotantes — polvo de oro y plata (densidad baja).
+    const particlesCount = 140;
     const posArray = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount * 3; i += 3) {
       posArray[i] = (Math.random() - 0.5) * 16;
-      posArray[i + 1] = (Math.random() - 0.5) * 16;
+      posArray[i + 1] = (Math.random() - 0.5) * 14;
       posArray[i + 2] = (Math.random() - 0.5) * 16;
     }
     const particlesGeo = new THREE.BufferGeometry();
     particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
     const particlesMat = new THREE.PointsMaterial({
-      size: 0.035,
-      color: 0x38bdf8,
+      size: 0.038,
+      color: 0xf2cc76,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.5,
     });
     const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
     scene.add(particlesMesh);
 
-    // Animation Loop
     let animationFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
+      const t = clock.getElapsedTime();
 
-      // Main crystal rotation
-      crystalMesh.rotation.x = elapsedTime * 0.15;
-      crystalMesh.rotation.y = elapsedTime * 0.25;
-
-      wireMesh.rotation.x = -elapsedTime * 0.1;
-      wireMesh.rotation.y = -elapsedTime * 0.2;
-
-      // Orbit satellites around center
-      satellites.forEach((sat, idx) => {
-        const angle = elapsedTime * 0.5 + (idx * Math.PI * 2) / 7;
-        const radius = 3.2;
-        sat.position.x = Math.cos(angle) * radius;
-        sat.position.z = Math.sin(angle) * radius;
-        sat.position.y = Math.sin(elapsedTime * 1.5 + idx) * 0.8;
-        sat.rotation.x += 0.02;
-        sat.rotation.y += 0.03;
-      });
-
-      // Particles gentle drift
-      particlesMesh.rotation.y = elapsedTime * 0.03;
+      if (!reducedMotion) {
+        crystalMesh.rotation.x = t * 0.12;
+        crystalMesh.rotation.y = t * 0.22;
+        wireMesh.rotation.x = -t * 0.08;
+        wireMesh.rotation.y = -t * 0.16;
+        ring.rotation.z = t * 0.1;
+        satellites.forEach((sat, idx) => {
+          const angle = t * 0.4 + (idx * Math.PI * 2) / 7;
+          sat.position.x = Math.cos(angle) * 3.1;
+          sat.position.z = Math.sin(angle) * 3.1;
+          sat.position.y = Math.sin(t * 1.3 + idx) * 0.7;
+          sat.rotation.x += 0.02;
+          sat.rotation.y += 0.03;
+        });
+        particlesMesh.rotation.y = t * 0.02;
+      }
 
       renderer.render(scene, camera);
     };
-
     animate();
 
-    // Resize Handler
     const handleResize = () => {
       if (!container) return;
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
-
     window.addEventListener('resize', handleResize);
 
     return () => {
@@ -178,185 +176,192 @@ export default function CrystalHero3D({ onOpenIsabella, onSelectNode }: CrystalH
       }
       renderer.dispose();
     };
-  }, []);
+  }, [reducedMotion]);
 
   return (
-    <div className="relative w-full h-[88vh] min-h-[620px] overflow-hidden bg-gradient-to-b from-[#020408] via-[#060a14] to-[#04060a] border-b border-cyan-900/30">
-      {/* Background 3D Canvas */}
+    <div className="relative w-full overflow-hidden bg-[radial-gradient(120%_120%_at_70%_-10%,#ffffff_0%,#ecefea_42%,#d9e2e4_100%)] border-b border-[#c9d0d4]/80">
+      {/* Malla territorial sutil y brillos del gradiente core */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.5] bg-[linear-gradient(to_right,#c9d0d4_1px,transparent_1px),linear-gradient(to_bottom,#c9d0d4_1px,transparent_1px)] bg-[size:4.5rem_4.5rem] [mask-image:radial-gradient(70%_60%_at_50%_40%,black,transparent)]" />
+      <div className="absolute -top-40 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(46,156,255,0.18),transparent_65%)] pointer-events-none" />
+      <div className="absolute -bottom-24 right-0 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(217,120,50,0.14),transparent_65%)] pointer-events-none" />
+
+      {/* Lienzo 3D de cristal */}
       <div ref={mountRef} className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing" />
 
-      {/* Cyber Grid & Overlay Glow Effects */}
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,rgba(6,182,212,0.12)_0%,transparent_70%)]" />
-      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-
-      {/* Hero Content Overlay */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex flex-col justify-between py-10 pointer-events-none">
-        
-        {/* Top Badges Bar */}
+      {/* Capa de contenido */}
+      <div className="relative z-10 mx-auto flex h-[88vh] min-h-[620px] max-w-7xl flex-col justify-between px-6 py-10 pointer-events-none">
+        {/* Barra superior de sellos */}
         <div className="flex flex-wrap items-center justify-between gap-4 pointer-events-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel border border-cyan-500/30 text-xs font-mono text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>NODO CERO // REAL DEL MONTE // HEPTAFEDERADO YUN</span>
+          <div className="crystal-badge">
+            <span className="w-2 h-2 rounded-full bg-[#3f9b78] animate-ping" />
+            <Radio className="w-3.5 h-3.5 text-[#0d4652]" />
+            <span>Nodo Cero // Real del Monte // YUN</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowTrailerModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel-interactive border border-purple-500/40 text-xs font-semibold text-purple-300 hover:text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+              className="crystal-button crystal-button-ghost px-4 py-2 text-xs font-semibold"
             >
-              <Play className="w-3.5 h-3.5 text-purple-400 fill-purple-400" />
+              <Play className="w-3.5 h-3.5 fill-current" />
               <span>Trailer AAA 4K</span>
             </button>
-
-            <div className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass-panel border border-amber-500/30 text-xs font-mono text-amber-300">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Cripto Post-Cuántica Dilithium</span>
+            <div className="hidden sm:inline-flex crystal-badge">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0d4652]" />
+              <span>Cripto Post-Cuántica</span>
             </div>
           </div>
         </div>
 
-        {/* Main Title & Value Proposition */}
+        {/* Mensaje central */}
         <div className="my-auto max-w-3xl pointer-events-auto">
-          <div className="mb-3 inline-flex items-center gap-2 px-3 py-1 rounded-md bg-cyan-950/60 border border-cyan-500/30 text-[11px] font-mono tracking-widest text-cyan-400 uppercase">
-            <Sparkles className="w-3 h-3 text-cyan-400" />
-            Sistema de Inteligencia Territorial Soberano
+          <div className="crystal-badge mb-5">
+            <Sparkles className="w-3.5 h-3.5 text-[#d97832]" />
+            <span>Sistema de Inteligencia Territorial Soberano</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-none mb-4">
-            RDM Digital Hub{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-300 to-amber-300 animate-rainbow-glow">
-              Nodo Cero
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-light mb-8 max-w-2xl backdrop-blur-md bg-black/40 p-4 rounded-xl border border-white/10 shadow-2xl">
-            Plataforma digital soberana para Real del Monte, Hidalgo. Una convergencia Phygital de gemelo digital 2D/3D, mapas interactivos, economía de la plata y el paste, y la asistencia cognitiva de <strong className="text-cyan-300 font-semibold">Isabella Villaseñor AI</strong>.
+          <p className="font-rdm-mono text-[11px] tracking-[0.3em] uppercase text-[#536b86] mb-3">
+            El territorio también piensa
           </p>
 
-          {/* Action Callouts */}
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              onClick={onOpenIsabella}
-              className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white font-bold text-sm tracking-wide shadow-[0_0_30px_rgba(6,182,212,0.5)] hover:shadow-[0_0_45px_rgba(6,182,212,0.8)] transition-all hover:scale-105 flex items-center gap-2 group"
-            >
-              <Cpu className="w-4 h-4 text-cyan-200 group-hover:rotate-12 transition-transform" />
-              <span>Consultar a Isabella AI</span>
-            </button>
+          <h1 className="font-editorial text-5xl sm:text-7xl md:text-[5.5rem] font-semibold leading-[0.95] tracking-tight text-[#082f3b]">
+            RDM Digital
+            <br />
+            <span className="rdm-metallic-text">Nodo Cero</span>
+          </h1>
 
+          <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-[#283038] font-light">
+            Descubre Real del Monte a través de su historia, sus personas, sus experiencias y una
+            nueva generación de{' '}
+            <strong className="font-semibold text-[#0d4652]">inteligencia territorial</strong>:
+            patrimonio minero, cristal contemporáneo y gobernanza soberana.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-4">
             <button
               onClick={() => onSelectNode('node-10')}
-              className="px-6 py-3.5 rounded-xl glass-panel-interactive border border-white/20 text-white font-semibold text-sm hover:border-cyan-400 transition-all flex items-center gap-2"
+              className="crystal-button px-7 py-3.5 text-sm font-bold"
             >
-              <Globe className="w-4 h-4 text-cyan-400" />
-              <span>Explorar Gemelo Digital 3D</span>
+              <span>Explorar RDM</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
-
             <button
-              onClick={() => onSelectNode('node-06')}
-              className="px-5 py-3.5 rounded-xl glass-panel-interactive border border-purple-500/30 text-purple-300 text-xs font-mono hover:border-purple-400 transition-all flex items-center gap-2"
+              onClick={onOpenIsabella}
+              className="crystal-button crystal-button-ghost px-7 py-3.5 text-sm font-semibold"
             >
-              <Zap className="w-3.5 h-3.5 text-purple-400" />
-              <span>Ver Núcleos YUN</span>
+              <Cpu className="w-4 h-4 text-[#0d4652]" />
+              <span>Conocer la plataforma</span>
+            </button>
+            <button
+              onClick={onOpenIsabella}
+              className="crystal-button crystal-button-gold px-5 py-3.5 text-xs font-bold uppercase tracking-wider"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Isabella AI</span>
             </button>
           </div>
         </div>
 
-        {/* Bottom Real-time Telemetry Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pointer-events-auto">
-          <div className="p-3 rounded-xl glass-panel border border-cyan-500/20 flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+        {/* Telemetría — cápsulas de cristal */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pointer-events-auto">
+          <div className="stat-pill">
+            <span className="stat-pill-dot text-[#3f9b78] bg-[#3f9b78]" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Clima en el Monte</div>
-              <div className="text-sm font-bold text-cyan-200">13.8°C // Niebla 88%</div>
+              <div className="text-[9px] uppercase tracking-widest text-[#536b86] font-rdm-mono">
+                Clima en el Monte
+              </div>
+              <div className="text-sm font-bold text-[#082f3b]">13.8°C // Niebla 88%</div>
             </div>
           </div>
-
-          <div className="p-3 rounded-xl glass-panel border border-purple-500/20 flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-purple-400" />
+          <div className="stat-pill">
+            <span className="stat-pill-dot text-[#2e9cff] bg-[#2e9cff]" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Isabella AI Status</div>
-              <div className="text-sm font-bold text-purple-200">En Línea // 14ms</div>
+              <div className="text-[9px] uppercase tracking-widest text-[#536b86] font-rdm-mono">
+                Isabella AI
+              </div>
+              <div className="text-sm font-bold text-[#082f3b]">En Línea // 14ms</div>
             </div>
           </div>
-
-          <div className="p-3 rounded-xl glass-panel border border-amber-500/20 flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+          <div className="stat-pill">
+            <span className="stat-pill-dot text-[#d97832] bg-[#d97832]" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Pastelerías Activas</div>
-              <div className="text-sm font-bold text-amber-200">18 RDM Certificadas</div>
+              <div className="text-[9px] uppercase tracking-widest text-[#536b86] font-rdm-mono">
+                Pastelerías
+              </div>
+              <div className="text-sm font-bold text-[#082f3b]">18 RDM Certificadas</div>
             </div>
           </div>
-
-          <div className="p-3 rounded-xl glass-panel border border-emerald-500/20 flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+          <div className="stat-pill">
+            <span className="stat-pill-dot text-[#0d4652] bg-[#0d4652]" />
             <div>
-              <div className="text-[10px] text-slate-400 uppercase font-mono tracking-wider">Nodos YUN Activos</div>
-              <div className="text-sm font-bold text-emerald-200">35 / 35 Operativos</div>
+              <div className="text-[9px] uppercase tracking-widest text-[#536b86] font-rdm-mono">
+                Nodos YUN
+              </div>
+              <div className="text-sm font-bold text-[#082f3b]">35 / 35 Operativos</div>
             </div>
           </div>
         </div>
 
+        {/* Indicador de desplazamiento — anillo orbital */}
+        <div className="pointer-events-none flex justify-center pt-4">
+          <span className="rdm-orbital" />
+        </div>
       </div>
 
       {/* Trailer AAA Video Modal */}
       {showTrailerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="relative w-full max-w-5xl glass-panel rounded-2xl border border-cyan-500/40 p-4 shadow-[0_0_50px_rgba(6,182,212,0.4)]">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#082f3b]/85 backdrop-blur-xl">
+          <div className="relative w-full max-w-5xl rounded-2xl border border-[#c9d0d4]/80 bg-[#fffdf5]/95 p-4 shadow-[0_30px_80px_rgba(8,47,59,0.5)]">
+            <div className="flex items-center justify-between border-b border-[#c9d0d4]/60 pb-3 mb-3">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
-                <h3 className="text-base font-bold text-white tracking-wide">
+                <span className="w-3 h-3 rounded-full bg-[#d97832] animate-ping" />
+                <h3 className="font-patrimonial text-base font-bold text-[#082f3b] tracking-wide">
                   TRAILER AAA // REAL DEL MONTE - NODO CERO 4K
                 </h3>
               </div>
               <button
                 onClick={() => setShowTrailerModal(false)}
-                className="px-3 py-1 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-500/40 text-red-300 text-xs font-mono transition-all"
+                className="rounded-lg border border-[#c9d0d4]/70 px-3 py-1 text-xs font-rdm-mono text-[#a9481e] hover:bg-white/60 transition-all"
               >
                 Cerrar [ESC]
               </button>
             </div>
 
-            {/* Video Canvas Simulation Container */}
-            <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center group">
-              {/* Simulated Ambient Cinematic Background Animation */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-950 via-slate-900 to-purple-950 opacity-90 animate-pulse-glow" />
-              
-              {/* Simulated Video Content HUD */}
-              <div className="relative z-10 text-center p-8 max-w-2xl">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 p-0.5 shadow-[0_0_30px_rgba(6,182,212,0.8)]">
-                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-8 h-8 text-cyan-300 animate-spin" />
+            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[#c9d0d4]/60 bg-gradient-to-tr from-[#0d4652] via-[#536b86] to-[#d97832] flex items-center justify-center group">
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(242,204,118,0.22),transparent_65%)] animate-pulse-glow" />
+
+              <div className="relative z-10 max-w-2xl p-8 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#c9d0d4] to-[#f2cc76] p-0.5 shadow-[0_0_34px_rgba(242,204,118,0.7)]">
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#082f3b]">
+                    <Sparkles className="h-8 w-8 text-[#f2cc76] animate-spin" />
                   </div>
                 </div>
 
-                <h4 className="text-2xl font-black text-white mb-2 tracking-wide uppercase">
-                  EXPERIENCIA TERRITORIAL CINEMÁTICA
+                <h4 className="font-patrimonial text-2xl font-bold text-white uppercase tracking-wide mb-2">
+                  Experiencia Territorial Cinemática
                 </h4>
-                <p className="text-sm text-cyan-200 font-light mb-6">
-                  Inmersión fotogramétrica en la cuna de la minería de plata, el Panteón Inglés, la niebla dorada de la sierra y el legado gastronómico del Paste Cornish.
+                <p className="mb-6 text-sm font-light text-[#eef2f2]">
+                  Inmersión fotogramétrica en la cuna de la minería de plata, el Panteón Inglés, la
+                  niebla dorada de la sierra y el legado gastronómico del Paste Cornish.
                 </p>
 
                 <div className="inline-flex items-center gap-4">
                   <button
                     onClick={() => setIsMuted(!isMuted)}
-                    className="p-3 rounded-full glass-panel border border-white/20 text-cyan-300 hover:text-white transition-all"
+                    className="rounded-full border border-white/30 bg-white/10 p-3 text-white hover:bg-white/20 transition-all"
                   >
                     {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                   </button>
-
-                  <div className="px-4 py-2 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-xs font-mono text-cyan-300">
+                  <div className="rounded-full border border-white/30 bg-white/10 px-4 py-2 font-rdm-mono text-xs text-[#f2cc76]">
                     4K HDR // 60 FPS // Dolby Atmos 8D
                   </div>
                 </div>
               </div>
 
-              {/* Scanline Effect */}
               <div className="absolute inset-0 pointer-events-none opacity-10 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.8)_51%)] bg-[size:100%_4px]" />
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-xs text-slate-400 font-mono">
+            <div className="mt-3 flex items-center justify-between text-xs font-rdm-mono text-[#536b86]">
               <span>Producción: RDM Digital Hub & YUN Media Node</span>
               <span>Ubicación: Real del Monte, Hidalgo, México</span>
             </div>
