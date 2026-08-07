@@ -9,6 +9,8 @@ import { CANONICAL_DOMAINS } from './intention-parser';
 import { MEXA_PQC_TARGET, MEXA_SCHEME, mexaGetOperatorKeyPair, mexaKeyIdFromPublic, mexaSign, mexaVerify } from './mexa-crypto';
 import { PRA_ENGINE } from './pra';
 import { crownGatewayGenerate } from './crown-gateway';
+import { buildStructuredEnvelope, validateStructuredEnvelope, ISA_AI_DEFAULT_MODEL } from './structured-output';
+import { IsaAiEnvelope } from '@/lib/core/contracts/isa-ai';
 import { CanonicalDomain } from './intention-parser';
 import { uuid } from './utils';
 import { assertServerOnly, constantTimeCompare, rateLimit, verifyOrigin } from './trust';
@@ -131,6 +133,7 @@ export function buildPerception(body: unknown): { perception: IsabellaPerception
 export async function handleIsabellaPost(req: NextRequest) {
   const denied = enforceTrust(req, 'isabella-chat', 60);
   if (denied) return denied;
+  const startedAt = Date.now();
   try {
     const body = await req.json().catch(() => null);
     const { perception, error } = buildPerception(body);
@@ -173,10 +176,40 @@ export async function handleIsabellaPost(req: NextRequest) {
       }
     }
 
+    /* ENVELOPE ISA-AI — structured output conforme al schema de referencia.
+       Se valida con el contrato antes de responder: si no conforma, se omite
+       `structured` (fail-closed) y se deja constancia en audit + métricas. */
+    const envelope = buildStructuredEnvelope(result, {
+      text,
+      prompt: perception.payload.text ?? '',
+      latencyMs: Date.now() - startedAt,
+      provider: gateway?.provider ?? 'isa-ai',
+      model: gateway?.model ?? ISA_AI_DEFAULT_MODEL,
+    });
+
+    const validation = validateStructuredEnvelope(envelope);
+    let structured: IsaAiEnvelope | null = null;
+    let structuredError: string | undefined;
+    if (validation.ok) {
+      structured = validation.envelope;
+    } else {
+      structuredError = validation.reason;
+      auditTrace('structured.envelope_invalid', {
+        reason: validation.reason,
+      }, {
+        traceId: result.traceId,
+        actorId: 'ciudadano-yun',
+        sessionId: result.sessionId,
+      });
+      monitor.metrics.inc('structured.invalid', { route: 'isabella-chat' });
+    }
+
     return NextResponse.json({
       ok: true,
       text,
       decision: result.decision,
+      structured,
+      structuredError,
       traceId: result.traceId,
       sessionId: result.sessionId,
       auditEvents: result.auditEvents,
@@ -246,6 +279,7 @@ export async function handleIsabellaGet() {
 export async function handleIsabellaReason(req: NextRequest) {
   const denied = enforceTrust(req, 'isabella-reason', 60);
   if (denied) return denied;
+  const startedAt = Date.now();
   try {
     const body = await req.json().catch(() => null);
     const { perception, error } = buildPerception(body);
@@ -255,6 +289,32 @@ export async function handleIsabellaReason(req: NextRequest) {
     }
 
     const result = await processPerception(perception);
+
+    const envelope = buildStructuredEnvelope(result, {
+      text: result.decision.summary,
+      prompt: perception.payload.text ?? '',
+      latencyMs: Date.now() - startedAt,
+      provider: 'isa-ai',
+      model: ISA_AI_DEFAULT_MODEL,
+    });
+
+    const validation = validateStructuredEnvelope(envelope);
+    let structured: IsaAiEnvelope | null = null;
+    let structuredError: string | undefined;
+    if (validation.ok) {
+      structured = validation.envelope;
+    } else {
+      structuredError = validation.reason;
+      auditTrace('structured.envelope_invalid', {
+        reason: validation.reason,
+        endpoint: 'isa/reason',
+      }, {
+        traceId: result.traceId,
+        actorId: 'ciudadano-yun',
+        sessionId: result.sessionId,
+      });
+      monitor.metrics.inc('structured.invalid', { route: 'isabella-reason' });
+    }
 
     return NextResponse.json({
       ok: true,
@@ -267,6 +327,8 @@ export async function handleIsabellaReason(req: NextRequest) {
         policyStatus: result.decision.policyStatus,
         engines: result.decision.engines,
       },
+      structured,
+      structuredError,
       decision: result.decision,
       auditEvents: result.auditEvents,
       events: result.events,
