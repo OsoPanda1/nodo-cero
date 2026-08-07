@@ -57,6 +57,7 @@ const PLANOS: Plano[] = [
       { id: 'media', label: 'Música y podcast', icon: <Music className="w-4 h-4" /> },
       { id: 'gallery', label: 'Galería compartida', icon: <Images className="w-4 h-4" /> },
       { id: 'map', label: 'Mapa interactivo 2D/3D', icon: <Map className="w-4 h-4" /> },
+      { id: 'visual-effects', label: 'Efectos visuales', icon: <Sparkles className="w-4 h-4" /> },
       { id: 'about', label: 'Quiénes somos', icon: <Users className="w-4 h-4" /> },
     ],
   },
@@ -99,6 +100,7 @@ const PLANOS: Plano[] = [
     items: [
       { id: 'twins', label: 'Gemelo territorial DTDL', icon: <Box className="w-4 h-4" /> },
       { id: 'city', label: 'Ciudad IOC', icon: <Activity className="w-4 h-4" /> },
+      { id: 'tenochtitlan', label: 'Dashboard Tenochtitlan', icon: <Landmark className="w-4 h-4" /> },
       { id: 'grid', label: 'Smart Grid / Agua', icon: <Zap className="w-4 h-4" /> },
       { id: 'eam', label: 'EAM / APM activos', icon: <Cpu className="w-4 h-4" /> },
       { id: 'telemetry', label: 'Telemetría y sensores', icon: <Radio className="w-4 h-4" /> },

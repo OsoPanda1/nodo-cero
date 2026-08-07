@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import YUNLayout from "@/components/layout/YUNLayout";
 import CrystalHero3D from "@/components/3d/CrystalHero3D";
 import DigitalTwinMap from "@/components/map/DigitalTwinMap";
+import MapHub from "@/components/map/MapHub";
+import { TenochtitlanDashboard } from "@/components/monitoring/TenochtitlanDashboard";
+import VisualEffectsDemo from "@/components/effects/VisualEffectsDemo";
 import IsabellaChat from "@/components/isabella/IsabellaChat";
 import TelemetryDashboard from "@/components/telemetry/TelemetryDashboard";
 import PhygitalMarketplace from "@/components/phygital/PhygitalMarketplace";
@@ -35,7 +38,7 @@ import { MetallicHeading } from "@/components/design-system/MetallicHeading";
 import { GradientDivider } from "@/components/design-system/GradientDivider";
 import { CrystalButton } from "@/components/design-system/CrystalButton";
 import { YUN_CORES, RDM_NODES_35, YUNNode } from "@/lib/data/rdm-data";
-import { Box, Activity, ArrowRight, Lock, Sparkles, Compass, Store, Users, Landmark } from "lucide-react";
+import { Activity, ArrowRight, Lock, Sparkles, Compass, Store, Users, Landmark } from "lucide-react";
 import AAACinematicIntro from "@/components/intro/AAACinematicIntro";
 import DynamicTourismHero from "@/components/hero/DynamicTourismHero";
 
@@ -111,19 +114,22 @@ export default function RDMDigitalHubHome() {
         />
       )}
 
-      {/* 2. MAP VIEW */}
+      {/* 2. MAP VIEW — hub 3D / SVG / 2D */}
       {activeView === "map" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
-          <header className="space-y-1">
-            <h2 className="text-2xl font-semibold text-[#082f3b] flex items-center gap-2">
-              <Box className="w-6 h-6 text-[#0d4652]" />
-              Gemelo Digital 2D/3D · Cartografía Phygital
-            </h2>
-            <p className="text-xs text-slate-600 font-mono">
-              Vista táctica del distrito minero de Real del Monte, integrada al sistema de nodos YUN.
-            </p>
-          </header>
-          <DigitalTwinMap />
+          <MapHub />
+        </div>
+      )}
+
+      {/* 2b. DASHBOARD TENOCHTITLAN VIEW */}
+      {activeView === "tenochtitlan" && (
+        <TenochtitlanDashboard onBack={() => setActiveView("home")} />
+      )}
+
+      {/* 2c. GALERÍA DE EFECTOS VISUALES VIEW */}
+      {activeView === "visual-effects" && (
+        <div className="min-h-[calc(100vh-4rem)]">
+          <VisualEffectsDemo />
         </div>
       )}
 
