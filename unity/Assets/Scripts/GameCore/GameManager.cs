@@ -47,6 +47,8 @@ namespace RDM.YUN.GameCore
             if (ok)
             {
                 Debug.Log("[RDM-GAME] Sesión YUN iniciada.");
+                var bridge = WebGLBridge.Instance;
+                if (bridge != null && scoreClient != null) bridge.NotifySessionStarted(scoreClient.SessionId);
                 waveManager.BeginNextWave();
             }
             else
@@ -74,6 +76,7 @@ namespace RDM.YUN.GameCore
             currentWave++;
             comboCount = 0;
             scoreClient.ReportWaveCompleted(currentWave);
+            WebGLBridge.Instance?.NotifyWave(currentWave);
         }
 
         public void OnMissionCompleted(string missionId, int reward)
@@ -90,6 +93,7 @@ namespace RDM.YUN.GameCore
         {
             isGameOver = true;
             scoreClient.EndSession();
+            WebGLBridge.Instance?.NotifyGameOver(0, currentWave);
             Time.timeScale = 1f;
         }
     }

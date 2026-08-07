@@ -25,6 +25,11 @@ namespace RDM.YUN.Zombies
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
         }
 
+        public void ConfigurePrefab(GameObject prefab)
+        {
+            zombiePrefab = prefab;
+        }
+
         public void SpawnWave(int count, int waveNumber)
         {
             StartCoroutine(SpawnWaveCoroutine(count, waveNumber));

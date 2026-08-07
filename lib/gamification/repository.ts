@@ -40,6 +40,7 @@ export async function persistLeaderboardEntry(entry: LeaderboardEntry): Promise<
         (device_id, display_name, points, kills, data, updated_at)
       values (
         ${entry.deviceId}, ${entry.name}, ${entry.points}, ${entry.captures},
+        ${entry.deviceId}, ${entry.name}, ${entry.points}, ${entry.captures},
         ${db.json(entry as unknown as JSONValue)}, ${entry.updatedAt}
       )
       on conflict (device_id) do update set

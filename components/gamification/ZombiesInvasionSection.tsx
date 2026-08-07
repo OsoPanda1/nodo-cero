@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Award, Battery, CalendarDays, Check, CloudFog, Crosshair, Hourglass, Lock,
+  Award, Battery, Box, CalendarDays, Check, CloudFog, Crosshair, Hourglass, Lock,
   Map as MapIcon, Moon, Navigation, Package, RefreshCw, Skull, Swords, Trophy,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
 import ZombieCombat from './ZombieCombat';
 import ZombieSprite from './ZombieSprite';
 import ArenaFXCanvas from './fx/ArenaFXCanvas';
+import UnityInvasion3D from './UnityInvasion3D';
 import { emitYunEvent } from '@/lib/isabella/events';
 import { uuid } from '@/lib/isabella/utils';
 import { reportKill, reportMission, reportPrize, startSession } from '@/lib/gamification/client';
@@ -23,10 +24,11 @@ interface ZombiesInvasionSectionProps {
   onAskIsabella?: (prompt: string) => void;
 }
 
-type TabId = 'map' | 'bestiary' | 'inventory' | 'missions' | 'prizes';
+type TabId = 'map' | 'arena3d' | 'bestiary' | 'inventory' | 'missions' | 'prizes';
 
 const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: 'map', label: 'Mapa', icon: MapIcon },
+  { id: 'arena3d', label: 'Arena 3D', icon: Box },
   { id: 'bestiary', label: 'Bestiario', icon: Skull },
   { id: 'inventory', label: 'Inventario', icon: Package },
   { id: 'missions', label: 'Misiones', icon: Crosshair },
@@ -530,6 +532,10 @@ export default function ZombiesInvasionSection({ onAskIsabella }: ZombiesInvasio
                 </div>
               </div>
             </div>
+          )}
+
+          {activeTab === 'arena3d' && (
+            <UnityInvasion3D onAskIsabella={askIsabella} />
           )}
 
           {activeTab === 'bestiary' && (
