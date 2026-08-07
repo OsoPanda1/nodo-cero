@@ -6,7 +6,7 @@ import {
   Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe,
   ChevronRight, ChevronDown, Search, Menu, Radio, Sparkles,
   Map, Database, Key, ShoppingBag, Lock, Zap,
-  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network,
+  Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network, BookMarked,
   HandCoins, Compass, CreditCard, SlidersHorizontal, Landmark, Mountain, Music, UserPlus, Home,
 } from 'lucide-react';
 
@@ -54,6 +54,7 @@ const PLANOS: Plano[] = [
       { id: 'gastronomy', label: 'Gastronomía del Monte', icon: <UtensilsCrossed className="w-4 h-4" /> },
       { id: 'art', label: 'Arte y artesanos', icon: <Palette className="w-4 h-4" /> },
       { id: 'legends', label: 'Historia, mitos y leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'archive', label: 'Archivo Histórico', icon: <BookMarked className="w-4 h-4" /> },
       { id: 'media', label: 'Música y podcast', icon: <Music className="w-4 h-4" /> },
       { id: 'gallery', label: 'Galería compartida', icon: <Images className="w-4 h-4" /> },
       { id: 'map', label: 'Mapa interactivo 2D/3D', icon: <Map className="w-4 h-4" /> },
@@ -106,6 +107,7 @@ const PLANOS: Plano[] = [
       { id: 'telemetry', label: 'Telemetría y sensores', icon: <Radio className="w-4 h-4" /> },
       { id: 'security', label: 'Criptografía post-cuántica', icon: <Key className="w-4 h-4" /> },
       { id: 'crown-gateway', label: 'CROWN Gateway · IA federada', icon: <Network className="w-4 h-4" /> },
+      { id: 'archive-admin', label: 'Gestión del Archivo', icon: <BookMarked className="w-4 h-4" /> },
     ],
   },
 ];

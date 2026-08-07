@@ -25,6 +25,8 @@ import HonorWallSection from "@/components/honor/HonorWallSection";
 import GallerySection from "@/components/gallery/GallerySection";
 import AboutSection from "@/components/about/AboutSection";
 import CrownGatewaySection from "@/components/gateway/CrownGatewaySection";
+import { ArchiveView } from "@/components/archive/ArchiveView";
+import { ArchiveAdminPanel } from "@/components/archive/ArchiveAdminPanel";
 import { TwinsDashboard } from "@/components/twins/TwinsDashboard";
 import { CityDashboard } from "@/components/city/CityDashboard";
 import { AssetDashboard } from "@/components/assets/AssetDashboard";
@@ -207,6 +209,20 @@ export default function RDMDigitalHubHome() {
       {activeView === "legends" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
           <LegendsSection />
+        </div>
+      )}
+
+      {/* 12b. ARCHIVO HISTÓRICO VIEW */}
+      {activeView === "archive" && (
+        <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+          <ArchiveView />
+        </div>
+      )}
+
+      {/* 12c. GESTIÓN DEL ARCHIVO VIEW */}
+      {activeView === "archive-admin" && (
+        <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+          <ArchiveAdminPanel />
         </div>
       )}
 
