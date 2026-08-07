@@ -38,7 +38,7 @@ Plataforma digital integral (**phygital**) del **RDM Digital Hub — Nodo Cero**
 - **Marketplace Soberano**: ofertas de datos, licencias y suscripción entre nodos federados.
 - **Gamificación territorial**: motor de puntos *server-authoritative* con anti-cheat, y arena 3D (Unity WebGL) contra oleadas de zombies con puente C#-JS (`rdm-yun`).
 - **7 núcleos soberanos** (35 nodos operativos) de arquitectura descentralizada.
-- **Isabella Villaseñor AI**: asistente cognitivo del territorio basado en Google Gemini, con núcleo soberano ISA.
+- **Isabella Villaseñor AI**: asistente cognitivo del territorio con núcleo soberano ISA y bóveda nativa de IAs open source (cero dependencia de proveedores propietarios).
 - **Criptografía post-cuántica** (NIST): CRYSTALS-Dilithium-5, CRYSTALS-Kyber-1024 y Falcon-1024.
 - **Capa de confianza cero (Zero Trust)**: origen verificado, rate limiting, comparación en tiempo constante y políticas de gateway con *fail-closed*.
 
@@ -90,7 +90,7 @@ Todas las rutas API usan el **route-guard único** (`@/app/api/_shared/route-gua
 **Persistencia / Servicios**
 - Postgres (Supabase) + Postgres réplica (Neon) vía `postgres`
 - Redis (Upstash) para caché/estado
-- Google Gemini (`@google/genai`) para la capa cognitiva de Isabella
+- **Bóveda nativa de IAs open source** (CROWN): Llama 3, Qwen, DeepSeek, Mistral, Phi y Cerebras sobre transportes soberanos (OpenRouter, Groq, Cloudflare Workers AI, Ollama local) — cero dependencia de proveedores propietarios
 
 **Gamificación 3D**
 - Unity 2022.3 (LTS) compilado a WebGL, integrado como app de Next.js
@@ -303,7 +303,12 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 
 | Variable | Propósito |
 |---|---|
-| `GEMINI_API_KEY` | Clave de Google AI Studio para Isabella Villaseñor AI |
+| `GROQ_API_KEY` | Bóveda OSS: Llama 3.3 70B (Groq LPU) |
+| `OPENROUTER_API_KEY` | Bóveda OSS: Qwen 2.5 72B / DeepSeek V3 |
+| `CEREBRAS_API_KEY` | Bóveda OSS: Llama 3.3 70B (Cerebras) |
+| `MISTRAL_API_KEY` | Bóveda OSS: Mistral Nemo |
+| `CLOUDFLARE_AI_KEY` / `CLOUDFLARE_AI_ACCOUNT_ID` | Bóveda OSS: Phi-3.5 Mini (Workers AI) |
+| `OLLAMA_BASE_URL` | Bóveda OSS local (zona roja, cero egress) |
 | `APP_URL` | URL canónica de la app |
 | `NEXT_PUBLIC_SITE_URL` | URL pública para SEO / Open Graph |
 | `ISA_API_KEY` | Clave del núcleo soberano ISA (rotables `_V2`/`_V3`) |
@@ -314,7 +319,7 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 | `NEON_DATABASE_URL` | Postgres réplica (Neon) |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Redis (Upstash) |
 
-> Sin `GEMINI_API_KEY`, Isabella opera en **modo simulación local seguro** (no falla, responde con datos del territorio).
+> Sin claves de la bóveda, Isabella opera en **modo simulación local soberano** (SOPHIA, sin egress: no falla, responde con datos del territorio).
 
 ---
 
@@ -322,7 +327,7 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 
 1. Importa el repositorio en [Vercel](https://vercel.com/new).
 2. `vercel.json` ya define `npm install --legacy-peer-deps`, build `next build` y región `iad1`.
-3. En **Project Settings → Environment Variables** añade: `GEMINI_API_KEY`, `APP_URL`, `NEXT_PUBLIC_SITE_URL`, `MEXA_OPERATOR_KEY`, `GAMIFICATION_HMAC_SECRET` (y las demás del contrato).
+3. En **Project Settings → Environment Variables** añade: `APP_URL`, `NEXT_PUBLIC_SITE_URL`, `MEXA_OPERATOR_KEY`, `GAMIFICATION_HMAC_SECRET` (y las de la bóveda OSS que quieras activar).
 4. Deploy. Verifica que `metadataBase` use la URL de producción.
 
 ---
@@ -350,7 +355,7 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 
 | Documento | Contenido |
 |---|---|
-| `docs/adr-0001-isa-soberano.md` | Núcleo soberano ISA (fin de la dependencia de Gemini) |
+| `docs/adr-0001-isa-soberano.md` | Núcleo soberano ISA (cero dependencia de proveedores externos) |
 | `docs/adr-0002-zero-trust-7-capas.md` | Cadena Zero Trust de 7 capas |
 | `docs/adr-0003-observabilidad.md` | Monitor General del Nodo Cero |
 | `docs/c4-contexto.md` | Diagrama C4 de contexto, contenedores y componentes |

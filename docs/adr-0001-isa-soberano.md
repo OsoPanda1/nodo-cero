@@ -1,4 +1,4 @@
-# ADR-0001 — Núcleo Soberano ISA (fin de la dependencia de Gemini)
+# ADR-0001 — Núcleo Soberano ISA (cero dependencia de proveedores externos)
 
 - **Estado:** Aceptado
 - **Fecha:** 2026
@@ -25,8 +25,10 @@ La capa MEXA (`lib/isabella/mexa-api.ts`) firma los artefactos con MSR-P256
 (`MexaSignaturePayload`) solo si el operador está configurado; sin él responde en
 modo `open` (sin firma) pero siempre offline.
 
-El `CROWN Gateway` conserva la flota federada como capa opcional: sin claves
-configuradas el Nodo opera en modo simulación soberano con `isaReason`.
+El `CROWN Gateway` conserva una **bóveda nativa de modelos open source** como capa
+opcional (Llama, Qwen, DeepSeek, Mistral, Phi, Cerebras y Ollama local sobre
+transportes soberanos). Sin claves configuradas el Nodo opera en modo simulación
+soberano con `isaReason`, sin egress.
 
 ## Consecuencias
 
@@ -34,3 +36,4 @@ configuradas el Nodo opera en modo simulación soberano con `isaReason`.
 - Las respuestas son reproducibles y citan fuentes locales.
 - Nuevo contrato `api.isabella.reason` (v4.0.0, estable).
 - Queda prohibido reintroducir dependencias externas obligatorias en el núcleo.
+- Queda prohibido reintroducir proveedores propietarios en la bóveda del CROWN.

@@ -106,3 +106,54 @@ export const reasonSchema = z.object({
 });
 
 export type ReasonInput = z.infer<typeof reasonSchema>;
+
+/* ------------------------------------------------------------------ */
+/* CONTINUITY — intenciones del Bastión de Emergencia (YUN BE)         */
+/* ------------------------------------------------------------------ */
+
+export const intentClassificationSchema = z.enum([
+  'PUBLIC',
+  'INTERNAL_LOW',
+  'CONFIDENTIAL',
+  'SOVEREIGN',
+  'RESTRICTED',
+]);
+
+export const emergencyIntentSchema = z.object({
+  eventId: z.string().trim().min(1, 'eventId es requerido').max(160),
+  idempotencyKey: z.string().trim().min(1, 'idempotencyKey es requerido').max(160),
+  traceId: z.string().trim().min(1, 'traceId es requerido').max(160),
+  domain: z.string().trim().min(1, 'domain es requerido').max(120),
+  federationId: z.string().trim().max(120).optional(),
+  eventType: z.string().trim().min(1, 'eventType es requerido').max(120),
+  classification: intentClassificationSchema,
+  payload: z.record(z.string(), z.unknown()).default({}),
+  occurredAt: z.string().min(1, 'occurredAt es requerido'),
+  actorSubjectId: z.string().max(160).optional(),
+});
+
+export type EmergencyIntentInput = z.infer<typeof emergencyIntentSchema>;
+
+export const activateIslandSchema = z.object({
+  operatorConfirmed: z.boolean().optional(),
+});
+
+export const isolatePrimarySchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+});
+
+export const reconcileSchema = z.object({
+  primaryRecovered: z.boolean(),
+  dualApproval: z.boolean().optional(),
+  replayReceipts: z
+    .array(
+      z.object({
+        idempotencyKey: z.string().trim().min(1),
+        status: z.enum(['APPLIED', 'DUPLICATE', 'REJECTED', 'CONFLICT']),
+      }),
+    )
+    .max(500)
+    .default([]),
+});
+
+export type ReconcileInput = z.infer<typeof reconcileSchema>;

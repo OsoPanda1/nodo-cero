@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { assertServerOnly, verifyOrigin, rateLimit } from '@/lib/security/trust';
 import { assertZeroTrust } from '@/lib/security/zero-trust';
+import { claimNonce } from '@/lib/security/nonce';
 import { methodGuard, jsonContentGuard, readJsonBodyRaw, parseJsonBodyFromRaw } from '@/lib/security/request-validator';
 import { apiErrorJson, rateLimitedJson, zodErrorJson, internalErrorJson } from '@/lib/core/contracts';
 import { publishEvent, runWithTrace, newTraceId, currentTrace } from '@/lib/core/events';
@@ -43,6 +44,11 @@ export interface GuardedRouteOptions {
   zeroTrustRequiresSignature?: boolean;
   /** Secreto HMAC para verificar la firma (jamás se loguea). */
   zeroTrustHmacSecret?: string;
+  /** Exige un nonce único por petición (anti-replay) vía `x-rdm-nonce`.
+   *  Cada nonce se consume una sola vez dentro de la ventana de frescura. */
+  requireNonce?: boolean;
+  /** Ámbito del almacén de nonces (por defecto el nombre de la ruta). */
+  nonceScope?: string;
   /** Pasa el cuerpo crudo a la capa L5 (Operación) para la detección de
    *  PII/secretos. Actívalo solo en rutas que NO reciben emails o
    *  teléfonos legítimos (p.ej. eventos de gamificación firmados). */
@@ -83,6 +89,8 @@ export function guardedRoute<T = Record<string, unknown>>(
     zeroTrustApiKeys,
     zeroTrustRequiresSignature = false,
     zeroTrustHmacSecret,
+    requireNonce = false,
+    nonceScope,
     zeroTrustBody = false,
     schema,
     json = true,
@@ -143,6 +151,14 @@ export function guardedRoute<T = Record<string, unknown>>(
           hmacSecret: zeroTrustHmacSecret,
         });
         if (!zt.ok) return apiErrorJson(`Zero Trust denegado por capa: ${zt.deniedBy ?? 'unknown'}`, 403);
+      }
+
+      if (requireNonce) {
+        const nonce = req.headers.get('x-rdm-nonce');
+        const nonceCheck = claimNonce(nonce, nonceScope ?? route);
+        if (!nonceCheck.ok) {
+          return apiErrorJson(`Anti-replay denegado: ${nonceCheck.reason ?? 'nonce inválido'}`, 403);
+        }
       }
 
       const methodDenied = methodGuard(req, methods);

@@ -309,10 +309,10 @@ export const RDM_NODES_35: YUNNode[] = [
     title: 'Isabella AI Cognitive Hub',
     subtitle: 'Motor Conversacional y Recomendación Territorial',
     category: 'Inteligencia Artificial',
-    description: 'Procesamiento de lenguaje natural mediante Gemini API para orientación turística, asistencia en trámites y consultas en tiempo real.',
+    description: 'Procesamiento de lenguaje natural mediante la bóveda nativa CROWN de IAs open source para orientación turística, asistencia en trámites y consultas en tiempo real.',
     status: 'Optimo',
     latency: '14ms',
-    details: ['Modelo: Gemini 2.5 Flash', 'Memoria conversacional contextual', 'Incrustación de datos del territorio'],
+    details: ['Bóveda CROWN: Llama / Qwen / DeepSeek', 'Memoria conversacional contextual', 'Incrustación de datos del territorio'],
     metrics: [{ label: 'Consultas/Min', value: '420', change: '+12%' }, { label: 'Precisión', value: '99.4%', change: '+0.2%' }],
     endpoint: '/api/isabella'
   },

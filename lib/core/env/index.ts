@@ -63,6 +63,9 @@ export const envSchema = z.object({
     .regex(/^\d+$/, 'CROWN_HEARTBEAT_TTL_MS debe ser numérico')
     .optional(),
 
+  /* Licenciamiento — sello de integridad del build */
+  BUILD_SEAL_KEY: z.string().optional(),
+
   /* Gamificación */
   GAMIFICATION_HMAC_SECRET: z.string().optional(),
 

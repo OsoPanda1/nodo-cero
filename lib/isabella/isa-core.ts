@@ -1,11 +1,10 @@
 /* ================================================================== */
 /* ISA CORE — Núcleo cognitivo soberano de Isabella (sin APIs externas) */
 /* ================================================================== */
-/* El corazón de Isabella ya NO depende de Gemini ni de ningún         */
-/* proveedor remoto. ISA Core es un motor de razonamiento determinís-  */
-/* tico que opera íntegramente sobre la base de conocimiento local     */
-/* del territorio: POIs, eventos, rutas, dichos, nodos YUN y líneas    */
-/* históricas.                                                          */
+/* El corazón de Isabella NO depende de ningún proveedor remoto. ISA     */
+/* Core es un motor de razonamiento determinístico que opera íntegra-   */
+/* mente sobre la base de conocimiento local del territorio: POIs,      */
+/* eventos, rutas, dichos, nodos YUN y líneas históricas.               */
 /*                                                                      */
 /* Garantías:                                                           */
 /*   · Cero egress: no hace fetch, no lee claves, no sale del runtime.  */

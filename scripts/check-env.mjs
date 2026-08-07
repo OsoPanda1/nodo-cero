@@ -58,7 +58,7 @@ if (missing.length) {
 /* Claves presentes en .env.local que el contrato no documenta.
    Se comprueba la presencia de la clave (no su valor): una clave
    documentada puede dejarse vacía en .env.example. */
-const undocumented = Object.keys(local).filter(k => !(k in example) && k !== 'GEMINI_API_KEY');
+const undocumented = Object.keys(local).filter(k => !(k in example));
 if (undocumented.length) {
   console.log(`\x1b[33m[WARN]\x1b[0m Variables presentes pero no documentadas en .env.example:\n  ${undocumented.join(', ')}`);
 }

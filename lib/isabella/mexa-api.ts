@@ -4,7 +4,7 @@
 /* La Mexa API es la interfaz interna que firma (MSR-P256) los        */
 /* artefactos generados por el núcleo soberano ISA. Sin operador       */
 /* configurado, responde en modo 'open' (sin firma) pero siempre       */
-/* opera offline: jamás depende de Gemini ni de servicios externos.    */
+/* opera offline: jamás depende de servicios externos.                 */
 /* ================================================================== */
 
 import { isaReason, isaCoreStatus } from '@/lib/isabella/isa-core';

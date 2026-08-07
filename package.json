@@ -15,7 +15,6 @@
     "quality": "npm run audit && npm run check:env && npm run check:contracts && npm run lint && npx tsc --noEmit && npm test"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@hookform/resolvers": "^5.2.1",
     "@types/leaflet": "^1.9.22",
     "@types/three": "^0.185.3",
