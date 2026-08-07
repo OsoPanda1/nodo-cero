@@ -46,6 +46,22 @@ type UnityModule = {
   ) => Promise<unknown>;
 };
 
+/** GameObject raíz del motor que recibe los comandos del host. */
+export const RDM_GAME_OBJECT = 'RDM Arena';
+
+/** Emisor compatible con `sendTo` del hook (gameObject, method, value). */
+export type UnityBridgeSender = (gameObject: string, method: string, value?: string) => void;
+
+/** Envía un ZombieVisualProfile al bridge de Unity (cosmético). */
+export function sendZombieVisualProfile(sender: UnityBridgeSender, profile: unknown): void {
+  sender(RDM_GAME_OBJECT, 'ApplyZombieVisualProfile', JSON.stringify(profile));
+}
+
+/** Envía un comando de spawn de variante al bridge de Unity. */
+export function sendZombieSpawnCommand(sender: UnityBridgeSender, command: unknown): void {
+  sender(RDM_GAME_OBJECT, 'SpawnZombieVariant', JSON.stringify(command));
+}
+
 /**
  * Carga el build WebGL de la Arena 3D (Unity) dentro del canvas del host
  * y expone un puente hacia `window.rdmUnityBridge` para intercambiar

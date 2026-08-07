@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Loader2, MonitorSmartphone, RefreshCw, ShieldAlert, Trophy } from 'lucide-react';
-import { useUnityWebGL, type UnityMessage } from '@/hooks/use-unity-webgl';
+import { useUnityWebGL, sendZombieVisualProfile, type UnityMessage } from '@/hooks/use-unity-webgl';
 import {
   endSession,
   reportCombo,
@@ -11,6 +11,7 @@ import {
   startSession,
   type ClientSession,
 } from '@/lib/gamification/client';
+import { requestZombieVisualProfile } from '@/lib/gamification/zombies/visual-client';
 import { emitYunEvent } from '@/lib/isabella/events';
 import { uuid } from '@/lib/isabella/utils';
 import ZombieInvasionFallback from './ZombieInvasionFallback';
@@ -46,7 +47,7 @@ export default function UnityInvasion3D({ onAskIsabella }: UnityInvasion3DProps)
      sendMessage) y el handler de mensajes (consume sendMessage). */
   const onUnityMessageRef = useRef<((msg: UnityMessage) => void) | null>(null);
 
-  const { containerRef, status, progress, sendMessage, reload } = useUnityWebGL({
+  const { containerRef, status, progress, sendMessage, sendTo, reload } = useUnityWebGL({
     baseUrl: UNITY_BASE_URL,
     onMessage: (msg: UnityMessage) => onUnityMessageRef.current?.(msg),
   });
@@ -56,6 +57,12 @@ export default function UnityInvasion3D({ onAskIsabella }: UnityInvasion3DProps)
   useEffect(() => {
     sendMessageRef.current = sendMessage;
   }, [sendMessage]);
+
+  const sendToRef = useRef(sendTo);
+
+  useEffect(() => {
+    sendToRef.current = sendTo;
+  }, [sendTo]);
 
   const onUnityMessage = useCallback((msg: UnityMessage) => {
     setLastEvent(msg);
@@ -121,6 +128,32 @@ export default function UnityInvasion3D({ onAskIsabella }: UnityInvasion3DProps)
       sendMessage('ConnectHost', JSON.stringify({ sessionId: s.sessionId, token: s.token, baseUrl: '/api/gamification' }));
     }
   }, [sendMessage]);
+
+  /* Generador de perfiles visuales (cosmético). Pide muestras de variantes
+     al backend y las aplica al bridge de Unity: Unity conserva la autoridad
+     sobre prefabs, NavMesh, Animator, daño, oleadas y ciclo de vida. */
+  const prepareVisualProfiles = useCallback(async () => {
+    const samples = [
+      { archetype: 'walker' as const, seed: 101, frequency: 220, colorScheme: 'monochrome' as const, sourceOperation: 'compile-scene' as const },
+      { archetype: 'runner' as const, seed: 202, frequency: 880, colorScheme: 'thermal' as const, sourceOperation: 'color-map' as const },
+      { archetype: 'spectral' as const, seed: 303, frequency: 1320, colorScheme: 'spectrum' as const, sourceOperation: 'project-to-3d' as const },
+    ];
+
+    for (const sample of samples) {
+      try {
+        const profile = await requestZombieVisualProfile(sample);
+        if (profile) sendZombieVisualProfile(sendToRef.current, profile);
+      } catch {
+        /* Cosmético: la arena funciona sin perfiles si el backend falla. */
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (status === 'ready' && session && !session.sessionId.startsWith('local-')) {
+      void prepareVisualProfiles();
+    }
+  }, [status, session, prepareVisualProfiles]);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */

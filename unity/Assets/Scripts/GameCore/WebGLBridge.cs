@@ -30,6 +30,10 @@ namespace RDM.YUN.GameCore
 
         private const string GameObjectName = "RDM Arena";
 
+        [Header("Perfiles visuales de zombie (cosmético)")]
+        [SerializeField] private ZombieVisualProfileReceiver zombieVisualProfiles;
+        [SerializeField] private ZombieFactory zombieFactory;
+
         public string HostBaseUrl { get; private set; } = string.Empty;
         public bool HostConnected { get; private set; }
 
@@ -105,6 +109,49 @@ namespace RDM.YUN.GameCore
             Notify("reset", new { ok = true });
         }
 
+        // Aplica un perfil visual de zombie recibido del host. Solo afecta
+        // apariencia: el gameplay sigue siendo server-authoritative.
+        public void ApplyZombieVisualProfile(string rawJson)
+        {
+            if (zombieVisualProfiles == null)
+            {
+                Debug.LogWarning("[RDM] ZombieVisualProfileReceiver no asignado.");
+                return;
+            }
+            zombieVisualProfiles.ApplyZombieVisualProfile(rawJson);
+        }
+
+        // Spawn de una variante de zombie con su perfil visual. La factory
+        // usa la allowlist de prefabs y valida la posición en el NavMesh.
+        public void SpawnZombieVariant(string rawJson)
+        {
+            var command = JsonUtility.FromJson<ZombieSpawnCommand>(rawJson);
+
+            if (command == null ||
+                command.version != "1.0" ||
+                command.visualProfile == null ||
+                zombieVisualProfiles == null ||
+                zombieFactory == null)
+            {
+                Debug.LogWarning("[RDM] Spawn command inválido.");
+                return;
+            }
+
+            zombieVisualProfiles.ApplyZombieVisualProfile(
+                JsonUtility.ToJson(command.visualProfile)
+            );
+
+            zombieFactory.Spawn(
+                command.archetype,
+                new Vector3(
+                    command.position.x,
+                    command.position.y,
+                    command.position.z
+                ),
+                command.visualProfile.profileId
+            );
+        }
+
         // ------------------------------------------------------------
         // C# -> JS: notificaciones al host
         // ------------------------------------------------------------
@@ -161,6 +208,26 @@ namespace RDM.YUN.GameCore
             public string baseUrl;
             public string sessionId;
             public string token;
+        }
+
+        [Serializable]
+        public class ZombieSpawnPosition
+        {
+            public float x;
+            public float y;
+            public float z;
+        }
+
+        [Serializable]
+        public class ZombieSpawnCommand
+        {
+            public string version;
+            public string commandId;
+            public string waveId;
+            public string spawnId;
+            public string archetype;
+            public ZombieSpawnPosition position;
+            public ZombieVisualProfile visualProfile;
         }
     }
 }
