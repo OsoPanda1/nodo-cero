@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Trophy, Medal, Target, CheckCircle2, Flame, Crown, Lock, TrendingUp, Loader2, Gift, Star } from 'lucide-react';
+import { Trophy, Medal, Target, CheckCircle2, Flame, Crown, Lock, TrendingUp, Loader2, Gift, Star, Activity, Boxes, Building2, CreditCard, AlertTriangle } from 'lucide-react';
 import { RDM_BADGES, RDM_CHALLENGES } from '@/lib/data/rdm-content';
-import { startSession, reportMission, getCachedSession } from '@/lib/gamification/client';
+import { startSession, reportMission, getCachedSession, getDeviceId } from '@/lib/gamification/client';
+import { playerLevel } from '@/lib/data/zombies-data';
 
 const rarityColors: Record<string, string> = {
   Común: 'border-slate-500/40 text-slate-300',
@@ -17,6 +18,22 @@ interface LiveSession {
   missions: string[];
 }
 
+interface TerritoryPulse {
+  incidents: { open: number; critical: number; resolved: number; total: number };
+  twins: { total: number; healthy: number };
+  marketplace: { published: number; subscriptions: number };
+  payments: { confirmed: number; confirmedAmount: number };
+  pressureByZone: Record<string, number>;
+}
+
+interface ResolvedChallenge {
+  id: string;
+  title: string;
+  category: string;
+  points: number;
+  progress: number;
+}
+
 const WELCOME_BONUS_MISSION = 'c-bienvenida';
 
 export default function GamificationSection() {
@@ -25,10 +42,8 @@ export default function GamificationSection() {
   const [claimed, setClaimed] = useState<Set<string>>(new Set());
   const [busyMission, setBusyMission] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
-
-  const userXp = xp ?? 2480;
-  const level = Math.floor(userXp / 500) + 1;
-  const levelProgress = (userXp % 500) / 5;
+  const [territory, setTerritory] = useState<TerritoryPulse | null>(null);
+  const [challenges, setChallenges] = useState<ResolvedChallenge[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -36,27 +51,35 @@ export default function GamificationSection() {
       try {
         const cached = getCachedSession();
         const session = cached ?? (await startSession());
-        if (cached) {
-          const res = await fetch(
-            `/api/gamification/status?deviceId=${encodeURIComponent((await import('@/lib/gamification/client')).getDeviceId())}`,
-          );
-          const data = (await res.json()) as {
-            ok: boolean;
-            session?: { totalPoints: number; missions: string[] } | null;
-          };
-          if (mounted && data.ok && data.session) {
+        const deviceId = getDeviceId();
+        const res = await fetch(
+          `/api/gamification/status?deviceId=${encodeURIComponent(deviceId)}`,
+        );
+        const data = (await res.json()) as {
+          ok: boolean;
+          session?: { totalPoints: number; missions: string[] } | null;
+          territory?: TerritoryPulse;
+          challenges?: ResolvedChallenge[];
+        };
+        if (mounted) {
+          if (data.ok && data.session) {
             setXp(data.session.totalPoints);
             setClaimed(new Set(data.session.missions));
           }
-        }
-        if (mounted) {
+          if (data.ok && data.territory) setTerritory(data.territory);
+          if (data.ok && Array.isArray(data.challenges) && data.challenges.length > 0) {
+            setChallenges(data.challenges);
+          } else {
+            setChallenges(RDM_CHALLENGES.map(c => ({ id: c.id, title: c.title, category: c.category, points: c.points, progress: c.progress })));
+          }
           setSessionReady(Boolean(session.sessionId) && !session.sessionId.startsWith('local-'));
           setXp(prev => prev ?? 0);
         }
       } catch {
         if (mounted) {
           setSessionReady(false);
-          setXp(2480);
+          setXp(0);
+          setChallenges(RDM_CHALLENGES.map(c => ({ id: c.id, title: c.title, category: c.category, points: c.points, progress: c.progress })));
         }
       }
     })();
@@ -64,6 +87,12 @@ export default function GamificationSection() {
       mounted = false;
     };
   }, []);
+
+  const userXp = xp ?? 0;
+  const levelInfo = playerLevel(userXp);
+  const level = levelInfo.level;
+  const levelProgress = levelInfo.progress;
+  const levelTitle = levelInfo.title;
 
   const unlockedCount = 1 + Math.min(5, Math.floor(userXp / 500));
   const unlockedIds = new Set<string>(RDM_BADGES.slice(0, Math.max(1, unlockedCount)).map(b => b.id));
@@ -87,6 +116,7 @@ export default function GamificationSection() {
   };
 
   const missionsCleared = claimed.size;
+  const challengeById = new Map(challenges.map(c => [c.id, c]));
 
   return (
     <div className="space-y-6">
@@ -110,7 +140,7 @@ export default function GamificationSection() {
             </div>
             <div>
               <div className="text-[10px] font-mono text-amber-400 uppercase tracking-widest">Minerx · Nodo Cero</div>
-              <div className="text-lg font-black text-white">Nivel {level} — Hornero del Monte</div>
+              <div className="text-lg font-black text-white">Nivel {level} — {levelTitle}</div>
             </div>
           </div>
           <div className="text-right">
@@ -125,14 +155,59 @@ export default function GamificationSection() {
             <div className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 animate-shimmer" style={{ width: `${levelProgress}%` }} />
           </div>
           <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1.5">
-            <span>{userXp % 500} / 500 XP</span>
+            <span>{Math.round(userXp % 1500)} / 1500 XP</span>
             <span className="flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-emerald-400" />
-              Racha: 12 días
+              <Activity className="w-3 h-3 text-emerald-400" />
+              {territory ? `${territory.incidents.open} incidentes en vivo` : 'Conectando territorio...'}
             </span>
           </div>
         </div>
       </div>
+
+      {/* Pulso territorial — datos reales de la plataforma */}
+      {territory && (
+        <div className="p-5 rounded-2xl glass-panel border border-cyan-500/20 bg-slate-950/60 space-y-3">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-cyan-300" />
+            <h3 className="text-sm font-bold text-white">Pulso del Territorio</h3>
+            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest ml-auto">datos reales del Nodo Cero</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3 rounded-xl border border-rose-500/20 bg-rose-950/30">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-rose-300">
+                <AlertTriangle className="w-3 h-3" /> Incidentes
+              </div>
+              <div className="text-lg font-black text-white mt-1">
+                {territory.incidents.open}<span className="text-[10px] text-slate-400 font-mono ml-1">abiertos · {territory.incidents.resolved} resueltos</span>
+              </div>
+            </div>
+            <div className="p-3 rounded-xl border border-emerald-500/20 bg-emerald-950/30">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-emerald-300">
+                <Boxes className="w-3 h-3" /> Gemelos
+              </div>
+              <div className="text-lg font-black text-white mt-1">
+                {territory.twins.total}<span className="text-[10px] text-slate-400 font-mono ml-1">· {territory.twins.healthy} saludables</span>
+              </div>
+            </div>
+            <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-950/30">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-amber-300">
+                <Building2 className="w-3 h-3" /> Marketplace
+              </div>
+              <div className="text-lg font-black text-white mt-1">
+                {territory.marketplace.published}<span className="text-[10px] text-slate-400 font-mono ml-1">listados publicados</span>
+              </div>
+            </div>
+            <div className="p-3 rounded-xl border border-purple-500/20 bg-purple-950/30">
+              <div className="flex items-center gap-1.5 text-[10px] font-mono text-purple-300">
+                <CreditCard className="w-3 h-3" /> Pagos
+              </div>
+              <div className="text-lg font-black text-white mt-1">
+                {territory.payments.confirmed}<span className="text-[10px] text-slate-400 font-mono ml-1">confirmados</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 p-1 rounded-2xl glass-panel border border-white/10 w-fit">
         <button
@@ -179,7 +254,9 @@ export default function GamificationSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {RDM_CHALLENGES.map(challenge => {
             const isClaimed = claimed.has(challenge.id);
-            const done = challenge.progress >= 100;
+            const real = challengeById.get(challenge.id);
+            const progress = real?.progress ?? challenge.progress;
+            const done = progress >= 100;
             return (
             <div key={challenge.id} className="p-5 rounded-2xl glass-panel-interactive border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
@@ -191,7 +268,7 @@ export default function GamificationSection() {
                       ? 'text-amber-300 border-amber-500/40 bg-amber-950/60'
                       : 'text-slate-400 border-slate-700 bg-slate-900/60'
                 }`}>
-                  {isClaimed ? 'Reclamado' : done ? `+${challenge.points} XP` : `+${challenge.points} XP`}
+                  {isClaimed ? 'Reclamado' : `+${challenge.points} XP`}
                 </span>
               </div>
               <h4 className="text-base font-bold text-white">{challenge.title}</h4>
@@ -199,9 +276,9 @@ export default function GamificationSection() {
               <div className="flex items-center justify-between pt-2 border-t border-white/10">
                 <span className="text-[11px] font-mono text-slate-500 flex items-center gap-1">
                   {isClaimed ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Flame className="w-3.5 h-3.5 text-orange-400" />}
-                  {isClaimed ? 'Dominado' : done ? 'Listo para reclamar' : 'Por completar'}
+                  {isClaimed ? 'Dominado' : done ? 'Listo para reclamar' : real ? 'Progreso real del territorio' : 'Por completar'}
                 </span>
-                <span className="text-[11px] font-mono text-slate-400">{challenge.progress}%</span>
+                <span className="text-[11px] font-mono text-slate-400">{Math.round(progress)}%</span>
               </div>
               {done && (
                 <button

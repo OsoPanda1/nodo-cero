@@ -21,6 +21,12 @@ interface ZombieInvasionFallbackProps {
   onReconnectUnity: () => void;
 }
 
+interface TerritoryPulseResponse {
+  pressureByPoi?: Record<string, number>;
+  pressureByZone?: Record<string, number>;
+  incidents?: { open: number; critical: number; total: number };
+}
+
 /**
  * Modo de degradación de la Arena 3D: cuando el build WebGL de Unity no está
  * publicado, se juega la misma invasión con el motor 2D del navegador
@@ -35,11 +41,30 @@ export default function ZombieInvasionFallback({
   const [spawns, setSpawns] = useState<ZombieSpawn[]>([]);
   const [activeSpawn, setActiveSpawn] = useState<ZombieSpawn | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [territory, setTerritory] = useState<TerritoryPulseResponse | null>(null);
+
+  const refreshSpawns = useCallback((territorySnapshot?: TerritoryPulseResponse | null) => {
+    setSpawns(generateSpawns(new Date(), 6, undefined, undefined, territorySnapshot?.pressureByPoi));
+  }, []);
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    setSpawns(generateSpawns(new Date(), 6));
-    /* eslint-enable react-hooks/set-state-in-effect */
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/gamification/status');
+        const data = (await res.json()) as { territory?: TerritoryPulseResponse };
+        if (mounted) {
+          setTerritory(data.territory ?? null);
+          refreshSpawns(data.territory ?? null);
+        }
+      } catch {
+        if (mounted) refreshSpawns(null);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, []);
 
   const ctx = useMemo(() => getTimeContext(new Date()), []);
@@ -50,14 +75,20 @@ export default function ZombieInvasionFallback({
 
   const handleFinish = useCallback(
     async (result: { captured: boolean; points: number }) => {
+      const spawn = activeSpawn;
       setActiveSpawn(null);
-      if (!result.captured) return;
+      if (!result.captured || !spawn) return;
+
+      const archetype = ZOMBIE_ARCHETYPES.find(a => a.id === spawn.archetypeId) ?? ZOMBIE_ARCHETYPES[0];
 
       setSyncing(true);
       try {
         await reportKill({
-          archetypeId: 'zombie-comun',
-          archetypeName: 'Zombie común',
+          archetypeId: spawn.archetypeId,
+          archetypeName: archetype.name,
+          rarity: archetype.rarity,
+          zone: spawn.zone,
+          poiId: spawn.poiId,
           basePoints: result.points,
           comboCount: 0,
           night: ctx.period === 'noche',
@@ -70,7 +101,7 @@ export default function ZombieInvasionFallback({
         setSyncing(false);
       }
     },
-    [ctx]
+    [activeSpawn, ctx]
   );
 
   const askIsabella = useCallback(
@@ -146,6 +177,11 @@ export default function ZombieInvasionFallback({
         <span className="px-2.5 py-1.5 rounded-lg bg-slate-900/80 border border-white/10 flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5 text-cyan-300" /> {ctx.period === 'dia' ? 'Día' : 'Noche'} · {ctx.niebla ? 'niebla ×1.5' : 'sin niebla'}
         </span>
+        {territory && territory.incidents && territory.incidents.total > 0 && (
+          <span className="px-2.5 py-1.5 rounded-lg bg-rose-950/60 border border-rose-500/40 text-rose-300 flex items-center gap-1.5">
+            <Skull className="w-3.5 h-3.5" /> {territory.incidents.open} incidentes activos · presión del territorio
+          </span>
+        )}
         {session?.mode === 'signed' && (
           <span className="px-2.5 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5">
             Sesión firmada · eventos validados en el servidor
@@ -175,7 +211,7 @@ export default function ZombieInvasionFallback({
             <Skull className="w-4 h-4" /> Iniciar encuentro
           </button>
           <button
-            onClick={() => setSpawns(generateSpawns(new Date(), 6))}
+            onClick={() => refreshSpawns(territory)}
             className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900/80 border border-white/10 text-slate-300 hover:border-emerald-400 hover:text-emerald-200 transition-all"
           >
             Regenerar patrulla

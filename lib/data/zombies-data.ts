@@ -530,14 +530,28 @@ function eligibleArchetypes(zone: SpawnZone, ctx: TimeContext): ZombieArchetype[
   });
 }
 
-export function generateSpawns(now: Date, count = 10, pois: POI[] = RDM_POIS, rng: () => number = Math.random): ZombieSpawn[] {
+export function generateSpawns(
+  now: Date,
+  count = 10,
+  pois: POI[] = RDM_POIS,
+  rng: () => number = Math.random,
+  pressureByPoi?: Record<string, number>,
+): ZombieSpawn[] {
   const ctx = getTimeContext(now);
-  const shuffled = [...pois].sort(() => rng() - 0.5);
+  /* Los POIs con incidentes activos del territorio tienen prioridad de
+     spawn: la invasión se concentra donde la ciudad reporta presión. */
+  const shuffled = [...pois].sort((a, b) => {
+    const pa = pressureByPoi?.[a.id] ?? 0;
+    const pb = pressureByPoi?.[b.id] ?? 0;
+    if (pb !== pa) return pb - pa;
+    return rng() - 0.5;
+  });
   const spawns: ZombieSpawn[] = [];
 
   for (const poi of shuffled) {
     if (spawns.length >= count) break;
     const zone = zoneForPOI(poi);
+    const pressure = pressureByPoi?.[poi.id] ?? 0;
     let archetype = pickWeighted(eligibleArchetypes(zone, ctx), rng);
     if (!archetype) {
       const specific = ZOMBIE_ARCHETYPES.find(a => a.poiIds?.includes(poi.id));
@@ -554,8 +568,25 @@ export function generateSpawns(now: Date, count = 10, pois: POI[] = RDM_POIS, rn
       zone,
       lat: poi.lat + jitter(),
       lng: poi.lng + jitter(),
-      expiresAt: now.getTime() + 20 * 60 * 1000,
+      expiresAt: now.getTime() + (20 + Math.round(pressure * 40)) * 60 * 1000,
     });
+    /* A mayor presión territorial, más spawns en el mismo POI. */
+    if (pressure > 0.5 && spawns.length < count && rng() < (pressure - 0.5) * 2) {
+      const extra = pickWeighted(eligibleArchetypes(zone, ctx), rng);
+      if (extra) {
+        spawns.push({
+          id: `spawn-${poi.id}-${Date.now()}-${Math.floor(rng() * 1e6)}-p`,
+          archetypeId: extra.id,
+          poiId: poi.id,
+          poiName: poi.name,
+          poiCategory: poi.category,
+          zone,
+          lat: poi.lat + jitter(),
+          lng: poi.lng + jitter(),
+          expiresAt: now.getTime() + 20 * 60 * 1000,
+        });
+      }
+    }
   }
 
   return spawns;

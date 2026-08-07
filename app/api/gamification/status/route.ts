@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { getGamificationStatus } from '@/lib/gamification/status';
+import { getGamificationTerritoryStatus } from '@/lib/gamification/territory';
 import { getActiveSessionByDevice, getSession } from '@/lib/gamification/store';
 
 export const runtime = 'nodejs';
@@ -9,7 +10,10 @@ export const runtime = 'nodejs';
 /* GET /api/gamification/status — estado global + sesión del visitante */
 /* ------------------------------------------------------------------ */
 /* Combina el estado del fabric (stats globales) con la sesión activa  */
-/* del dispositivo consultante (deviceId por query). Solo lectura.     */
+/* del dispositivo consultante (deviceId por query) y el pulso real    */
+/* del territorio (incidentes, gemelos, marketplace, pagos). Los retos */
+/* se devuelven con progreso calculado desde datos reales, no estáticos. */
+/* Solo lectura.                                                       */
 /* ------------------------------------------------------------------ */
 export const GET = guardedRoute(
   {
@@ -21,6 +25,7 @@ export const GET = guardedRoute(
   async ({ req }) => {
     const deviceId = req.nextUrl.searchParams.get('deviceId') ?? undefined;
     const globalStatus = getGamificationStatus();
+    const { territory, challenges } = getGamificationTerritoryStatus();
 
     let session = null;
     if (deviceId) {
@@ -41,6 +46,8 @@ export const GET = guardedRoute(
             redeemed: session.redeemed,
           }
         : null,
+      territory,
+      challenges,
       serverTime: Date.now(),
     });
   },
