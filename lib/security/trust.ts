@@ -45,6 +45,8 @@ export interface CanonicalOriginConfig {
   appUrl?: string;
   siteUrl?: string;
   vercelUrl?: string;
+  canonicalOrigins?: string;
+  trustedHosts?: string;
 }
 
 export function getCanonicalOrigins(): CanonicalOriginConfig {
@@ -52,6 +54,8 @@ export function getCanonicalOrigins(): CanonicalOriginConfig {
     appUrl: process.env.APP_URL,
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
     vercelUrl: process.env.VERCEL_URL,
+    canonicalOrigins: process.env.CANONICAL_ORIGINS,
+    trustedHosts: process.env.TRUSTED_HOSTS,
   };
 }
 
@@ -67,10 +71,97 @@ export function normalizeOrigin(raw?: string | null): string | null {
   }
 }
 
-/** Allowlist de orígenes canónicos (APP_URL, NEXT_PUBLIC_SITE_URL, VERCEL_URL). */
+/** Parsea una lista separada por comas a entries limpias. */
+function parseList(raw?: string | null): string[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Normaliza y valida un header Host estricto antes de usarlo.
+ * Reglas: sin scheme, sin path, sin query; solo hostname opcionalmente
+ * con puerto numérico; caracteres permitidos limitados a DNS/puerto.
+ * Devuelve { hostname, port } o null si el host es inválido (fail-closed).
+ */
+export function validateHostHeader(raw: string | null | undefined): {
+  hostname: string;
+  port: string;
+} | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0 || trimmed.length > 253) return null;
+  /* Rechaza scheme, path, query, userinfo y caracteres de control. */
+  if (/[\s/@?\\#]/.test(trimmed)) return null;
+  if (/[^\x21-\x7e]/.test(trimmed)) return null;
+  /* Host con puerto opcional. */
+  const portIndex = trimmed.lastIndexOf(':');
+  let hostname = trimmed;
+  let port = '';
+  if (portIndex !== -1) {
+    const maybePort = trimmed.slice(portIndex + 1);
+    if (/^\d{1,5}$/.test(maybePort)) {
+      const portNumber = Number(maybePort);
+      /* Puerto válido: 1–65535 (0 y >65535 son inválidos). */
+      if (portNumber >= 1 && portNumber <= 65535) {
+        hostname = trimmed.slice(0, portIndex);
+        port = maybePort;
+      }
+    }
+  }
+  hostname = hostname.toLowerCase().replace(/\.+$/, '');
+  if (hostname.length === 0 || hostname.length > 253) return null;
+  /* Solo letras, dígitos, guiones y puntos (DNS). */
+  if (!/^[a-z0-9][a-z0-9.-]*$/.test(hostname)) return null;
+  return { hostname, port };
+}
+
+/** Hosts confiables derivados de la política explícita del Nodo. */
+export function trustedHosts(): string[] {
+  const hosts = new Set<string>();
+  const { canonicalOrigins, trustedHosts: envTrusted, appUrl, siteUrl, vercelUrl } = getCanonicalOrigins();
+
+  /* Hosts explícitos por política (TRUSTED_HOSTS). */
+  for (const entry of parseList(envTrusted)) {
+    const normalized = entry.toLowerCase().replace(/\.+$/, '');
+    if (normalized) hosts.add(normalized);
+  }
+
+  /* Hosts derivados de orígenes canónicos configurados. */
+  for (const value of [appUrl, siteUrl]) {
+    const parsed = normalizeOrigin(value);
+    if (parsed) {
+      const hostname = parsed.replace(/^[a-z]+:\/\//i, '').split(':')[0];
+      if (hostname) hosts.add(hostname.toLowerCase());
+    }
+  }
+  if (vercelUrl) {
+    const parsed = normalizeOrigin(vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`);
+    if (parsed) {
+      const hostname = parsed.replace(/^[a-z]+:\/\//i, '').split(':')[0];
+      if (hostname) hosts.add(hostname.toLowerCase());
+    }
+  }
+
+  /* Orígenes canónicos explícitos (CANONICAL_ORIGINS). */
+  for (const entry of parseList(canonicalOrigins)) {
+    const parsed = normalizeOrigin(entry);
+    if (parsed) {
+      const hostname = parsed.replace(/^[a-z]+:\/\//i, '').split(':')[0];
+      if (hostname) hosts.add(hostname.toLowerCase());
+    }
+  }
+
+  return [...hosts];
+}
+
+/** Allowlist de orígenes canónicos (APP_URL, NEXT_PUBLIC_SITE_URL,
+ *  VERCEL_URL, CANONICAL_ORIGINS). */
 export function allowedOrigins(): string[] {
   const origins = new Set<string>();
-  const { appUrl, siteUrl, vercelUrl } = getCanonicalOrigins();
+  const { appUrl, siteUrl, vercelUrl, canonicalOrigins } = getCanonicalOrigins();
 
   for (const value of [appUrl, siteUrl]) {
     const normalized = normalizeOrigin(value);
@@ -80,6 +171,10 @@ export function allowedOrigins(): string[] {
     const normalized = normalizeOrigin(
       vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`,
     );
+    if (normalized) origins.add(normalized);
+  }
+  for (const entry of parseList(canonicalOrigins)) {
+    const normalized = normalizeOrigin(entry);
     if (normalized) origins.add(normalized);
   }
 
@@ -92,17 +187,69 @@ export function allowedOrigins(): string[] {
 }
 
 /**
- * Verifica el origen/host de una petición Next contra la allowlist.
+ * Deriva el origen "self" de una petición a partir de su Host, SOLO tras
+ * normalización estricta y validación contra la política de hosts
+ * confiables del Nodo (TRUSTED_HOSTS / orígenes canónicos).
+ *
+ * Nunca se trata un Host arbitrario como confiable: si el host no está
+ * en la política, devuelve null (fail-closed). En producción exige HTTPS.
+ */
+export function selfOriginFromHost(hostHeader: string | null | undefined, requireHttps = true): string | null {
+  const validated = validateHostHeader(hostHeader);
+  if (!validated) return null;
+
+  const trusted = trustedHosts();
+  if (!trusted.includes(validated.hostname)) return null;
+
+  const scheme = process.env.NODE_ENV === 'production' || requireHttps ? 'https' : 'http';
+  const port = validated.port ? `:${validated.port}` : '';
+  return `${scheme}://${validated.hostname}${port}`;
+}
+
+/**
+ * Verifica el origen/host de una petición Next contra la política.
  *  - Si hay header `origin`: compara contra la allowlist (rechaza CSRF).
  *  - Si no hay `origin` pero hay `host`: compara el host (server-to-server).
  *  - Sin ninguno de los dos: se permite (cliente/agente sin origen).
- *  - Sin allowlist configurada en producción: FALL-CLOSED (se rechaza todo).
+ *  - Sin allowlist configurada: fallback de recuperación que SOLO acepta
+ *    el self-origin derivado de un Host validado contra TRUSTED_HOSTS
+ *    (fail-closed ante hosts desconocidos). Este fallback se registra en
+ *    telemetría como estado de configuración incompleta, no como
+ *    configuración definitiva.
  */
-export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string } {
+export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string; fallback?: boolean } {
   if (process.env.NODE_ENV === 'development') return { ok: true };
   const origins = allowedOrigins();
+  const hostHeader = req.headers.get('host');
+
+  /* Fallback de recuperación: sin orígenes canónicos, derivar self-origin
+     SOLO desde un Host validado contra la política de trusted hosts. */
   if (origins.length === 0) {
-    return { ok: false, reason: 'Ningún origen canónico configurado (APP_URL / NEXT_PUBLIC_SITE_URL / VERCEL_URL). Zero Trust: fail-closed.' };
+    const self = selfOriginFromHost(hostHeader);
+    if (!self) {
+      const validated = validateHostHeader(hostHeader);
+      return {
+        ok: false,
+        reason: validated
+          ? `Host no autorizado (${hostHeader ?? 'null'}). Configura APP_URL / CANONICAL_ORIGINS / TRUSTED_HOSTS. Zero Trust: fail-closed.`
+          : `Host malformado (${hostHeader ?? 'null'}) y sin orígenes canónicos. Zero Trust: fail-closed.`,
+      };
+    }
+
+    const origin = req.headers.get('origin');
+    if (origin) {
+      const normalized = normalizeOrigin(origin);
+      if (!normalized) {
+        /* Origin presente pero malformado: jamás se degrada al chequeo de Host. */
+        return { ok: false, reason: 'Origen malformado no autorizado (Zero Trust).' };
+      }
+      if (normalized === self) return { ok: true, fallback: true };
+      return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
+    }
+
+    /* Sin header Origin (server-to-server o navegador sin CORS): el Host
+       ya fue validado contra la política de trusted hosts. */
+    return { ok: true, fallback: true };
   }
 
   const origin = req.headers.get('origin');
@@ -116,7 +263,7 @@ export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string }
     return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
   }
 
-  const host = req.headers.get('host');
+  const host = hostHeader;
   if (host) {
     const candidate = normalizeOrigin(`https://${host}`);
     if (candidate && origins.includes(candidate)) return { ok: true };
@@ -145,14 +292,20 @@ export function verifyOriginFromHeaders(headers: Headers): {
     return { ok: false, origin, host, reason: 'No origin/host headers present' };
   }
 
+  /* Fallback de recuperación: sin orígenes canónicos, self-origin SOLO
+     si el Host supera validación + política de trusted hosts. */
+  const allowlist = allowed.length > 0
+    ? allowed
+    : [selfOriginFromHost(hostHeader)].filter((v): v is string => v !== null);
+
   const candidate = origin ?? host;
-  const match = candidate !== null && allowed.includes(candidate);
+  const match = candidate !== null && allowlist.includes(candidate);
 
   return {
     ok: match,
     origin,
     host,
-    reason: match ? undefined : 'Origin/host not in canonical allowlist',
+    reason: match ? undefined : 'Origin/host not in canonical allowlist or trusted-host policy',
   };
 }
 

@@ -22,6 +22,7 @@ import {
   sanitizeForLog,
   getRateLimitKey,
   allowedOrigins,
+  selfOriginFromHost,
 } from '@/lib/security/trust';
 
 export const YUN_FEDERATIONS = [
@@ -290,18 +291,24 @@ function verifyOriginFromPlain(headers: Headers): { ok: boolean; reason?: string
   /* En desarrollo el origen local se permite (mismo criterio que trust.ts). */
   if (process.env.NODE_ENV === 'development') return { ok: true };
   const origin = headers.get('origin');
+  const host = headers.get('host');
+  const allowed = allowedOrigins();
+
+  /* Fallback de recuperación: sin orígenes canónicos, self-origin SOLO si
+     el Host supera validación estricta + política de trusted hosts. */
+  const allowlist = allowed.length > 0
+    ? allowed
+    : [selfOriginFromHost(host)].filter((v): v is string => v !== null);
+
   if (origin) {
-    const allowed = allowedOrigins();
     const normalized = normalizeOriginPlain(origin);
     if (!normalized) return { ok: false, reason: 'Origen malformado (fail-closed).' };
-    if (allowed.includes(normalized)) return { ok: true };
+    if (allowlist.includes(normalized)) return { ok: true };
     return { ok: false, reason: 'Origen no autorizado (fail-closed).' };
   }
-  const host = headers.get('host');
   if (host) {
-    const allowed = allowedOrigins();
     const candidate = normalizeOriginPlain(`https://${host}`);
-    if (candidate && allowed.includes(candidate)) return { ok: true };
+    if (candidate && allowlist.includes(candidate)) return { ok: true };
     return { ok: false, reason: 'Host no autorizado (fail-closed).' };
   }
   return { ok: true };

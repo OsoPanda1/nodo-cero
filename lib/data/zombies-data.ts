@@ -128,6 +128,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['todo'],
     color: '#8fae6b',
     sprite: '/images/zombies/zombie-minero.png',
+    spriteVideo: '/videos/zombie-basico.mp4',
   },
   {
     id: 'z-barrenero',
@@ -145,6 +146,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['todo'],
     color: '#c9a86a',
     sprite: '/images/zombies/zombie-minero.png',
+    spriteVideo: '/videos/zombie-basico.mp4',
   },
   {
     id: 'z-pastelero',
@@ -162,6 +164,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['todo'],
     color: '#e0a458',
     sprite: '/images/zombies/zombie-minero.png',
+    spriteVideo: '/videos/zombie-cumbiandero.webm',
   },
   {
     id: 'z-panteonero',
@@ -179,6 +182,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['noche', 'niebla'],
     color: '#7f8fa6',
     sprite: '/images/zombies/zombie-espectro.png',
+    spriteVideo: '/videos/zombie-cumbiandero.webm',
   },
   {
     id: 'z-cornish',
@@ -195,6 +199,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['noche', 'niebla'],
     color: '#5d768c',
     sprite: '/images/zombies/zombie-espectro.png',
+    spriteVideo: '/videos/zombie-cumbiandero.webm',
   },
   {
     id: 'z-llorona',
@@ -212,6 +217,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['niebla', 'noche'],
     color: '#8fa6a6',
     sprite: '/images/zombies/zombie-espectro.png',
+    spriteVideo: '/videos/zombie-cumbiandero.webm',
   },
   {
     id: 'z-polvora',
@@ -229,6 +235,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['todo'],
     color: '#b07848',
     sprite: '/images/zombies/zombie-jefe.png',
+    spriteVideo: '/videos/zombie-basico.mp4',
   },
   {
     id: 'z-conde',
@@ -246,6 +253,7 @@ export const ZOMBIE_ARCHETYPES: ZombieArchetype[] = [
     timeSlots: ['todo'],
     color: '#d4af37',
     sprite: '/images/zombies/zombie-jefe.png',
+    spriteVideo: '/videos/zombie-basico.mp4',
   },
 ];
 

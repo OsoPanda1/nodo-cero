@@ -22,6 +22,8 @@ import type { z } from 'zod';
 import { assertServerOnly, verifyOrigin, rateLimit } from '@/lib/security/trust';
 import { assertZeroTrust } from '@/lib/security/zero-trust';
 import { claimNonce } from '@/lib/security/nonce';
+import { authenticate, hasScope } from '@/lib/security/identity';
+import type { IdentityScope } from '@/lib/security/identity';
 import { methodGuard, jsonContentGuard, readJsonBodyRaw, parseJsonBodyFromRaw } from '@/lib/security/request-validator';
 import { apiErrorJson, rateLimitedJson, zodErrorJson, internalErrorJson } from '@/lib/core/contracts';
 import { publishEvent, runWithTrace, newTraceId, currentTrace } from '@/lib/core/events';
@@ -40,6 +42,10 @@ export interface GuardedRouteOptions {
   /** API keys aceptadas para la capa L6 de identidad. Si se define, la
    *  ruta exige `x-rdm-api-key` con una de esas claves (fail-closed). */
   zeroTrustApiKeys?: string[];
+  /** Scopes exigidos al registro soberano de API keys del Nodo. Si se
+   *  define, la ruta exige `x-rdm-api-key` válida Y activa en el registro
+   *  de identidad, con todos los scopes listados (fail-closed). */
+  identityScopes?: IdentityScope[];
   /** Exige firma HMAC del cuerpo (L1/L3). Requiere `zeroTrustHmacSecret`. */
   zeroTrustRequiresSignature?: boolean;
   /** Secreto HMAC para verificar la firma (jamás se loguea). */
@@ -95,6 +101,7 @@ export function guardedRoute<T = Record<string, unknown>>(
     schema,
     json = true,
     cacheControl,
+    identityScopes,
   } = options;
 
   const defaultCache =
@@ -124,6 +131,15 @@ export function guardedRoute<T = Record<string, unknown>>(
       if (originRequired) {
         const origin = verifyOrigin(req);
         if (!origin.ok) return apiErrorJson(origin.reason ?? 'ORIGIN_DENIED', 403);
+        if (origin.fallback) {
+          /* Configuración incompleta: el Nodo operó con self-origin derivado
+             de TRUSTED_HOSTS. Se registra como aviso de operación, no como
+             estado definitivo. */
+          emit('api.origin.fallback', {
+            route,
+            note: 'Sin orígenes canónicos (APP_URL / CANONICAL_ORIGINS); self-origin por política de trusted hosts.',
+          });
+        }
       }
 
       const rl = rateLimit(req, route, limit);
@@ -151,6 +167,21 @@ export function guardedRoute<T = Record<string, unknown>>(
           hmacSecret: zeroTrustHmacSecret,
         });
         if (!zt.ok) return apiErrorJson(`Zero Trust denegado por capa: ${zt.deniedBy ?? 'unknown'}`, 403);
+      }
+
+      if (identityScopes && identityScopes.length > 0) {
+        const presented = req.headers.get('x-rdm-api-key');
+        const auth = authenticate(presented);
+        if (!auth.ok) {
+          return apiErrorJson(`Identidad denegada: ${auth.reason ?? 'credencial inválida'}`, 401);
+        }
+        if (!hasScope(auth.record, identityScopes)) {
+          return apiErrorJson(
+            `Identidad denegada: faltan scopes requeridos (${identityScopes.join(', ')}).`,
+            403,
+          );
+        }
+        emit('api.route.identity', { route, actor: auth.record.owner, keyId: auth.record.id });
       }
 
       if (requireNonce) {

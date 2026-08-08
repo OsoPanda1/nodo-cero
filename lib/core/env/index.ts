@@ -34,6 +34,15 @@ export const envSchema = z.object({
   VERCEL: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
+  /* Frontera — política canónica de origen (anti-CSRF) */
+  /* CANONICAL_ORIGINS: lista separada por comas de orígenes exactos
+     permitidos (p.ej. https://tamv.online,https://www.tamv.online).
+     TRUSTED_HOSTS: lista separada por comas de hostnames que el Nodo
+     reconoce como propios cuando no hay orígenes canónicos configurados
+     (p.ej. tamv.online,www.tamv.online,api.tamv.online). */
+  CANONICAL_ORIGINS: z.string().optional(),
+  TRUSTED_HOSTS: z.string().optional(),
+
   /* Claves internas (rotables con sufijos _V2 / _V3) */
   ISA_API_KEY: rotatableKey,
   ISA_API_KEY_V2: rotatableKey,
