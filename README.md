@@ -315,8 +315,10 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 | `MEXA_API_KEY` / `MEXA_OPERATOR_KEY` | Claves de la Mexa API y del operador (firmas MSR) |
 | `GAMIFICATION_API_KEY` / `GAMIFICATION_HMAC_SECRET` | Claves del motor de gamificación server-authoritative |
 | `MONITOR_API_KEY`, `CROWN_API_KEY`, `CROWN_EMERGENCY_*` | Monitoreo y emergencia CROWN |
-| `POSTGRES_URL` / `SUPABASE_SERVICE_ROLE_KEY` | Postgres primario (Supabase) |
-| `NEON_DATABASE_URL` | Postgres réplica (Neon) |
+| `POSTGRES_URL` / `POSTGRES_PRISMA_URL` | Postgres primario (Supabase o Neon pooled) |
+| `NEON_DATABASE_URL` / `DATABASE_URL_UNPOOLED` | Postgres réplica (Neon) / URL directa |
+| `PGHOST` / `PGHOST_UNPOOLED` / `PGUSER` / `POSTGRES_PASSWORD` | Componentes de conexión Neon (integración Vercel) |
+| `NEON_CU_HOURS_LIMIT` / `NEON_PING_COOLDOWN_MS` | Presupuesto del plan Free de Neon (cómputo mensual + cooldown de pings) |
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Redis (Upstash) |
 
 > Sin claves de la bóveda, Isabella opera en **modo simulación local soberano** (SOPHIA, sin egress: no falla, responde con datos del territorio).
@@ -327,8 +329,9 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 
 1. Importa el repositorio en [Vercel](https://vercel.com/new).
 2. `vercel.json` ya define `npm install --legacy-peer-deps`, build `next build` y región `iad1`.
-3. En **Project Settings → Environment Variables** añade: `APP_URL`, `NEXT_PUBLIC_SITE_URL`, `MEXA_OPERATOR_KEY`, `GAMIFICATION_HMAC_SECRET` (y las de la bóveda OSS que quieras activar).
-4. Deploy. Verifica que `metadataBase` use la URL de producción.
+3. En **Project Settings → Environment Variables** añade: `APP_URL=https://visitarealdelmonte.online`, `NEXT_PUBLIC_SITE_URL=https://visitarealdelmonte.online`, `MEXA_OPERATOR_KEY`, `GAMIFICATION_HMAC_SECRET` (y las de la bóveda OSS que quieras activar).
+4. Conecta el dominio `visitarealdelmonte.online` (apex) y `www.visitarealdelmonte.online`.
+5. Deploy. El apex es el dominio canónico: `www` responde **308 (permanent redirect)** al apex vía `next.config.ts`, y `metadataBase` usa `https://visitarealdelmonte.online`.
 
 ---
 
@@ -348,6 +351,16 @@ psql "$DATABASE_URL" -f supabase/migrations/002_create_territorial_domains.sql
 ```
 
 > Requiere las extensiones `postgis` y `pgcrypto` (incluidas en la migración).
+
+### Neon (plan Free)
+
+La integración de Neon en Vercel inyecta las variables `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `POSTGRES_PRISMA_URL`, `PGHOST`, `PGHOST_UNPOOLED`, `PGUSER`, `POSTGRES_PASSWORD`, `VITE_NEON_AUTH_URL` y `NEON_AUTH_BASE_URL`. El resolver de `lib/core/persistence/postgres.ts` prefiere URL completa pooled, luego unpooled, y reconstruye desde componentes si hace falta.
+
+El plan Free de Neon otorga **100 CU-hours/mes** de cómputo, **0.5 GB** de almacenamiento y **5 GB** de egress, con scale-to-zero a los 5 min de inactividad. Para no agotarlo:
+
+- `NEON_CU_HOURS_LIMIT` (default `100`): presupuesto mensual; `isNeonBudgetExhausted()` degrada la capa durable a modo demo antes de cortar el servicio.
+- `NEON_PING_COOLDOWN_MS` (default `300000`): espacia los pings de salud a ≥5 min para no mantener la computa despierta.
+- El pool se mantiene pequeño (`max: 2` en Neon) porque la computa free acepta ~104 conexiones.
 
 ---
 

@@ -13,10 +13,12 @@ import {
 } from './postgres';
 import { isRedisConfigured, pingRedis } from './redis';
 import { writeBehindStats } from './write-behind';
+import { neonBudgetStatus } from './neon-budget';
 
 export * from './postgres';
 export * from './redis';
 export * from './write-behind';
+export * from './neon-budget';
 
 export interface PersistenceHealth {
   mode: 'durable' | 'demo';
@@ -28,6 +30,7 @@ export interface PersistenceHealth {
     latencyMs: number | null;
     error?: string;
   };
+  neonBudget: ReturnType<typeof neonBudgetStatus>;
   redis: {
     configured: boolean;
     ok: boolean;
@@ -52,6 +55,7 @@ export async function persistenceHealth(): Promise<PersistenceHealth> {
       latencyMs: pg.latencyMs,
       error: pg.error,
     },
+    neonBudget: neonBudgetStatus(),
     redis: {
       configured: redisConfigured,
       ok: redis.ok,

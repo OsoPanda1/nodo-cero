@@ -7,6 +7,7 @@ const env = process.env as Record<string, string | undefined>;
 const KEYS = [
   'APP_URL', 'NEXT_PUBLIC_SITE_URL', 'ISA_API_KEY', 'MEXA_OPERATOR_KEY',
   'CROWN_EMERGENCY_KEY', 'GAMIFICATION_HMAC_SECRET', 'MEXA_OPERATOR_PUBLIC_KEY',
+  'NEON_CU_HOURS_LIMIT', 'NEON_PING_COOLDOWN_MS', 'PGHOST', 'PGUSER',
 ];
 
 afterEach(() => {
@@ -57,5 +58,26 @@ describe('env · contrato tipado', () => {
 
   it('el esquema no rechaza un entorno vacío (modo demo)', () => {
     expect(envSchema.safeParse({}).success).toBe(true);
+  });
+
+  it('acepta las variables de la integración Neon de Vercel', () => {
+    process.env.PGHOST = 'ep-lila-123-pooler.us-east-2.aws.neon.tech';
+    process.env.PGUSER = 'neondb_owner';
+    process.env.POSTGRES_PASSWORD = 'secret';
+    process.env.DATABASE_URL = 'postgres://user:pass@host/neondb';
+    process.env.NEON_CU_HOURS_LIMIT = '100';
+    process.env.NEON_PING_COOLDOWN_MS = '300000';
+    const result = parseEnv(process.env);
+    expect(result.ok).toBe(true);
+    expect(result.data.PGHOST).toContain('pooler');
+    expect(result.data.DATABASE_URL).toBe('postgres://user:pass@host/neondb');
+    expect(result.data.NEON_CU_HOURS_LIMIT).toBe('100');
+  });
+
+  it('rechaza un límite de cómputo no numérico', () => {
+    process.env.NEON_CU_HOURS_LIMIT = 'cien';
+    const result = parseEnv(process.env);
+    expect(result.ok).toBe(false);
+    expect(result.issues.some(i => i.path === 'NEON_CU_HOURS_LIMIT')).toBe(true);
   });
 });

@@ -11,9 +11,25 @@ import postgres from 'postgres';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '..', 'supabase', 'migrations');
 
+/* Neon (integración Vercel): prefiere la URL directa (unpooled) para DDL,
+   porque las migraciones no deben pasar por PgBouncer. Si solo hay URL
+   pooled (POSTGRES_PRISMA_URL / DATABASE_URL), la usa igualmente. */
+function neonUrl() {
+  return (
+    process.env.DATABASE_URL_UNPOOLED ||
+    process.env.NEON_POSTGRES_URL_NON_POOLING ||
+    process.env.NEON_DATABASE_URL ||
+    process.env.NEON_POSTGRES_URL ||
+    process.env.NEON_POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.DATABASE_URL ||
+    ''
+  );
+}
+
 const TARGETS = [
-  { name: 'supabase', url: process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL_NON_POOLING },
-  { name: 'neon', url: process.env.NEON_DATABASE_URL || process.env.NEON_POSTGRES_URL || process.env.NEON_POSTGRES_URL_NON_POOLING },
+  { name: 'supabase', url: process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING || '' },
+  { name: 'neon', url: neonUrl() },
 ];
 
 async function applyTo(target) {

@@ -40,6 +40,19 @@ const nextConfig: NextConfig = {
   httpAgentOptions: {
     keepAlive: true,
   },
+  async redirects() {
+    // Dominio canónico: www.visitarealdelmonte.online → apex con 308
+    // (permanent redirect). Se mantiene el host en el destino para que la
+    // política de orígenes y metadataBase usen siempre el apex.
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.visitarealdelmonte.online' }],
+        destination: 'https://visitarealdelmonte.online/:path*',
+        permanent: true,
+      },
+    ];
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

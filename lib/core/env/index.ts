@@ -36,10 +36,12 @@ export const envSchema = z.object({
 
   /* Frontera — política canónica de origen (anti-CSRF) */
   /* CANONICAL_ORIGINS: lista separada por comas de orígenes exactos
-     permitidos (p.ej. https://tamv.online,https://www.tamv.online).
+     permitidos (p.ej. https://visitarealdelmonte.online).
      TRUSTED_HOSTS: lista separada por comas de hostnames que el Nodo
      reconoce como propios cuando no hay orígenes canónicos configurados
-     (p.ej. tamv.online,www.tamv.online,api.tamv.online). */
+     (p.ej. visitarealdelmonte.online,www.visitarealdelmonte.online).
+     Dominio canónico del despliegue: https://visitarealdelmonte.online;
+     www responde 308 (permanent redirect) al apex en el edge. */
   CANONICAL_ORIGINS: z.string().optional(),
   TRUSTED_HOSTS: z.string().optional(),
 
@@ -85,10 +87,45 @@ export const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
 
-  /* Persistencia — Postgres réplica (Neon) */
+  /* Persistencia — Postgres réplica/primario (Neon)
+     La integración de Neon en Vercel provee este conjunto de variables
+     (prefijos PostgreSQL estándar más las específicas de Neon Auth).
+     El resolver de lib/core/persistence/postgres.ts las lee en prioridad:
+       1. URL completa pooled  → POSTGRES_PRISMA_URL / DATABASE_URL
+       2. URL completa directa → DATABASE_URL_UNPOOLED
+       3. Componentes (para reconstruir la URL) → PGHOST / PGHOST_UNPOOLED /
+          PGUSER / POSTGRES_PASSWORD / PGDATABASE
+     Las de Neon Auth (VITE_NEON_AUTH_URL / NEON_AUTH_BASE_URL) quedan
+     registradas como reservadas para autenticación de base de datos
+     (Neon Auth / Better Auth) y no se usan en la capa de persistencia. */
   NEON_DATABASE_URL: z.string().optional(),
   NEON_POSTGRES_URL: z.string().optional(),
   NEON_POSTGRES_URL_NON_POOLING: z.string().optional(),
+  DATABASE_URL: z.string().optional(),
+  DATABASE_URL_UNPOOLED: z.string().optional(),
+  PGHOST: z.string().optional(),
+  PGHOST_UNPOOLED: z.string().optional(),
+  PGUSER: z.string().optional(),
+  POSTGRES_PASSWORD: z.string().optional(),
+  PGDATABASE: z.string().optional(),
+  PGPORT: z.string().optional(),
+  VITE_NEON_AUTH_URL: z.string().optional(),
+  NEON_AUTH_BASE_URL: z.string().optional(),
+
+  /* Persistencia — Presupuesto del plan Free de Neon
+     NEON_CU_HOURS_LIMIT: horas de cómputo mensuales permitidas (el plan
+       Free ofrece 100 CU-hours/proyecto/mes). El presupuesto degrada la
+       capa durable a modo demo antes de cortar el servicio.
+     NEON_PING_COOLDOWN_MS: intervalo mínimo entre pings de salud para no
+       mantener la computa despierta (scale-to-zero tras 5 min). */
+  NEON_CU_HOURS_LIMIT: z
+    .string()
+    .regex(/^\d+(\.\d+)?$/, 'NEON_CU_HOURS_LIMIT debe ser numérico')
+    .optional(),
+  NEON_PING_COOLDOWN_MS: z
+    .string()
+    .regex(/^\d+$/, 'NEON_PING_COOLDOWN_MS debe ser numérico')
+    .optional(),
 
   /* Persistencia — Redis (Upstash) */
   UPSTASH_REDIS_REST_URL: z.string().optional(),

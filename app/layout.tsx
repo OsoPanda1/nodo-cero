@@ -2,7 +2,12 @@ import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
-const SITE_URL = 'https://rdm-digital-hub.vercel.app';
+/* Dominio canónico del despliegue: https://visitarealdelmonte.online.
+   www.visitarealdelmonte.online responde 308 (permanent redirect) al apex
+   en el edge, así que nunca se renderiza; aún así el apex es la única URL
+   canónica para metadataBase y Open Graph. APP_URL del entorno puede
+   sobreescribirlo (usado también por la política de orígenes). */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || 'https://visitarealdelmonte.online';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
