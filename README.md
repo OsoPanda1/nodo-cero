@@ -39,6 +39,10 @@ Plataforma digital integral (**phygital**) del **RDM Digital Hub — Nodo Cero**
 - **Gamificación territorial**: motor de puntos *server-authoritative* con anti-cheat, y arena 3D (Unity WebGL) contra oleadas de zombies con puente C#-JS (`rdm-yun`).
 - **7 núcleos soberanos** (35 nodos operativos) de arquitectura descentralizada.
 - **Isabella Villaseñor AI**: asistente cognitivo del territorio con núcleo soberano ISA y bóveda nativa de IAs open source (cero dependencia de proveedores propietarios).
+- **Identidad soberana (IDENTITY YUN)**: el Nodo Cero emite y gestiona sus propias API keys nativas (scrypt + scopes), sin proveedor de identidad externo.
+- **Malla federada autopoiética (CITEMESH)**: registro de nodos P2P, topologías de celda F1-F3 y ruteo de paquetes firmados con degradación por failover.
+- **Grafo de conocimiento federado (GEMET)**: registros ontológicos distribuidos con checksum sha256 canónico, réplicas remotas y caché firmada.
+- **Continuidad del negocio**: journal inmutable con hash-chain, reconciliación primario/réplica y matriz RTO/RPO.
 - **Criptografía post-cuántica** (NIST): CRYSTALS-Dilithium-5, CRYSTALS-Kyber-1024 y Falcon-1024.
 - **Capa de confianza cero (Zero Trust)**: origen verificado, rate limiting, comparación en tiempo constante y políticas de gateway con *fail-closed*.
 
@@ -72,6 +76,13 @@ Es el **Nodo Cero** de una red metropolitana más amplia: la **Heptafederación 
 | **Monitor** | Monitoreo general, health y estado | `app/monitor/`, `app/api/monitor/*` |
 | **Payments** | Checkout, estado y payouts | `app/api/payments/*` |
 | **Observability** | SLO/RED, grafo y estado del fabric | `app/api/observability/*` |
+| **Identity (YUN)** | Registro soberano de API keys nativas: creación, rotación, revocación e introspección | `lib/security/identity/`, `app/api/identity/*` |
+| **CITEMESH** | Malla federada autopoiética: registro de nodos P2P, heartbeat y ruteo con failover | `lib/citemesh/`, `app/api/citemesh/*` |
+| **GEMET** | Grafo de conocimiento federado: registros ontológicos con checksum y réplicas | `lib/gemet/`, `app/api/gemet/*` |
+| **Continuity** | Continuidad del negocio: journal, reconciliación, aislamiento y activación | `lib/continuity/`, `app/api/continuity/*` |
+| **Archive** | Archivo histórico: ítems, colecciones, búsqueda, curación y administración | `lib/archive/`, `app/api/archive/*` |
+| **Turismo** | Lugares, eventos, rutas y cultura de Real del Monte | `app/api/turismo/*` |
+| **YUN QSC** | Sobre semántico híbrido: sellado, firma, federaciones y ready | `lib/yun/`, `app/api/yun/*` |
 
 Todas las rutas API usan el **route-guard único** (`@/app/api/_shared/route-guard`) que aplica la cadena Zero Trust; no se duplica `enforceTrust`.
 
@@ -92,6 +103,11 @@ Todas las rutas API usan el **route-guard único** (`@/app/api/_shared/route-gua
 - Redis (Upstash) para caché/estado
 - **Bóveda nativa de IAs open source** (CROWN): Llama 3, Qwen, DeepSeek, Mistral, Phi y Cerebras sobre transportes soberanos (OpenRouter, Groq, Cloudflare Workers AI, Ollama local) — cero dependencia de proveedores propietarios. La bóveda registra además agentes de ingeniería del Nodo (kind `agent`, sin egress), como el copiloto `opencode`, que no participan en cadenas de inferencia
 
+**Identidad y malla federada**
+- **IDENTITY YUN**: registro soberano de API keys nativas (`lib/security/identity/`); claves con prefijo `rdm_live_`, almacenadas como hash scrypt, con scopes explícitos (turismo, archivo, gemelos, ciudad, gamificación, mercado, pagos, citemesh, gemet, monitor, admin) y ciclo de vida completo (crear/rotar/revocar/introspeccionar)
+- **CITEMESH**: malla federada autopoiética (`lib/citemesh/`) — registro de nodos P2P con credencial derivada de la `p2pPublicKey`, topologías de celda F1-F3, poder de gobernanza (LOGICAL/EXECUTIVE/OBSERVER/HUMAN), nivel HRO (Q0-Q3) y ruteo de paquetes firmados con failover
+- **GEMET**: grafo de conocimiento federado (`lib/gemet/`) — registros ontológicos con checksum sha256 canónico, réplicas remotas y caché firmada (detecta manipulaciones)
+
 **Gamificación 3D**
 - Unity 2022.3 (LTS) compilado a WebGL, integrado como app de Next.js
 
@@ -110,8 +126,13 @@ app/                  # Rutas y páginas de Next.js (App Router)
 components/           # Componentes React (incl. gamificación 2D/3D)
 hooks/                # Hooks (use-unity-webgl, etc.)
 lib/                  # Lógica de dominio y núcleo transversal
-  core/                 # Núcleo: env, events, contracts, utils
-  security/             # trust, zero-trust, keys, tokens
+  core/                 # Núcleo: env, events, contracts, utils, persistence
+  security/             # trust, zero-trust, keys, tokens, identity (API keys)
+  citemesh/             # Malla federada autopoiética (nodos P2P + failover)
+  gemet/                # Grafo de conocimiento federado (checksum + réplicas)
+  continuity/           # Hash-chain, journal, lease-manager y reconciliación
+  archive/              # Archivo histórico con checksums canónicos
+  yun/                  # Sobre semántico híbrido (sellado, firma, federaciones)
   <dominio>/            # stacks de dominio (isabella, city, twins, grid, gamification, ...)
 unity/                # Proyecto Unity (Arena 3D) — no empaquetado en web
   Assets/               # Scripts, Plugins/WebGL, WebGLTemplates/RDM, Editor
@@ -120,11 +141,11 @@ unity/                # Proyecto Unity (Arena 3D) — no empaquetado en web
 public/               # Assets estáticos, incl. build WebGL en public/unity/RDMArena/
 scripts/              # Automatización (audit, check:env, check:contracts)
 supabase/migrations/  # Migraciones Postgres con RLS
-tests/                # Pruebas de Vitest por dominio
+tests/                # Pruebas de Vitest por dominio (42 archivos)
 docs/                 # ADRs, guías, C4, catálogo de APIs, mapa de dominios
 ```
 
-**Núcleo transversal**: `lib/core/` (env tipado con zod, eventos, contratos, utils). La trust canónica vive en `lib/security/trust.ts`; `lib/isabella/trust.ts` es un barril de compatibilidad (no añadir lógica nueva allí).
+**Núcleo transversal**: `lib/core/` (env tipado con zod, eventos, contratos, utils). La trust canónica vive en `lib/security/trust.ts`; `lib/isabella/trust.ts` es un barril de compatibilidad (no añadir lógica nueva allí). La identidad soberana vive en `lib/security/identity/`.
 
 ---
 
@@ -203,6 +224,71 @@ docs/                 # ADRs, guías, C4, catálogo de APIs, mapa de dominios
 | `GET /api/monitor/state` | Estado del nodo |
 | `GET /api/monitor/events` | Eventos de monitoreo |
 
+### Identity (`/api/identity/*`)
+| Ruta | Propósito |
+|---|---|
+| `POST /api/identity/keys` | Emisión de una API key nativa (scope `admin:keys`) |
+| `GET /api/identity/keys` | Listado de claves (solo metadatos) |
+| `PATCH /api/identity/keys/[id]` | Rotación de una clave |
+| `DELETE /api/identity/keys/[id]` | Revocación inmediata |
+| `POST /api/identity/introspect` | Autenticación e introspección de una clave |
+
+### CITEMESH (`/api/citemesh/*`)
+| Ruta | Propósito |
+|---|---|
+| `POST /api/citemesh/nodes` | Registro de un nodo P2P (scope `citemesh:write`) |
+| `GET /api/citemesh/nodes` | Nodos registrados en la malla |
+| `POST /api/citemesh/route` | Enrutado de un paquete firmado con failover |
+| `GET /api/citemesh/health` | Salud de la malla federada |
+
+### GEMET (`/api/gemet/*`)
+| Ruta | Propósito |
+|---|---|
+| `POST /api/gemet/nodes` | Registro de un nodo de conocimiento (checksum verificado) |
+| `GET /api/gemet/nodes` | Registros indexados en el grafo |
+| `POST /api/gemet/query` | Consulta federada (local → réplica → caché firmada) |
+| `PUT /api/gemet/query` | Alta de una réplica remota del grafo |
+| `GET /api/gemet/health` | Salud del grafo de conocimiento |
+
+### Continuity (`/api/continuity/*`)
+| Ruta | Propósito |
+|---|---|
+| `POST /api/continuity/journal` | Registro inmutable en el journal |
+| `GET /api/continuity/status` | Estado del plan de continuidad |
+| `POST /api/continuity/reconcile` | Reconciliación primario/réplica |
+| `POST /api/continuity/isolate-primary` | Aislamiento del primario |
+| `POST /api/continuity/activate` | Activación del plan de continuidad |
+
+### Archive (`/api/archive/*`)
+| Ruta | Propósito |
+|---|---|
+| `GET /api/archive/items` | Ítems del archivo histórico |
+| `GET /api/archive/items/[id]` | Detalle de un ítem |
+| `GET /api/archive/items/[id]/download` | Descarga de un objeto |
+| `GET /api/archive/collections` | Colecciones |
+| `GET /api/archive/search` | Búsqueda con verificación de checksum |
+| `POST /api/archive/demo-upload` / `demo-file` | Uploads de demostración |
+| `GET/POST /api/archive/admin/*` | Curación: aprobar, publicar, retirar, auditar, subir archivos |
+
+### Turismo (`/api/turismo/*`)
+| Ruta | Propósito |
+|---|---|
+| `GET /api/turismo/places` | Lugares de interés |
+| `GET /api/turismo/places/[id]` | Detalle de un lugar |
+| `GET /api/turismo/events` | Agenda de eventos |
+| `GET /api/turismo/routes` | Rutas turísticas |
+| `GET /api/turismo/cultura` | Patrimonio cultural |
+
+### YUN QSC (`/api/yun/*`)
+| Ruta | Propósito |
+|---|---|
+| `POST /api/yun/envelope/create` | Creación de sobre semántico |
+| `POST /api/yun/envelope/seal` | Sellado con cifrado y firma híbrida |
+| `POST /api/yun/envelope/verify` | Verificación de integridad y firma |
+| `GET /api/yun/federations/health` | Salud de la heptafederación Fed1..Fed7 |
+| `GET /api/yun/ready` | Prontitud operativa del QSC |
+| `GET /api/yun/status` | Estado del núcleo |
+
 ### Payments (`/api/payments/*`)
 | Ruta | Propósito |
 |---|---|
@@ -215,6 +301,7 @@ docs/                 # ADRs, guías, C4, catálogo de APIs, mapa de dominios
 |---|---|
 | `POST /api/auth/register` | Registro de usuario |
 | `GET /api/observability/status` | Estado del fabric cognitivo YUN |
+| `POST /api/intentions` | Registro de intenciones |
 
 ---
 
@@ -243,15 +330,17 @@ La gamificación combina un **motor de puntos server-authoritative** (HMAC, anti
 
 ## Pruebas Automatizadas
 
-Suite **Vitest** en `tests/` (29 archivos, 245 tests). Cobertura por dominio:
+Suite **Vitest** en `tests/` (42 archivos, 438 tests). Cobertura por dominio:
 
 | Archivo | Cubre |
 |---|---|
 | `anti-cheat`, `points-engine`, `gamification-visual` | Motor de gamificación y arena |
 | `assets`, `city`, `grid`, `twins`, `marketplace`, `payments` | Dominios territoriales |
 | `isabella` (`isa-core`, `bus-bridges`, `dead-man-switch`, `gateway-policy`, `engine`, `rules`) | Núcleo cognitivo y CROWN |
-| `trust`, `zero-trust`, `auth-tokens`, `hardening` | Seguridad y Zero Trust |
-| `events`, `contracts`, `env`, `system`, `features`, `governance`, `monitoring`, `observability`, `resilience` | Núcleo transversal y operación |
+| `trust`, `zero-trust`, `auth-tokens`, `hardening`, `identity` | Seguridad, Zero Trust e IDENTITY YUN |
+| `citemesh` | Malla federada: registro, credenciales, ruteo con failover |
+| `gemet` | Grafo de conocimiento: checksum, réplicas, caché firmada |
+| `events`, `contracts`, `env`, `system`, `features`, `governance`, `monitoring`, `observability`, `resilience`, `continuity` | Núcleo transversal y operación |
 
 ---
 
@@ -261,11 +350,11 @@ Suite **Vitest** en `tests/` (29 archivos, 245 tests). Cobertura por dominio:
 |---|---|
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 245/245 (29 archivos) |
+| Tests (`vitest`) | ✅ 438/438 (42 archivos) |
 | Auditor de consistencia (`npm run audit`) | ✅ 0 errores |
 | Build de producción (`next build`) | ✅ Exitoso |
 | Contrato de entorno (`check:env`) | ✅ OK |
-| Adopción del route-guard (`check:contracts`) | ✅ OK |
+| Adopción del route-guard (`check:contracts`) | ✅ OK (83 rutas migradas, 0 pendientes) |
 | Gemelo Digital (Twins) | ✅ DTDL · NGSI · grafo · simulación |
 | IOC Urbano | ✅ Incidentes · playbooks · scorecard · RBAC |
 | EAM/APM | ✅ Salud · falla · mantenimiento · APM Score |
@@ -276,6 +365,12 @@ Suite **Vitest** en `tests/` (29 archivos, 245 tests). Cobertura por dominio:
 | Gamificación | ✅ Puntos server-authoritative · anti-cheat · arena 3D Unity WebGL con fallback 2D |
 | Fabric cognitivo YUN | ✅ Observabilidad (SLO/RED/grafo) · Guardian Kernel |
 | Supabase/Postgres | ✅ Migraciones 001 y 002 con RLS |
+| IDENTITY YUN | ✅ API keys nativas (scrypt, scopes, rotación/revocación/introspección) |
+| CITEMESH | ✅ Contratos · orquestador P2P · ruteo con failover · 4 rutas API |
+| GEMET | ✅ Contratos · checksum canónico · réplicas · caché firmada · 5 rutas API |
+| Continuity | ✅ Journal · reconciliación · aislamiento · activación |
+| Archive | ✅ Ítems · checksums canónicos · curación · admin |
+| YUN QSC | ✅ Sobre semántico híbrido · firma post-cuántica (ML-DSA simulado en tests) |
 
 ---
 
@@ -287,7 +382,7 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
-npm test                         # Vitest (245 tests)
+npm test                         # Vitest (438 tests)
 npm run audit                    # Consistencia del código (bloquea `as never` / `require()`)
 npm run check:env                # Entorno contra el contrato
 npm run check:contracts          # Adopción del route-guard
@@ -322,6 +417,14 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Redis (Upstash) |
 
 > Sin claves de la bóveda, Isabella opera en **modo simulación local soberano** (SOPHIA, sin egress: no falla, responde con datos del territorio).
+
+### API keys nativas (IDENTITY YUN)
+
+Las credenciales de acceso al Nodo Cero se emiten de forma soberana vía `POST /api/identity/keys` (scope `admin:keys`). Cada clave:
+
+- Se genera con prefijo `rdm_live_` y se almacena SIEMPRE como hash **scrypt** — jamás en claro.
+- Porta scopes explícitos (`turismo:read/write`, `archivo:read/write`, `gemelos:read/write`, `ciudad:read/write`, `gamificacion:read/write`, `mercado:read/write`, `pagos:read/write`, `citemesh:read/write`, `gemet:read/write`, `monitor:read`, `admin:keys`, `admin:all`).
+- Se presenta vía cabecera `x-rdm-api-key` y el route-guard la autentica y comprueba scopes antes de ejecutar el handler.
 
 ---
 
@@ -371,11 +474,18 @@ El plan Free de Neon otorga **100 CU-hours/mes** de cómputo, **0.5 GB** de alma
 | `docs/adr-0001-isa-soberano.md` | Núcleo soberano ISA (cero dependencia de proveedores externos) |
 | `docs/adr-0002-zero-trust-7-capas.md` | Cadena Zero Trust de 7 capas |
 | `docs/adr-0003-observabilidad.md` | Monitor General del Nodo Cero |
+| `docs/adr-0004-yun-be-continuidad.md` | Continuidad del negocio (journal, RTO/RPO, reconciliación) |
+| `docs/adr-0005-yun-quantum-semantic-core.md` | Sobre semántico híbrido YUN (cifrado + firma post-cuántica) |
 | `docs/c4-contexto.md` | Diagrama C4 de contexto, contenedores y componentes |
 | `docs/catalogo-apis.md` | Contratos de API (semver + ciclo de vida) |
 | `docs/mapa-dominios.md` | Dominios ↔ código ↔ federación YUN |
 | `docs/guia-desarrollador.md` | Convenciones, cómo añadir dominios/APIs, resiliencia y caché |
 | `docs/guia-modularizacion.md` | Modularización: núcleo transversal, route-guard, contratos |
+| `docs/continuity-plan.md` | Plan de continuidad del negocio |
+| `docs/reconciliation-protocol.md` | Protocolo de reconciliación primario/réplica |
+| `docs/rto-rpo-matrix.md` | Matriz RTO/RPO por dominio |
+| `docs/emergency-runbook.md` | Runbook de emergencias |
+| `docs/openapi-yun.yaml` | Contrato OpenAPI del fabric YUN |
 | `AGENTS.md` | Convenciones para agentes de IA |
 | `unity/README.md` | Pipeline de build e integración de la Arena 3D |
 
