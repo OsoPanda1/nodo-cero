@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Palette, Star, MapPin, Brush, Camera, Award } from "lucide-react";
-import { RDM_ARTISTS, RDMArtist } from "@/lib/data/rdm-content";
+import { RDM_ARTISTS, RDMArtist } from "@/lib/rdm/rdm-content";
 
 const disciplineIcons: Record<string, React.ReactNode> = {
   "Orfebrería y Platería": <Award className="w-4 h-4" />,

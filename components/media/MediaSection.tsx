@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Music, Mic2, Play, Pause, Headphones, Radio, Clock, CalendarDays, BadgeCheck } from 'lucide-react';
-import { RDM_TRACKS, RDM_PODCAST } from '@/lib/data/rdm-content';
+import { RDM_TRACKS, RDM_PODCAST } from '@/lib/rdm/rdm-content';
 
 export default function MediaSection() {
   const [activeTab, setActiveTab] = useState<'musica' | 'podcast'>('musica');

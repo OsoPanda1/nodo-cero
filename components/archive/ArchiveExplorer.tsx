@@ -15,6 +15,7 @@ type ArchiveSearchFilters = {
   assetType: string;
   yearFrom: string;
   yearTo: string;
+  collection?: string;
 };
 
 interface ArchiveExplorerProps {
@@ -37,6 +38,7 @@ export function ArchiveExplorer({ collections, featured }: ArchiveExplorerProps)
       if (filters.assetType) params.set('assetType', filters.assetType);
       if (filters.yearFrom) params.set('yearFrom', filters.yearFrom);
       if (filters.yearTo) params.set('yearTo', filters.yearTo);
+      if (filters.collection) params.set('collection', filters.collection);
       const res = await fetch(`/api/archive/search?${params.toString()}`, { cache: 'no-store' });
       const data = (await res.json()) as { ok: boolean; items?: ArchiveItemWithFiles[]; error?: string };
       if (!res.ok) throw new Error(data.error ?? 'Error de búsqueda');
@@ -121,10 +123,11 @@ export function ArchiveExplorer({ collections, featured }: ArchiveExplorerProps)
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {collections.map(col => (
-                    <a
+                    <button
                       key={col.id}
-                      href={`/archivo/colecciones/${col.slug}`}
-                      className="group flex items-center gap-4 rounded-2xl border border-[#c9d0d4]/60 bg-white/75 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(13,70,82,0.14)]"
+                      type="button"
+                      onClick={() => runSearch({ q: '', assetType: '', yearFrom: '', yearTo: '', collection: col.slug })}
+                      className="group flex items-center gap-4 rounded-2xl border border-[#c9d0d4]/60 bg-white/75 p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(13,70,82,0.14)]"
                     >
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0d4652] to-[#082f3b] text-[#f2cc76]">
                         <FolderOpen className="h-5 w-5" />
@@ -138,7 +141,7 @@ export function ArchiveExplorer({ collections, featured }: ArchiveExplorerProps)
                           Explorar <ExternalLink className="h-3 w-3" />
                         </span>
                       </div>
-                    </a>
+                    </button>
                   ))}
                 </div>
               </div>

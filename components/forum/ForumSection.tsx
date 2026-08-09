@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { MessagesSquare, ThumbsUp, Reply, Eye, Clock, Plus, Send, MessageSquareText } from 'lucide-react';
-import { RDM_FORUM_THREADS } from '@/lib/data/rdm-content';
+import { RDM_FORUM_THREADS } from '@/lib/rdm/rdm-content';
 
 const categoryColors: Record<string, string> = {
   Gastronomía: 'text-rose-300 border-rose-500/40 bg-rose-950/60',

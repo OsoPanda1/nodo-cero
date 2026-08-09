@@ -48,7 +48,7 @@ export const metadata: Metadata = {
       'Sistema de Inteligencia Territorial soberano para Real del Monte: gemelo digital 2D/3D, rutas turísticas, Festival del Paste, Isabella AI y economía phygital de la plata y el paste.',
     images: [
       {
-        url: '/images/hero.png',
+        url: '/images/hidalgo-hero1.png',
         width: 1200,
         height: 630,
         alt: 'RDM Digital Hub — Nodo Cero, Real del Monte',
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
     title: 'RDM Digital Hub — Nodo Cero | Real del Monte',
     description:
       'Gemelo digital turístico del Pueblo Mágico de Real del Monte, Hidalgo: rutas, minas, pastes, plata y asistencia cognitiva de Isabella AI.',
-    images: ['/images/hero.png'],
+    images: ['/images/hidalgo-hero1.png'],
   },
   robots: {
     index: true,
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
   },
   category: 'technology',
   icons: {
-    icon: '/images/hero.png',
-    apple: '/images/hero.png',
+    icon: '/images/hidalgo-hero1.png',
+    apple: '/images/hidalgo-hero1.png',
   },
 };
 

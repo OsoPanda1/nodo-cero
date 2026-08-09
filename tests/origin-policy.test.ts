@@ -1,11 +1,29 @@
 import { describe, it, expect, afterEach } from 'vitest';
+import { NextRequest } from 'next/server';
 import {
   validateHostHeader,
   selfOriginFromHost,
   trustedHosts,
   allowedOrigins,
   normalizeOrigin,
+  verifyOrigin,
 } from '@/lib/security/trust';
+
+/* process.env.NODE_ENV está tipado como readonly por Next; cast a mutable.
+   El afterEach reemplaza process.env con una copia, así que siempre se opera
+   sobre el objeto actual en cada test. */
+function setNodeEnv(value: string): void {
+  (process.env as Record<string, string | undefined>).NODE_ENV = value;
+}
+
+/** Simula una petición Next con headers de Origin y Host. */
+function requestWith(origin?: string | null, host = 'visitarealdelmonte.online'): NextRequest {
+  const url = `https://${host}/api/ruta`;
+  const headers: Record<string, string> = {};
+  if (origin !== null && origin !== undefined) headers['origin'] = origin;
+  headers['host'] = host;
+  return new NextRequest(url, { headers });
+}
 
 const ORIGINAL = { ...process.env };
 
@@ -92,5 +110,80 @@ describe('frontera · normalizeOrigin', () => {
     expect(normalizeOrigin('https://tamv.online/pagina')).toBe('https://tamv.online');
     expect(normalizeOrigin('https://tamv.online:8443/ruta')).toBe('https://tamv.online:8443');
     expect(normalizeOrigin('no-url')).toBeNull();
+  });
+});
+
+describe('frontera · verifyOrigin (producción)', () => {
+  /* El sitio canónico se sirve en visitarealdelmonte.online: el navegador
+     envía Origin igual al Host, lo que debe admitirse sin depender de la
+     allowlist (defensa CSRF estándar "Origin === Host"). */
+  it('acepta el dominio canónico mismo-origen aunque la allowlist no lo incluya', () => {
+    process.env.APP_URL = '';
+    process.env.NEXT_PUBLIC_SITE_URL = '';
+    process.env.VERCEL_URL = '';
+    process.env.CANONICAL_ORIGINS = '';
+    process.env.TRUSTED_HOSTS = '';
+    setNodeEnv('production');
+
+    const result = verifyOrigin(requestWith('https://visitarealdelmonte.online'));
+    expect(result.ok).toBe(true);
+    expect(result.fallback).toBe(true);
+  });
+
+  it('rechaza un origen cross-site ajeno', () => {
+    process.env.APP_URL = '';
+    process.env.NEXT_PUBLIC_SITE_URL = '';
+    process.env.VERCEL_URL = '';
+    process.env.CANONICAL_ORIGINS = '';
+    process.env.TRUSTED_HOSTS = '';
+    setNodeEnv('production');
+
+    const result = verifyOrigin(requestWith('https://evil.com'));
+    expect(result.ok).toBe(false);
+  });
+
+  it('rechaza un Origin malformado (fail-closed, no degrada a Host)', () => {
+    process.env.APP_URL = '';
+    process.env.NEXT_PUBLIC_SITE_URL = '';
+    process.env.VERCEL_URL = '';
+    process.env.CANONICAL_ORIGINS = '';
+    process.env.TRUSTED_HOSTS = '';
+    setNodeEnv('production');
+
+    const result = verifyOrigin(requestWith('no-url'));
+    expect(result.ok).toBe(false);
+  });
+
+  it('acepta orígenes de la allowlist explícita (Host distinto del origen)', () => {
+    process.env.APP_URL = '';
+    process.env.NEXT_PUBLIC_SITE_URL = '';
+    process.env.VERCEL_URL = '';
+    process.env.CANONICAL_ORIGINS = 'https://visitarealdelmonte.online';
+    process.env.TRUSTED_HOSTS = '';
+    setNodeEnv('production');
+
+    /* Host de API distinto del origen canónico: solo la allowlist lo admite. */
+    const result = verifyOrigin(
+      new NextRequest('https://api.visitarealdelmonte.online/api/ruta', {
+        headers: {
+          origin: 'https://visitarealdelmonte.online',
+          host: 'api.visitarealdelmonte.online',
+        },
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.fallback).toBeUndefined();
+  });
+
+  it('acepta peticiones sin Origin si el Host es válido', () => {
+    process.env.APP_URL = '';
+    process.env.NEXT_PUBLIC_SITE_URL = '';
+    process.env.VERCEL_URL = '';
+    process.env.CANONICAL_ORIGINS = '';
+    process.env.TRUSTED_HOSTS = '';
+    setNodeEnv('production');
+
+    const result = verifyOrigin(requestWith(null));
+    expect(result.ok).toBe(true);
   });
 });

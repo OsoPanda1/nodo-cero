@@ -204,7 +204,7 @@ function seed(): void {
       admissionFee: '$30 MXN',
       accessibility: false,
       hours: [openHours('Martes a domingo', '10:00', '17:00')],
-      image: '/images/panteon-ingles.jpg',
+      image: '/images/real-1.jpg',
       tags: ['panteon', 'cornish', 'historia'],
       status: 'published',
       sourceType: 'municipio',

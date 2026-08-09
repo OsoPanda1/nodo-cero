@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Images, X, ZoomIn, User, ThumbsUp, PlayCircle } from 'lucide-react';
-import { RDM_GALLERY } from '@/lib/data/rdm-content';
+import { RDM_GALLERY } from '@/lib/rdm/rdm-content';
 
 const categoryLabels: Record<string, string> = {
   Naturaleza: 'Naturaleza',

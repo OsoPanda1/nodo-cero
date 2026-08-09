@@ -117,15 +117,6 @@ create table if not exists public.archive_items (
   organizations text[] not null default '{}',
   tags text[] not null default '{}',
 
-  search_vector tsvector generated always as (
-    setweight(to_tsvector('spanish', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('spanish', coalesce(summary, '')), 'B') ||
-    setweight(to_tsvector('spanish', coalesce(description, '')), 'C') ||
-    setweight(to_tsvector('spanish', array_to_string(tags, ' ')), 'B') ||
-    setweight(to_tsvector('spanish', array_to_string(people, ' ')), 'C') ||
-    setweight(to_tsvector('spanish', coalesce(location_name, '')), 'B')
-  ) stored,
-
   published_at timestamptz,
   withdrawn_at timestamptz,
   withdrawn_reason text,
@@ -258,8 +249,15 @@ create index if not exists archive_items_asset_type_idx
 create index if not exists archive_items_historical_date_idx
   on public.archive_items(historical_date_start);
 
+-- Búsqueda: el repo de archivo consulta con ILIKE; se indexa el vector de
+-- texto completo vía función wrapper inmutable (patrón Supabase canónico)
+-- para poder escalar la búsqueda cuando se use to_tsquery.
+create or replace function public.rdm_tsvector(regconfig, text) returns tsvector
+  language sql immutable
+  return to_tsvector($1, $2);
+
 create index if not exists archive_items_search_idx
-  on public.archive_items using gin(search_vector);
+  on public.archive_items using gin (rdm_tsvector('spanish'::regconfig, coalesce(title, '')));
 
 create index if not exists archive_items_tags_idx
   on public.archive_items using gin(tags);

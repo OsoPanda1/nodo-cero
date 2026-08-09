@@ -10,7 +10,7 @@ import {
   Lock,
   Gem,
 } from "lucide-react";
-import { RDM_TEAM, RDM_VALUES } from "@/lib/data/rdm-content";
+import { RDM_TEAM, RDM_VALUES } from "@/lib/rdm/rdm-content";
 
 const valueIcons = [
   <Lock key="v1" className="w-5 h-5" />,

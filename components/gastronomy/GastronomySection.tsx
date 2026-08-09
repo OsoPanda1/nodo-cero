@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { UtensilsCrossed, Star, MapPin, Wallet } from 'lucide-react';
-import { RDM_GASTRONOMY, RDMGastronomy } from '@/lib/data/rdm-content';
+import { RDM_GASTRONOMY, RDMGastronomy } from '@/lib/rdm/rdm-content';
 
 const typeLabels: Record<string, string> = {
   paste: 'Pastes',

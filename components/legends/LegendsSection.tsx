@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Ghost, Quote, BookOpen, ChevronLeft, ChevronRight, ScrollText, MessageCircleWarning } from 'lucide-react';
-import { RDM_LEGENDS, RDM_DICHOS_MINEROS } from '@/lib/data/rdm-content';
+import { RDM_LEGENDS, RDM_DICHOS_MINEROS } from '@/lib/rdm/rdm-content';
 
 const typeLabels: Record<string, string> = {
   Minería: 'Leyenda de Mina',

@@ -16,7 +16,7 @@ import { getTwinInstances } from '@/lib/twins/twin-store';
 import { listListings, listSubscriptions } from '@/lib/marketplace/marketplace-store';
 import { ledgerSummary } from '@/lib/payments/engine';
 import { getGamificationStats } from './store';
-import { RDM_CHALLENGES } from '@/lib/data/rdm-content';
+import { RDM_CHALLENGES } from '@/lib/rdm/rdm-content';
 import { RDM_POIS } from '@/lib/data/rdm-data';
 import type { SpawnZone } from './contracts';
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Award, Trophy, Medal, BadgeCheck, CalendarDays, Sparkles } from 'lucide-react';
-import { RDM_HONOREES } from '@/lib/data/rdm-content';
+import { RDM_HONOREES } from '@/lib/rdm/rdm-content';
 
 type Tier = 'maximo' | 'reconocido' | 'comunidad';
 

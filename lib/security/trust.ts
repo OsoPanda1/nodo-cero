@@ -118,6 +118,19 @@ export function validateHostHeader(raw: string | null | undefined): {
   return { hostname, port };
 }
 
+/** Self-origen derivado del Host de la petición (validado estructuralmente).
+ *  Permite la defensa CSRF estándar "Origin === Host" sin exigir que el
+ *  dominio esté pre-registrado en la allowlist: un navegador legítimo
+ *  siempre envía Origin igual al Host del sitio que está visitando, y un
+ *  atacante no puede forzar que ambos coincidan en una petición cross-site. */
+function selfOriginFromRequestHost(hostHeader: string | null | undefined): string | null {
+  const validated = validateHostHeader(hostHeader);
+  if (!validated) return null;
+  const scheme = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  const port = validated.port ? `:${validated.port}` : '';
+  return `${scheme}://${validated.hostname}${port}`;
+}
+
 /** Hosts confiables derivados de la política explícita del Nodo. */
 export function trustedHosts(): string[] {
   const hosts = new Set<string>();
@@ -222,10 +235,11 @@ export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string; 
   const origins = allowedOrigins();
   const hostHeader = req.headers.get('host');
 
-  /* Fallback de recuperación: sin orígenes canónicos, derivar self-origin
-     SOLO desde un Host validado contra la política de trusted hosts. */
+  /* Fallback de recuperación: sin orígenes canónicos, derivar el self-origin
+     desde un Host validado estructuralmente (defensa CSRF "Origin === Host",
+     sin exigir allowlist). Host malformado o ausente: fail-closed. */
   if (origins.length === 0) {
-    const self = selfOriginFromHost(hostHeader);
+    const self = selfOriginFromRequestHost(hostHeader);
     if (!self) {
       const validated = validateHostHeader(hostHeader);
       return {
@@ -253,12 +267,21 @@ export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string; 
   }
 
   const origin = req.headers.get('origin');
+
+  /* Self-origen del Host de la petición (defensa CSRF estándar):
+     un navegador legítimo envía Origin igual al Host que visita; un
+     atacante no puede forzar que ambos coincidan en una petición
+     cross-site. Esto admite el dominio canónico del despliegue
+     (p. ej. visitarealdelmonte.online) sin depender de la allowlist. */
+  const self = selfOriginFromRequestHost(hostHeader);
+
   if (origin) {
     const normalized = normalizeOrigin(origin);
     if (!normalized) {
       /* Origin presente pero malformado: jamás se degrada al chequeo de Host. */
       return { ok: false, reason: 'Origen malformado no autorizado (Zero Trust).' };
     }
+    if (self && normalized === self) return { ok: true, fallback: true };
     if (origins.includes(normalized)) return { ok: true };
     return { ok: false, reason: 'Origen no autorizado (Zero Trust).' };
   }
@@ -266,6 +289,7 @@ export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string; 
   const host = hostHeader;
   if (host) {
     const candidate = normalizeOrigin(`https://${host}`);
+    if (self && candidate === self) return { ok: true, fallback: true };
     if (candidate && origins.includes(candidate)) return { ok: true };
     return { ok: false, reason: 'Host no autorizado (Zero Trust).' };
   }

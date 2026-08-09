@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Trophy, Medal, Target, CheckCircle2, Flame, Crown, Lock, TrendingUp, Loader2, Gift, Star, Activity, Boxes, Building2, CreditCard, AlertTriangle } from 'lucide-react';
-import { RDM_BADGES, RDM_CHALLENGES } from '@/lib/data/rdm-content';
+import { RDM_BADGES, RDM_CHALLENGES } from '@/lib/rdm/rdm-content';
 import { startSession, reportMission, getCachedSession, getDeviceId } from '@/lib/gamification/client';
 import { playerLevel } from '@/lib/data/zombies-data';
 

@@ -6,7 +6,7 @@ import {
   getGamificationTerritoryStatus,
   type TerritoryPulse,
 } from '@/lib/gamification/territory';
-import { RDM_CHALLENGES } from '@/lib/data/rdm-content';
+import { RDM_CHALLENGES } from '@/lib/rdm/rdm-content';
 import { RDM_POIS } from '@/lib/data/rdm-data';
 
 const ZONES = ['mina', 'cultura', 'naturaleza', 'gastronomia', 'calles'] as const;
