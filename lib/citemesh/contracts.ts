@@ -52,3 +52,14 @@ export const citemeshRoutePacketSchema = z
   .strict();
 
 export type CitemeshRoutePacket = z.infer<typeof citemeshRoutePacketSchema>;
+
+/* Solicitud de registro: configuración + credencial derivada de la
+   p2pPublicKey (probar conocimiento de la identidad P2P). */
+export const citemeshRegisterNodeRequestSchema = z
+  .object({
+    config: citemeshNodeConfigSchema,
+    nodeSecret: z.string().trim().min(1, 'nodeSecret es requerido').max(256),
+  })
+  .strict();
+
+export type CitemeshRegisterNodeRequest = z.infer<typeof citemeshRegisterNodeRequestSchema>;
