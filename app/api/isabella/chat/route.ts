@@ -10,6 +10,7 @@
 /* ================================================================== */
 
 import { z } from 'zod';
+import { NextResponse } from 'next/server';
 import { guardedRoute } from '@/app/api/_shared/route-guard';
 import { handleIsabellaPost } from '@/lib/isabella/http';
 import { publishEvent } from '@/lib/core/events';
@@ -30,7 +31,7 @@ const IsabellaChatSchema = z.object({
   topP: z.number().min(0).max(1).optional(),
   frequencyPenalty: z.number().min(-2).max(2).optional(),
   presencePenalty: z.number().min(-2).max(2).optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 type IsabellaPayload = z.infer<typeof IsabellaChatSchema>;
@@ -93,7 +94,7 @@ export const POST = guardedRoute<IsabellaPayload>(
       responseHeaders.set('X-Processing-Time-Ms', durationMs.toFixed(2));
       responseHeaders.set('Server-Timing', `isabella;dur=${durationMs.toFixed(2)}, node;dur=0.1`);
 
-      return new Response(upstreamResponse.body, {
+      return new NextResponse(upstreamResponse.body, {
         status: upstreamResponse.status,
         statusText: upstreamResponse.statusText,
         headers: responseHeaders,
@@ -108,7 +109,7 @@ export const POST = guardedRoute<IsabellaPayload>(
         source: 'isabella-titan-route',
         domain: 'ai',
         traceId,
-        severity: isAborted ? 'info' : 'error',
+        severity: isAborted ? 'info' : 'critical',
         data: {
           route,
           durationMs,
@@ -117,7 +118,7 @@ export const POST = guardedRoute<IsabellaPayload>(
       });
 
       if (isAborted) {
-        return new Response(null, { status: 499, statusText: 'Client Closed Request' });
+        return new NextResponse(null, { status: 499, statusText: 'Client Closed Request' });
       }
 
       throw error; // Delegado al gestor global de errores del guardián

@@ -23,7 +23,7 @@ import { assertServerOnly, verifyOrigin, rateLimit } from '@/lib/security/trust'
 import { assertZeroTrust } from '@/lib/security/zero-trust';
 import { claimNonce } from '@/lib/security/nonce';
 import { authenticate, hasScope } from '@/lib/security/identity';
-import type { IdentityScope, IdentityRecord } from '@/lib/security/identity';
+import type { IdentityScope, ApiKeyPublic } from '@/lib/security/identity';
 import { methodGuard, jsonContentGuard, readJsonBodyRaw, parseJsonBodyFromRaw } from '@/lib/security/request-validator';
 import { apiErrorJson, rateLimitedJson, zodErrorJson, internalErrorJson } from '@/lib/core/contracts';
 import { publishEvent, runWithTrace, newTraceId, currentTrace } from '@/lib/core/events';
@@ -67,7 +67,7 @@ export interface GuardedRouteOptions {
   hardenHeaders?: boolean;
 }
 
-export interface GuardedRouteContext<T, TActor = IdentityRecord | null> {
+export interface GuardedRouteContext<T, TActor = ApiKeyPublic | null> {
   req: NextRequest;
   route: string;
   traceId: string;
@@ -75,12 +75,12 @@ export interface GuardedRouteContext<T, TActor = IdentityRecord | null> {
   actor: TActor;
 }
 
-export type GuardedHandler<T = Record<string, unknown>, TActor = IdentityRecord | null> = (
+export type GuardedHandler<T = Record<string, unknown>, TActor = ApiKeyPublic | null> = (
   ctx: GuardedRouteContext<T, TActor>,
 ) => Promise<NextResponse>;
 
 /** Envuelve un handler de API con una arquitectura de blindaje multicapa avanzada. */
-export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecord | null>(
+export function guardedRoute<T = Record<string, unknown>, TActor = ApiKeyPublic | null>(
   options: GuardedRouteOptions,
   handler: GuardedHandler<T, TActor>,
 ): (req: NextRequest) => Promise<NextResponse> {
@@ -114,7 +114,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
       const traceId = currentTrace()?.traceId ?? newTraceId();
       const startedAt = Date.now();
 
-      const emit = (type: string, data: Record<string, unknown>, severity: 'info' | 'warn' | 'error' = 'info') => {
+      const emit = (type: string, data: Record<string, unknown>, severity: 'info' | 'warning' | 'critical' = 'info') => {
         publishEvent({
           type,
           source: 'crown-route-guard-enterprise',
@@ -128,7 +128,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
       // 1. Capa L0: Aislamiento estricto de entorno servidor (Zero Trust L0)
       const server = assertServerOnly('CROWN');
       if (!server.ok) {
-        emit('api.guard.server_violation', { route, error: server.error }, 'error');
+        emit('api.guard.server_violation', { route, error: server.error }, 'critical');
         return apiErrorJson(server.error ?? 'SERVER_ONLY_VIOLATION', 403);
       }
 
@@ -136,7 +136,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
       if (originRequired) {
         const origin = verifyOrigin(req);
         if (!origin.ok) {
-          emit('api.guard.origin_denied', { route, reason: origin.reason }, 'warn');
+          emit('api.guard.origin_denied', { route, reason: origin.reason }, 'warning');
           return apiErrorJson(origin.reason ?? 'ORIGIN_DENIED', 403);
         }
         if (origin.fallback) {
@@ -150,7 +150,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
       // 3. Capa Rate Limiting con ventana deslizante
       const rl = rateLimit(req, route, limit);
       if (!rl.ok) {
-        emit('api.guard.rate_limited', { route, retryAfter: rl.retryAfterMs }, 'warn');
+        emit('api.guard.rate_limited', { route, retryAfter: rl.retryAfterMs }, 'warning');
         return rateLimitedJson(rl.retryAfterMs);
       }
 
@@ -162,7 +162,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
         try {
           rawBody = await readJsonBodyRaw(req);
         } catch {
-          emit('api.guard.body_too_large', { route }, 'warn');
+          emit('api.guard.body_too_large', { route }, 'warning');
           return apiErrorJson('BODY_TOO_LARGE', 413);
         }
       }
@@ -178,26 +178,26 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
           hmacSecret: zeroTrustHmacSecret,
         });
         if (!zt.ok) {
-          emit('api.guard.zero_trust_denied', { route, deniedBy: zt.deniedBy }, 'error');
+          emit('api.guard.zero_trust_denied', { route, deniedBy: zt.deniedBy }, 'critical');
           return apiErrorJson(`Zero Trust denegado por capa: ${zt.deniedBy ?? 'unknown'}`, 403);
         }
       }
 
       // 6. Capa de Identidad Soberana y Control de Scopes (RBAC)
-      let actor: IdentityRecord | null = null;
+      let actor: ApiKeyPublic | null = null;
       const presentedKey = req.headers.get('x-rdm-api-key');
       
       if ((identityScopes && identityScopes.length > 0) || presentedKey) {
         const auth = authenticate(presentedKey);
         if (!auth.ok) {
-          emit('api.guard.identity_denied', { route, reason: auth.reason }, 'warn');
+          emit('api.guard.identity_denied', { route, reason: auth.reason }, 'warning');
           return apiErrorJson(`Identidad denegada: ${auth.reason ?? 'credencial inválida'}`, 401);
         }
         actor = auth.record;
 
         if (identityScopes && identityScopes.length > 0) {
           if (!hasScope(actor, identityScopes)) {
-            emit('api.guard.scopes_missing', { route, owner: actor.owner, required: identityScopes }, 'warn');
+            emit('api.guard.scopes_missing', { route, owner: actor.owner, required: identityScopes }, 'warning');
             return apiErrorJson(`Identidad denegada: faltan scopes requeridos (${identityScopes.join(', ')}).`, 403);
           }
         }
@@ -209,7 +209,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
         const nonce = req.headers.get('x-rdm-nonce');
         const nonceCheck = claimNonce(nonce, nonceScope ?? route);
         if (!nonceCheck.ok) {
-          emit('api.guard.nonce_rejected', { route, reason: nonceCheck.reason }, 'warn');
+          emit('api.guard.nonce_rejected', { route, reason: nonceCheck.reason }, 'warning');
           return apiErrorJson(`Anti-replay denegado: ${nonceCheck.reason ?? 'nonce inválido'}`, 403);
         }
       }
@@ -233,14 +233,14 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
         try {
           body = parseJsonBodyFromRaw(rawBody ?? '');
         } catch {
-          emit('api.guard.body_invalid_json', { route }, 'warn');
+          emit('api.guard.body_invalid_json', { route }, 'warning');
           return apiErrorJson('BODY_INVALID', 400);
         }
 
         if (schema) {
           const parsed = schema.safeParse(body);
           if (!parsed.success) {
-            emit('api.guard.zod_validation_failed', { route, issuesCount: parsed.error.issues.length }, 'warn');
+            emit('api.guard.zod_validation_failed', { route, issuesCount: parsed.error.issues.length }, 'warning');
             return zodErrorJson(parsed.error);
           }
           body = parsed.data;
@@ -279,7 +279,7 @@ export function guardedRoute<T = Record<string, unknown>, TActor = IdentityRecor
         return response;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        emit('api.route.error', { route, error: message.slice(0, 300) }, 'error');
+        emit('api.route.error', { route, error: message.slice(0, 300) }, 'critical');
         return internalErrorJson(message);
       }
     });

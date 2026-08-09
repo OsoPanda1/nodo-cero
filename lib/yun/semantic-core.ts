@@ -241,12 +241,34 @@ export async function verifyEnvelope(envelope: YunEnvelope): Promise<boolean> {
 
   if (message !== envelope.integrity.hash) {
     coreCounters.invalid += 1;
+    emitYunAudit(
+      'yun.envelope.verify.invalid',
+      {
+        messageId: envelope.messageId,
+        sensitivity: envelope.semantic.sensitivity,
+        domain: envelope.semantic.domain,
+        federationId: envelope.semantic.federationId,
+        reason: 'hash_mismatch',
+      },
+      { traceId: envelope.traceId, federation: envelope.semantic.federationId, severity: 'warning' },
+    );
     return false;
   }
 
   const sigs = envelope.security.signatures;
   if (!sigs) {
     coreCounters.invalid += 1;
+    emitYunAudit(
+      'yun.envelope.verify.invalid',
+      {
+        messageId: envelope.messageId,
+        sensitivity: envelope.semantic.sensitivity,
+        domain: envelope.semantic.domain,
+        federationId: envelope.semantic.federationId,
+        reason: 'missing_signatures',
+      },
+      { traceId: envelope.traceId, federation: envelope.semantic.federationId, severity: 'warning' },
+    );
     return false;
   }
 
@@ -287,7 +309,7 @@ export function validateSemanticPolicy(
   if (semantic.sensitivity === 'restricted' || semantic.sensitivity === 'critical') {
     const sealed = envelope?.security?.sealed ?? false;
     if (!sealed) return { status: SEAL_REQUIRED, reason: 'sensibilidad exige sellado híbrido' };
-    if (!envelope.security.signatures) {
+    if (!envelope?.security?.signatures) {
       return { status: PUBLIC_KEYS_REQUIRED, reason: 'falta firma híbrida' };
     }
   }

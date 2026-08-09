@@ -24,6 +24,8 @@ import {
   yunReadyState,
   type YunCryptoProvider,
   type YunEnvelope,
+  type YunSemanticContext,
+  type ResearchBucket,
 } from '@/lib/yun';
 import { eventHistory, resetBusForTests } from '@/lib/core/events';
 
@@ -83,9 +85,9 @@ class TestHybridProvider implements YunCryptoProvider {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ciphertext = new Uint8Array(
       await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv, additionalData: input.aad },
+        { name: 'AES-GCM', iv, additionalData: new Uint8Array(input.aad) },
         this.dataKey,
-        input.plaintext,
+        new Uint8Array(input.plaintext),
       ),
     );
     const combined = new Uint8Array(iv.length + ciphertext.length);
@@ -100,11 +102,11 @@ class TestHybridProvider implements YunCryptoProvider {
     aad: Uint8Array;
   }): Promise<Uint8Array> {
     if (!this.dataKey || input.keyId !== this.dataKeyId) throw new Error('data key desconocida');
-    const iv = input.ciphertext.slice(0, 12);
-    const body = input.ciphertext.slice(12);
+    const iv = new Uint8Array(input.ciphertext.slice(0, 12));
+    const body = new Uint8Array(input.ciphertext.slice(12));
     const plaintext = new Uint8Array(
       await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv, additionalData: input.aad },
+        { name: 'AES-GCM', iv, additionalData: new Uint8Array(input.aad) },
         this.dataKey,
         body,
       ),
@@ -115,7 +117,11 @@ class TestHybridProvider implements YunCryptoProvider {
   async signClassical(input: { message: Uint8Array; keyId: string }): Promise<Uint8Array> {
     await this.ensureKeys();
     return new Uint8Array(
-      await crypto.subtle.sign({ name: 'Ed25519' }, this.classicalKeys!.privateKey, input.message),
+      await crypto.subtle.sign(
+        { name: 'Ed25519' },
+        this.classicalKeys!.privateKey,
+        new Uint8Array(input.message),
+      ),
     );
   }
 
@@ -128,8 +134,8 @@ class TestHybridProvider implements YunCryptoProvider {
     return crypto.subtle.verify(
       { name: 'Ed25519' },
       this.classicalKeys!.publicKey,
-      input.signature,
-      input.message,
+      new Uint8Array(input.signature),
+      new Uint8Array(input.message),
     );
   }
 
@@ -139,7 +145,7 @@ class TestHybridProvider implements YunCryptoProvider {
       await crypto.subtle.sign(
         { name: 'ECDSA', hash: 'SHA-256' },
         this.postQuantumKeys!.privateKey,
-        input.message,
+        new Uint8Array(input.message),
       ),
     );
   }
@@ -153,13 +159,13 @@ class TestHybridProvider implements YunCryptoProvider {
     return crypto.subtle.verify(
       { name: 'ECDSA', hash: 'SHA-256' },
       this.postQuantumKeys!.publicKey,
-      input.signature,
-      input.message,
+      new Uint8Array(input.signature),
+      new Uint8Array(input.message),
     );
   }
 }
 
-const semantic = {
+const semantic: YunSemanticContext = {
   sensitivity: 'public',
   domain: 'knowledge',
   federationId: 'Fed1',
@@ -390,11 +396,15 @@ describe('plano de investigación · aislamiento PennyLane', () => {
       metric: 'fidelidad',
       value: 0.9,
       payload: { texto: 'secreto' },
-    });
+    } as ResearchBucket);
     expect(withPayload.ok).toBe(false);
     if (!withPayload.ok) expect(withPayload.code).toBe('RESEARCH_BUCKET_DENIED');
 
-    const withKey = ingestResearchBucket({ metric: 'ruido', value: 0.1, apiKey: 'sk-1234' });
+    const withKey = ingestResearchBucket({
+      metric: 'ruido',
+      value: 0.1,
+      apiKey: 'sk-1234',
+    } as ResearchBucket);
     expect(withKey.ok).toBe(false);
   });
 

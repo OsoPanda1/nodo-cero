@@ -77,7 +77,7 @@ export function providerError(code: string, message?: string): CryptoProviderErr
 
 /** Proveedor por defecto: sin motor auditado, todo falla cerrado. */
 export class UnconfiguredCryptoProvider implements YunCryptoProvider {
-  readonly name = 'unconfigured';
+  readonly name: string = 'unconfigured';
   readonly available = false;
   readonly description =
     'Sin proveedor criptográfico auditado configurado. El sellado híbrido ' +
