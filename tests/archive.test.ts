@@ -57,7 +57,7 @@ describe('archivo · semilla y visibilidad pública', () => {
   it('carga 7 colecciones y piezas publicadas por defecto', () => {
     expect(archiveCollections().length).toBe(7);
     expect(listItems().length).toBeGreaterThanOrEqual(6);
-    expect(listPublishedItems().length).toBe(6);
+    expect(listPublishedItems().length).toBe(9);
   });
 
   it('solo lista piezas publicadas y con acceso no restringido', () => {
