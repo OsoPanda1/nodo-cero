@@ -90,7 +90,7 @@ Todas las rutas API usan el **route-guard único** (`@/app/api/_shared/route-gua
 **Persistencia / Servicios**
 - Postgres (Supabase) + Postgres réplica (Neon) vía `postgres`
 - Redis (Upstash) para caché/estado
-- **Bóveda nativa de IAs open source** (CROWN): Llama 3, Qwen, DeepSeek, Mistral, Phi y Cerebras sobre transportes soberanos (OpenRouter, Groq, Cloudflare Workers AI, Ollama local) — cero dependencia de proveedores propietarios
+- **Bóveda nativa de IAs open source** (CROWN): Llama 3, Qwen, DeepSeek, Mistral, Phi y Cerebras sobre transportes soberanos (OpenRouter, Groq, Cloudflare Workers AI, Ollama local) — cero dependencia de proveedores propietarios. La bóveda registra además agentes de ingeniería del Nodo (kind `agent`, sin egress), como el copiloto `opencode`, que no participan en cadenas de inferencia
 
 **Gamificación 3D**
 - Unity 2022.3 (LTS) compilado a WebGL, integrado como app de Next.js

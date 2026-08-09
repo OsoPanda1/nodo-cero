@@ -80,6 +80,12 @@ export const envSchema = z.object({
   /* Gamificación */
   GAMIFICATION_HMAC_SECRET: z.string().optional(),
 
+  /* YUN Quantum Semantic Core — proveedor criptográfico híbrido
+     (firma Ed25519 + ML-DSA-65). Hoy solo está registrado
+     'unconfigured': sin motor auditado, el sellado del sobre semántico
+     falla cerrado con CRYPTO_PROVIDER_NOT_CONFIGURED. */
+  YUN_CRYPTO_PROVIDER: z.string().optional().or(z.literal('')),
+
   /* Persistencia — Postgres primario (Supabase) */
   POSTGRES_URL: z.string().optional(),
   POSTGRES_PRISMA_URL: z.string().optional(),

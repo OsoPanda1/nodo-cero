@@ -7,7 +7,9 @@
 /* DeepSeek, Mistral, Phi, Cerebras y Ollama local— servidos por       */
 /* transportes soberanos (OpenRouter, Groq, Cloudflare Workers AI,     */
 /* Ollama self-hosted) con circuit breaker, timeouts, re-guard de      */
-/* salida y Zero Trust por zona de confianza.                          */
+/* salida y Zero Trust por zona de confianza. La bóveda también         */
+/* registra agentes de ingeniería del Nodo (kind 'agent'), soberanos    */
+/* y sin egress, que NO participan en cadenas de inferencia.            */
 /* ------------------------------------------------------------------ */
 /* Seguridad:                                                          */
 /*  - Las claves viven SOLO en variables de entorno del servidor.      */
@@ -23,7 +25,7 @@ import { guardPrompt } from './prompt-guard';
 import { isEmergency, emergencyAudit } from './dead-man-switch';
 import { isaReason } from './isa-core';
 
-export type ProviderKind = 'openai-compatible' | 'cloudflare' | 'ollama' | 'simulation';
+export type ProviderKind = 'openai-compatible' | 'cloudflare' | 'ollama' | 'simulation' | 'agent';
 export type TrustZone = 'green' | 'amber' | 'red';
 export type CircuitState = 'closed' | 'open' | 'half-open';
 
@@ -53,6 +55,7 @@ export interface ProviderStatus {
   id: string;
   name: string;
   model: string;
+  kind: ProviderKind;
   configured: boolean;
   healthy: boolean;
   circuit: CircuitState;
@@ -88,7 +91,7 @@ interface GatewayRequest {
 }
 
 /* ------------------------------------------------------------------ */
-/* 1. BÓVEDA DE MODELOS OPEN SOURCE (catálogo del Nodo)                */
+/* 1. BÓVEDA DEL NODO (modelos open source + agentes de ingeniería)    */
 /* ------------------------------------------------------------------ */
 
 export const PROVIDERS: Record<string, ProviderConfig> = {
@@ -154,6 +157,14 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     model: 'sophia-v1', timeoutMs: 50, free: true, egress: 'blocked',
     note: 'Respuesta local del motor cognitivo cuando no hay red o en emergencia.',
     badge: 'FALLBACK SOBERANO',
+  },
+  opencode: {
+    id: 'opencode', name: 'opencode · Big Pickle (Copiloto de Ingeniería)', kind: 'agent',
+    model: 'big-pickle', timeoutMs: 30000, free: true, egress: 'blocked',
+    note: 'Agente de ingeniería del Nodo Cero. No es un endpoint de inferencia: ' +
+      'colabora en la construcción, auditoría y evolución del código del Nodo. ' +
+      'Trabaja localmente, sin egress, y no participa en cadenas de inferencia.',
+    badge: 'INGENIERÍA SOBERANA',
   },
 };
 
@@ -336,6 +347,7 @@ function isProviderConfigured(id: string): boolean {
   const p = PROVIDERS[id];
   if (!p) return false;
   if (p.kind === 'simulation') return true;
+  if (p.kind === 'agent') return true; /* agente soberano: siempre presente */
   if (p.kind === 'ollama') return Boolean(process.env[p.envKey ?? ''] || p.baseUrl);
   if (p.kind === 'openai-compatible') return Boolean(process.env[p.envKey ?? '']);
   if (p.kind === 'cloudflare') {
@@ -352,6 +364,11 @@ async function callProvider(id: string, request: GatewayRequest, signal: AbortSi
     case 'openai-compatible': return callOpenAICompatible(p, system, request.prompt, signal);
     case 'cloudflare': return callCloudflare(p, system, request.prompt, signal);
     case 'ollama': return callOllama(p, system, request.prompt, signal);
+    case 'agent': {
+      /* AGENTE DE INGENIERÍA: no es un endpoint de inferencia. El copiloto
+         opencode trabaja sobre el código del Nodo, no sobre cadenas runtime. */
+      throw new Error('agente de ingeniería: no es invocable como modelo de inferencia');
+    }
     case 'simulation': {
       /* NÚCLEO SOBERANO: la simulación ES el motor ISA offline. Responde
          desde la base de conocimiento local, sin egress ni APIs externas. */
@@ -377,6 +394,7 @@ export async function crownGatewayGenerate(request: GatewayRequest): Promise<Gat
   const chain = rule.chain.filter(id => {
     const p = PROVIDERS[id];
     if (!p) return false;
+    if (p.kind === 'agent') return false; /* el copiloto de ingeniería no se enruta como modelo */
     if (emergency && p.egress !== 'blocked') return false; /* emergencia: cero egress */
     if (rule.trustZone === 'red' && p.egress !== 'blocked') return false; /* dominio soberano */
     if (rule.trustZone === 'amber' && p.egress === 'restricted') return false;
@@ -469,6 +487,7 @@ export function getGatewayStatus() {
       id: p.id,
       name: p.name,
       model: p.model,
+      kind: p.kind,
       configured,
       healthy: configured && c.openUntil === null,
       circuit: circuitState(p.id),
@@ -489,11 +508,12 @@ export function getGatewayStatus() {
 
   const configuredIds = providers.filter(p => p.configured).map(p => p.id);
   const egress = providers.some(p => p.egress === 'blocked');
+  const agents = providers.filter(p => p.kind === 'agent').length;
 
   return {
     ok: true,
-    name: 'CROWN GATEWAY — Bóveda nativa de IAs open source',
-    version: '2.0.0',
+    name: 'CROWN GATEWAY — Bóveda nativa de IAs open source + agentes de ingeniería',
+    version: '2.1.0',
     node: 'Nodo Cero',
     mode: isEmergency() ? 'EMERGENCIA (LOCKDOWN)' : 'OPERACIONAL',
     providers,
@@ -505,6 +525,7 @@ export function getGatewayStatus() {
       secretsNeverExposed: true,
       keysLoaded: configuredIds.length,
       providersConfigured: configuredIds,
+      agents: agents,
       proprietaryProviders: 0,
       trustZones: { green: 'egress permitido', amber: 'egress condicionado', red: 'cero salida de datos' },
     },
