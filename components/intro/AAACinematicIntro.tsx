@@ -86,12 +86,12 @@ export default function AAACinematicIntro({
   }, [prefersReducedMotion]);
 
   useEffect(() => {
+    const audio = audioRef.current;
+
     return () => {
       if (leaveTimerRef.current) {
         window.clearTimeout(leaveTimerRef.current);
       }
-
-      const audio = audioRef.current;
 
       if (audio) {
         audio.pause();

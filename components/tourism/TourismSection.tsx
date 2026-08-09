@@ -219,10 +219,12 @@ function ImageWithFallback({
   className?: string;
 }) {
   const [imageSrc, setImageSrc] = useState(src || FALLBACK_IMG);
+  const [prevSrc, setPrevSrc] = useState(src);
 
-  useEffect(() => {
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setImageSrc(src || FALLBACK_IMG);
-  }, [src]);
+  }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

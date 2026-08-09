@@ -17,12 +17,12 @@ import {
   Loader2,
   LockKeyhole,
   MapPin,
+  Music2,
   Phone,
   ShieldCheck,
   Sparkles,
   Store,
   Tag,
-  TikTok,
   Truck,
   UserPlus,
   WalletCards,
@@ -1180,7 +1180,7 @@ function BusinessDetailsForm({
 
           <Field label="TikTok">
             <div className="relative">
-              <TikTok className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Music2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 className={`${inputClass} pl-11`}
                 value={social.tiktok}
