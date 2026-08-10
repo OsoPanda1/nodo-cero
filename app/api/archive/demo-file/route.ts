@@ -51,6 +51,7 @@ export const GET = guardedRoute(
     rateLimit: 30,
     json: false,
     cacheControl: 'no-store',
+    hardenHeaders: false,
   },
   async ({ req }) => {
     const params = Object.fromEntries(req.nextUrl.searchParams.entries());

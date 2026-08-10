@@ -54,6 +54,23 @@
 
     /* Curvas */
     --ease-miner: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* ================================================================== */
+    /* Spatial Heritage Engine 2026+ — tokens soberanos del Nodo Cero     */
+    /* ================================================================== */
+    --bg-deep-slate: #0B0D0E;
+    --bg-surface-glass: rgba(18, 22, 25, 0.72);
+    --bg-card-hover: rgba(30, 36, 42, 0.85);
+    --accent-pino: #1E4633;
+    --accent-pino-glow: #285E44;
+    --accent-plata: #E2E8F0;
+    --accent-oro-viejo: #C5A059;
+    --text-primary-slate: #F8FAFC;
+    --text-secondary-slate: #94A3B8;
+    --text-muted-slate: #64748B;
+    --border-glass: rgba(226, 232, 240, 0.12);
+    --border-glass-glow: rgba(197, 160, 89, 0.35);
+    --shadow-spatial: 0 20px 50px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
   }
 
   body {
@@ -105,13 +122,33 @@
 /* ------------------------------------------------------------------ */
 
 .glass-panel {
-  background: var(--surface-glass-soft);
+  background: rgba(18, 22, 25, 0.75);
   backdrop-filter: blur(18px) saturate(1.15);
   -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  border: 1px solid var(--border-soft);
+  border: 1px solid rgba(226, 232, 240, 0.12);
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.7),
-    inset 0 0 18px rgba(212, 178, 106, 0.025);
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(197, 160, 89, 0.4);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(197, 160, 89, 0.15);
+}
+
+.text-glow {
+  text-shadow: 0 0 25px rgba(248, 250, 252, 0.3);
 }
 
 .glass-panel-interactive {

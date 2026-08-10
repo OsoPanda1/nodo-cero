@@ -127,7 +127,6 @@ export function ArchiveItemViewer({ item, onBack }: ArchiveItemViewerProps) {
               src={previewUrl}
               title={item.title}
               className="h-[34rem] w-full bg-white"
-              sandbox="allow-same-origin allow-scripts allow-forms allow-downloads"
             />
           ) : previewError ? (
             <div className="flex h-72 flex-col items-center justify-center gap-3 px-6 text-center">

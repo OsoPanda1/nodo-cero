@@ -429,70 +429,69 @@ export default function YUNLayout({
   return (
     <div className="min-h-screen text-[#283038] font-sans flex flex-col">
 
-      {/* ============ TOP NAVBAR — cristal perlado ============ */}
-      <header className="h-16 w-full fixed top-0 z-50 px-4 md:px-8 flex items-center justify-between gap-3 border-b border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.85)] backdrop-blur-xl shadow-[0_8px_30px_rgba(13,70,82,0.06)]">
-        <button onClick={() => setActiveView('home')} className="flex items-center gap-3 group text-left min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#c9d0d4] via-[#f2cc76] to-[#2e9cff] p-0.5 shadow-[0_6px_20px_rgba(13,70,82,0.16)] group-hover:scale-105 transition-transform shrink-0">
-            <div className="w-full h-full bg-[#082f3b] rounded-[10px] flex items-center justify-center font-black text-xs text-white">
-              RDM
+      {/* ============ HEADER FLOTANTE GLASS (Spatial Heritage Engine) ============ */}
+      <header className="fixed top-4 inset-x-0 z-50 px-4 sm:px-6">
+        <nav className="glass-panel rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.1)_inset]">
+          <button onClick={() => setActiveView('home')} className="flex items-center gap-3 group text-left min-w-0">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#C5A059] to-[#1E4633] p-0.5 shadow-lg group-hover:scale-105 transition-transform shrink-0">
+              <div className="w-full h-full bg-[#0B0D0E] rounded-full flex items-center justify-center font-black text-xs text-[#F8FAFC] tracking-wider">
+                RDM
+              </div>
             </div>
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-patrimonial text-sm font-bold tracking-wider text-[#082f3b] flex items-center gap-1.5 truncate">
-              RDM DIGITAL HUB
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#0d4652] text-[#f2cc76] border border-[#c89a45]/40 shrink-0">
+            <div className="min-w-0">
+              <h1 className="font-serif text-sm font-bold tracking-wider text-[#F8FAFC] flex items-center gap-1.5 truncate">
                 NODO CERO
-              </span>
-            </h1>
-            <p className="text-[10px] text-[#536b86] font-mono tracking-tight hidden sm:block truncate">
-              Pueblo Mágico de Real del Monte · Hidalgo
-            </p>
-          </div>
-        </button>
-
-        {/* Indicadores en vivo */}
-        <div className="hidden xl:flex items-center gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-[#c9d0d4]/80 text-[#0d4652]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>Territorio en vivo</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-[#c9d0d4]/80 text-[#536b86]">
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            <span>Isabella AI</span>
-          </div>
-        </div>
-
-        {/* Acciones rápidas + Navegación de planos (dropdown superior derecho) */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={() => setActiveView('register')}
-            className="crystal-button crystal-button-gold px-3 py-1.5 text-xs font-bold"
-          >
-            <UserPlus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Únete</span>
-          </button>
-          <button onClick={onOpenIsabella} className="crystal-button px-3 py-1.5 text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-[#0d4652]" />
-            <span className="hidden sm:inline">Isabella AI</span>
+                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-full bg-[#1E4633]/60 text-emerald-300 border border-emerald-500/30 shrink-0">
+                  RDM
+                </span>
+              </h1>
+              <p className="text-[10px] text-slate-400 font-mono tracking-tight hidden sm:block truncate">
+                Real del Monte · Hidalgo
+              </p>
+            </div>
           </button>
 
-          {/* Botón de navegación por planos */}
-          <button
-            ref={explorarBtnRef}
-            onClick={() => setPlanosOpen(open => !open)}
-            className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold transition-all ${
-              planosOpen
-                ? 'border-[#0d4652]/40 bg-[#0d4652] text-white shadow-[0_10px_30px_rgba(13,70,82,0.3)]'
-                : 'border-[#c9d0d4]/80 bg-white/80 text-[#0d4652] hover:border-[#0d4652]/40 hover:bg-white'
-            }`}
-            aria-expanded={planosOpen}
-            aria-haspopup="dialog"
-          >
-            <PanelsTopLeft className="w-4 h-4" />
-            <span className="hidden md:inline">Explorar</span>
-            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${planosOpen ? 'rotate-180' : ''}`} />
-          </button>
-        </div>
+          {/* Estado de red en vivo */}
+          <div className="hidden xl:flex items-center gap-2 text-[11px] text-slate-300 bg-slate-900/60 px-3 py-1.5 rounded-full border border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Red YUN · 35 Nodos Activos</span>
+          </div>
+
+          {/* Acciones principales */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={() => setActiveView('register')}
+              className="hidden sm:flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-3.5 py-2 rounded-full border border-slate-700 transition-all"
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Únete</span>
+            </button>
+            <button
+              onClick={onOpenIsabella}
+              className="flex items-center gap-2 bg-gradient-to-r from-[#C5A059] to-[#b08a3f] hover:from-[#cfa96b] hover:to-[#C5A059] text-slate-950 font-semibold text-xs px-4 py-2 rounded-full shadow-lg transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Isabella AI</span>
+            </button>
+
+            {/* Botón de navegación por planos */}
+            <button
+              ref={explorarBtnRef}
+              onClick={() => setPlanosOpen(open => !open)}
+              className={`flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-bold transition-all ${
+                planosOpen
+                  ? 'border-[#C5A059]/60 bg-[#C5A059] text-slate-950 shadow-[0_10px_30px_rgba(197,160,89,0.35)]'
+                  : 'border-slate-700 bg-slate-900/70 text-slate-200 hover:border-[#C5A059]/50 hover:text-[#C5A059]'
+              }`}
+              aria-expanded={planosOpen}
+              aria-haspopup="dialog"
+            >
+              <PanelsTopLeft className="w-4 h-4" />
+              <span className="hidden md:inline">Explorar</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${planosOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+        </nav>
       </header>
 
       {/* ============ DROPDOWN DE LOS 4 PLANOS (acordeón en 4 columnas) ============ */}
@@ -508,7 +507,7 @@ export default function YUNLayout({
             className="absolute inset-0 bg-[#082f3b]/25 backdrop-blur-sm"
             onClick={() => setPlanosOpen(false)}
           />
-          <div className="relative w-full max-w-5xl mt-16 rounded-[2rem] border border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.92)] backdrop-blur-2xl shadow-[0_40px_120px_rgba(8,47,59,0.35)] overflow-hidden">
+          <div className="relative w-full max-w-5xl mt-20 rounded-[2rem] border border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.92)] backdrop-blur-2xl shadow-[0_40px_120px_rgba(8,47,59,0.35)] overflow-hidden">
             {/* Cabecera del dropdown */}
             <div className="flex items-center justify-between gap-4 px-5 pt-5 pb-4 border-b border-[#c9d0d4]/60">
               <div className="flex items-center gap-3 min-w-0">
@@ -628,7 +627,7 @@ export default function YUNLayout({
       )}
 
       {/* ============ CUERPO ============ */}
-      <div className="flex pt-16 relative">
+      <div className="flex pt-24 relative">
 
         {/* ============ NAVBAR IZQUIERDA FLOTANTE INTELIGENTE (contextual) ============ */}
         <aside
