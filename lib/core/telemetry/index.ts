@@ -1,4 +1,3 @@
-import { logger } from '@/lib/logger';
 import {
   TELEMETRY_CONTRACT_VERSION,
   telemetryEventSchema,
@@ -39,32 +38,40 @@ function createTelemetryId(): string {
     return globalThis.crypto.randomUUID();
   }
 
-  return `00000000-0000-4000-8000-${Date.now()
-    .toString(16)
-    .padStart(12, '0')
-    .slice(-12)}`;
+  const timestamp = Date.now().toString(16).padStart(12, '0').slice(-12);
+  const random = Math.random().toString(16).slice(2, 14).padEnd(12, '0');
+
+  return `00000000-0000-4000-8000-${timestamp}${random}`.slice(0, 36);
 }
 
-function writeToLogger(event: TelemetryEvent): void {
+function writeToConsole(event: TelemetryEvent): void {
   const message =
     `[telemetry:${event.level}] ` +
     `[${event.scope}] ` +
     `[${event.source}] ` +
     `${event.event}: ${event.message}`;
 
+  const details =
+    event.details && Object.keys(event.details).length > 0
+      ? event.details
+      : undefined;
+
   switch (event.level) {
     case 'fatal':
     case 'error':
-      logger.error(message, event.details);
+      console.error(message, details);
       return;
+
     case 'warn':
-      logger.warn(message, event.details);
+      console.warn(message, details);
       return;
+
     case 'info':
-      logger.info(message, event.details);
+      console.info(message, details);
       return;
+
     default:
-      logger.debug(message, event.details);
+      console.debug(message, details);
   }
 }
 
@@ -81,8 +88,11 @@ function dispatch(event: TelemetryEvent): void {
   try {
     const dispatched = activeTransport(event);
 
-    if (dispatched && typeof dispatched.then === 'function') {
-      void dispatched.catch(() => {
+    if (
+      dispatched &&
+      typeof (dispatched as Promise<void>).then === 'function'
+    ) {
+      void (dispatched as Promise<void>).catch(() => {
         // La observabilidad nunca debe interrumpir el flujo principal.
       });
     }
@@ -100,9 +110,9 @@ export function setTelemetryTransport(
     return;
   }
 
-  const queued = pendingEvents.splice(0, pendingEvents.length);
+  const queuedEvents = pendingEvents.splice(0, pendingEvents.length);
 
-  for (const event of queued) {
+  for (const event of queuedEvents) {
     dispatch(event);
   }
 }
@@ -134,7 +144,7 @@ export function recordTelemetry(
     telemetryEvent.level === 'fatal';
 
   if (shouldLogLocally) {
-    writeToLogger(telemetryEvent);
+    writeToConsole(telemetryEvent);
   }
 
   dispatch(telemetryEvent);
