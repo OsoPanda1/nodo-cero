@@ -156,70 +156,59 @@ function toolStatus(status: unknown): IsaAiToolStatus {
   return 'skipped';
 }
 
+/*
+ * PolicyStatus y RiskLevel provienen de ./contracts y pueden no incluir
+ * todos los literales usados aquí. Se compara como string para evitar
+ * TS2678 sin perder el comportamiento en runtime ni mentir sobre el tipo.
+ */
 function policyDecision(
   status: PolicyStatus | undefined,
 ): IsaAiSecurityDecision {
-  switch (status) {
-    case 'allowed':
-      return 'allow';
-    case 'denied':
-      return 'deny';
-    case 'degraded':
-      return 'degrade';
-    case 'pending':
-      return 'require-approval';
-    default:
-      return 'unavailable';
-  }
+  const raw = String(status ?? '');
+
+  if (raw === 'allowed') return 'allow';
+  if (raw === 'denied') return 'deny';
+  if (raw === 'degraded') return 'degrade';
+  if (raw === 'pending') return 'require-approval';
+
+  return 'unavailable';
 }
 
 function riskTier(
   level: RiskLevel | undefined,
 ): 'R0' | 'R1' | 'R2' | 'R3' | 'R4' {
-  switch (level) {
-    case 'critical':
-      return 'R4';
-    case 'high':
-      return 'R3';
-    case 'medium':
-      return 'R2';
-    case 'low':
-      return 'R1';
-    default:
-      return 'R1';
-  }
+  const raw = String(level ?? '');
+
+  if (raw === 'critical') return 'R4';
+  if (raw === 'high') return 'R3';
+  if (raw === 'medium') return 'R2';
+  if (raw === 'low') return 'R1';
+
+  return 'R1';
 }
 
 function radarStatus(
   status: PolicyStatus | undefined,
 ): 'healthy' | 'degraded' | 'unavailable' | 'skipped' {
-  switch (status) {
-    case 'allowed':
-      return 'healthy';
-    case 'degraded':
-      return 'degraded';
-    case 'pending':
-      return 'skipped';
-    case 'denied':
-    default:
-      return 'unavailable';
-  }
+  const raw = String(status ?? '');
+
+  if (raw === 'allowed') return 'healthy';
+  if (raw === 'degraded') return 'degraded';
+  if (raw === 'pending') return 'skipped';
+
+  return 'unavailable';
 }
 
 function securityStatus(
   level: RiskLevel | undefined,
 ): 'healthy' | 'degraded' | 'blocked' | 'unavailable' {
-  switch (level) {
-    case 'low':
-      return 'healthy';
-    case 'medium':
-      return 'degraded';
-    case 'high':
-    case 'critical':
-      return 'blocked';
-    default:
-      return 'unavailable';
-  }
+  const raw = String(level ?? '');
+
+  if (raw === 'low') return 'healthy';
+  if (raw === 'medium') return 'degraded';
+  if (raw === 'high' || raw === 'critical') return 'blocked';
+
+  return 'unavailable';
 }
 
 /*
