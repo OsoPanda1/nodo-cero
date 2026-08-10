@@ -240,13 +240,13 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
     }
   };
 
+  const nearBottomRef = useRef(true);
+
   useEffect(() => {
     if (messagesEndRef.current && nearBottomRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, loading]);
-
-  const nearBottomRef = useRef(true);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;

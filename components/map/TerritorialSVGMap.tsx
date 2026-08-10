@@ -1,10 +1,10 @@
 "use client";
 
 /* ------------------------------------------------------------------ */
-/* MAPA SVG TERRITORIAL — portado de visitarealdelmonte                */
-/* (TerritorialSVGMap.tsx). Mapa soberano e inmersivo del Nodo Cero    */
-/* con navegación por teclado (roving tabindex), marcadores por        */
-/* federación y ficha de POI. Adaptado a los datos reales de RDM_POIS. */
+/* MAPA SVG TERRITORIAL — Mapa Soberano del Nodo Cero                  */
+/* Lectura territorial accesible del gemelo digital: federaciones,     */
+/* nodos núcleo y satélite con navegación por teclado (roving tabindex) */
+/* y ficha contextual de POI. Estética Dark Slate + oro minero.        */
 /* ------------------------------------------------------------------ */
 
 import {
@@ -33,39 +33,39 @@ const FACET_TONES: Record<
 > = {
   gubernamental: {
     ring: "#c8a356",
-    glow: "rgba(200,163,86,0.45)",
+    glow: "rgba(200,163,86,0.4)",
     tag: "Gubernamental",
     color: "#c8a356",
   },
   cultural: {
     ring: "#38bdf8",
-    glow: "rgba(56,189,248,0.45)",
+    glow: "rgba(56,189,248,0.4)",
     tag: "Cultural",
     color: "#38bdf8",
   },
   economica: {
-    ring: "#10b981",
-    glow: "rgba(16,185,129,0.4)",
+    ring: "#f59e0b",
+    glow: "rgba(245,158,11,0.35)",
     tag: "Económica",
-    color: "#10b981",
+    color: "#f59e0b",
   },
   tecnologica: {
     ring: "#a78bfa",
-    glow: "rgba(167,139,250,0.45)",
+    glow: "rgba(167,139,250,0.4)",
     tag: "Tecnológica",
     color: "#a78bfa",
   },
   educativa: {
-    ring: "#f472b6",
-    glow: "rgba(244,114,182,0.4)",
+    ring: "#34d399",
+    glow: "rgba(52,211,153,0.35)",
     tag: "Educativa",
-    color: "#f472b6",
+    color: "#34d399",
   },
   salud: {
-    ring: "#34d399",
-    glow: "rgba(52,211,153,0.4)",
+    ring: "#f472b6",
+    glow: "rgba(244,114,182,0.35)",
     tag: "Salud",
-    color: "#34d399",
+    color: "#f472b6",
   },
 };
 
@@ -144,7 +144,6 @@ function useProjection(pois: TerritorialPoi[]) {
     const centerLng = (minLng + maxLng) / 2;
 
     const project = (lat: number, lng: number) => {
-      // Normalize to -1..1 range then spread
       const nx = ((lng - centerLng) / (lngSpan / 2)) * spreadFactor;
       const ny = ((lat - centerLat) / (latSpan / 2)) * spreadFactor;
       const x = W / 2 + nx * (W / 2);
@@ -156,7 +155,7 @@ function useProjection(pois: TerritorialPoi[]) {
   }, [pois]);
 }
 
-// ─── Marker Component with Magical Effects ──────────────────────────────────
+// ─── Marker Component ──────────────────────────────────────────────────────
 interface MarkerProps {
   poi: TerritorialPoi;
   x: number;
@@ -176,7 +175,7 @@ const POIMarker = memo(function POIMarker({
   onSelect,
 }: MarkerProps) {
   const tone = getFacetTone(poi);
-  const r = poi.relevance === "core-node" ? 14 : 10;
+  const r = poi.relevance === "core-node" ? 13 : 9;
 
   return (
     <g
@@ -197,14 +196,15 @@ const POIMarker = memo(function POIMarker({
       aria-pressed={active}
       className="cursor-pointer focus:outline-none"
     >
-      <circle r={r * 2.4} fill={tone.glow} opacity={active ? 0.9 : 0.4} pointerEvents="none" />
+      {/* Halo de activación */}
+      <circle r={r * 2.6} fill={tone.glow} opacity={active ? 0.95 : 0.4} pointerEvents="none" />
       <circle
-        r={r + 6}
+        r={r + 7}
         fill="none"
         stroke={tone.ring}
         strokeWidth={active ? 1.6 : 1}
         strokeDasharray="2 4"
-        opacity={active ? 0.9 : 0.5}
+        opacity={active ? 0.95 : 0.5}
         pointerEvents="none"
       >
         {active && (
@@ -218,14 +218,15 @@ const POIMarker = memo(function POIMarker({
           />
         )}
       </circle>
-      <circle r={r} fill="rgba(248,250,252,0.9)" stroke={tone.ring} strokeWidth={1.6} />
-      <circle r={r * 0.45} fill={tone.ring} opacity={0.9} />
+      {/* Núcleo */}
+      <circle r={r} fill="rgba(248,250,252,0.92)" stroke={tone.ring} strokeWidth={1.6} />
+      <circle r={r * 0.45} fill={tone.ring} opacity={0.95} />
       <text
-        y={r + 16}
+        y={r + 15}
         textAnchor="middle"
         fontSize={11}
         fontWeight={active ? 700 : 500}
-        fill="#e2e8f0"
+        fill="#dbe4ee"
         style={{ fontFamily: "var(--font-dm-sans), system-ui, sans-serif" }}
         pointerEvents="none"
       >
@@ -270,21 +271,20 @@ export function TerritorialSVGMap({
 }: TerritorialSVGMapProps) {
   const { W, H, project } = useProjection(pois);
   const [hover, setHover] = useState<string | null>(highlightId ?? selectedId ?? null);
-  const [prevHighlight, setPrevHighlight] = useState<string | null>(highlightId ?? null);
-  const [prevSelected, setPrevSelected] = useState<string | null>(selectedId ?? null);
+  const [viewport, setViewport] = useState<ViewportState>(INITIAL_VIEWPORT);
   const rafRef = useRef<number | null>(null);
   const nextHoverRef = useRef<string | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const lastPropIdRef = useRef<string | null>(null);
 
-  // Sync con prop externa (deep-link / selección externa) vía estado derivado
-  if (highlightId !== prevHighlight) {
-    setPrevHighlight(highlightId ?? null);
-    if (highlightId) setHover(highlightId);
-  }
-  if (selectedId !== prevSelected) {
-    setPrevSelected(selectedId ?? null);
-    if (selectedId) setHover(selectedId);
-  }
+  // Sincronización con la prop externa vía efecto (evita setState en render).
+  useEffect(() => {
+    const next = highlightId ?? selectedId ?? null;
+    if (next && next !== lastPropIdRef.current) {
+      lastPropIdRef.current = next;
+      setHover(next);
+    }
+  }, [highlightId, selectedId]);
 
   // Throttle de hover con requestAnimationFrame
   const activate = useCallback((id: string) => {
@@ -337,7 +337,7 @@ export function TerritorialSVGMap({
         if (p.poi.id === current.poi.id) continue;
         const dx = p.x - current.x;
         const dy = p.y - current.y;
-        const aligned = dirX * dx + dirY * dy; // proyección en la dirección
+        const aligned = dirX * dx + dirY * dy;
         if (aligned <= 0) continue;
 
         const lateral = Math.abs(dirX ? dy : dx);
@@ -349,16 +349,33 @@ export function TerritorialSVGMap({
 
       if (best) {
         setHover(best.id);
-        const el = svgRef.current?.querySelector<SVGGElement>(`#poi-${CSS.escape(best.id)}`);
+        const el = svgRef.current?.querySelector<SVGGElement>(`#poi-${best.id}`);
         el?.focus();
       }
     },
     [hover, projected],
   );
 
+  const zoom = (factor: number) => {
+    setViewport((v) => {
+      const next = Math.min(MAX_SCALE, Math.max(MIN_SCALE, v.scale * factor));
+      return { ...v, scale: next };
+    });
+  };
+
+  const transformed = `translate(${viewport.translateX} ${viewport.translateY}) scale(${viewport.scale})`;
+
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl glass-panel border border-[var(--gold)]/30">
-      <div className="pointer-events-none absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_20%,rgba(200,163,86,0.12),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(56,189,248,0.1),transparent_45%)]" />
+    <div className="relative w-full overflow-hidden rounded-3xl border border-[rgba(200,163,86,0.22)] bg-[radial-gradient(circle_at_30%_20%,rgba(200,163,86,0.12),transparent_55%),linear-gradient(180deg,#0f1b28,#0a1320)] shadow-[inset_0_0_80px_rgba(0,0,0,0.5)]">
+      <div className="pointer-events-none absolute inset-0 z-10 opacity-60 bg-[radial-gradient(circle_at_25%_15%,rgba(200,163,86,0.14),transparent_50%),radial-gradient(circle_at_80%_70%,rgba(56,189,248,0.1),transparent_45%)]" />
+
+      {/* HUD superior */}
+      <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-2">
+        <span className="h-2 w-2 animate-pulse rounded-full bg-[#c8a356]" />
+        <span className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#c8a356]">
+          Mapa Soberano · 35 Nodos YUN
+        </span>
+      </div>
 
       <svg
         ref={svgRef}
@@ -372,13 +389,22 @@ export function TerritorialSVGMap({
       >
         <defs>
           <radialGradient id="terrain" cx="50%" cy="40%" r="65%">
-            <stop offset="0%" stopColor="#101a2f" />
-            <stop offset="55%" stopColor="#0a1426" />
-            <stop offset="100%" stopColor="#060b18" />
+            <stop offset="0%" stopColor="#142436" />
+            <stop offset="55%" stopColor="#0e1b2a" />
+            <stop offset="100%" stopColor="#0a1320" />
           </radialGradient>
+          <radialGradient id="halo-gold" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="rgba(200,163,86,0.28)" />
+            <stop offset="100%" stopColor="rgba(200,163,86,0)" />
+          </radialGradient>
+          <pattern id="grid-fine" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(148,163,184,0.06)" strokeWidth="1" />
+          </pattern>
         </defs>
 
         <rect x="0" y="0" width={W} height={H} fill="url(#terrain)" />
+        <rect x="0" y="0" width={W} height={H} fill="url(#grid-fine)" />
+        <ellipse cx={W * 0.5} cy={H * 0.55} rx={W * 0.52} ry={H * 0.52} fill="url(#halo-gold)" />
 
         {[0.25, 0.45, 0.65, 0.85].map((r, i) => (
           <ellipse
@@ -388,42 +414,64 @@ export function TerritorialSVGMap({
             rx={W * r * 0.55}
             ry={H * r * 0.55}
             fill="none"
-            stroke="rgba(148,163,184,0.08)"
+            stroke="rgba(200,163,86,0.1)"
             strokeWidth={1}
             strokeDasharray="2 6"
           />
         ))}
 
-        {projected
-          .filter(({ poi }) => poi.relevance === "core-node")
-          .map(({ poi, x, y }, i, arr) => {
-            const next = arr[(i + 1) % arr.length];
-            return (
-              <line
-                key={`${poi.id}-edge`}
-                x1={x}
-                y1={y}
-                x2={next.x}
-                y2={next.y}
-                stroke="rgba(200,163,86,0.35)"
-                strokeWidth={1.2}
-                strokeDasharray="3 5"
-              />
-            );
-          })}
+        <g transform={transformed}>
+          {projected
+            .filter(({ poi }) => poi.relevance === "core-node")
+            .map(({ poi, x, y }, i, arr) => {
+              const next = arr[(i + 1) % arr.length];
+              return (
+                <line
+                  key={`${poi.id}-edge`}
+                  x1={x}
+                  y1={y}
+                  x2={next.x}
+                  y2={next.y}
+                  stroke="rgba(200,163,86,0.35)"
+                  strokeWidth={1.2}
+                  strokeDasharray="3 5"
+                />
+              );
+            })}
 
-        {projected.map(({ poi, x, y }) => (
-          <POIMarker
-            key={poi.id}
-            poi={poi}
-            x={x}
-            y={y}
-            active={hover === poi.id}
-            onActivate={activate}
-            onSelect={select}
-          />
-        ))}
+          {projected.map(({ poi, x, y }) => (
+            <POIMarker
+              key={poi.id}
+              poi={poi}
+              x={x}
+              y={y}
+              active={hover === poi.id}
+              onActivate={activate}
+              onSelect={select}
+            />
+          ))}
+        </g>
       </svg>
+
+      {/* Controles de zoom */}
+      <div className="absolute right-4 top-4 z-20 flex flex-col gap-1.5">
+        <button
+          type="button"
+          aria-label="Acercar"
+          onClick={() => zoom(1.3)}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-slate-950/70 text-sm text-slate-300 backdrop-blur-md transition-colors hover:border-[#c8a356]/50 hover:text-[#c8a356]"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          aria-label="Alejar"
+          onClick={() => zoom(1 / 1.3)}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-slate-950/70 text-sm text-slate-300 backdrop-blur-md transition-colors hover:border-[#c8a356]/50 hover:text-[#c8a356]"
+        >
+          −
+        </button>
+      </div>
 
       {active && (
         <motion.aside
@@ -431,7 +479,7 @@ export function TerritorialSVGMap({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="absolute bottom-4 left-4 right-4 z-10 rounded-2xl border border-[var(--gold)]/30 p-4 glass-panel sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-sm"
+          className="absolute bottom-4 left-4 right-4 z-20 rounded-2xl border border-[rgba(200,163,86,0.3)] bg-slate-950/80 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-sm"
           role="status"
           aria-live="polite"
         >
@@ -449,7 +497,7 @@ export function TerritorialSVGMap({
                   >
                     {tone.tag}
                   </span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] font-mono text-slate-400">
                     {active.lat.toFixed(4)}, {active.lng.toFixed(4)}
                   </span>
                 </>
@@ -457,13 +505,13 @@ export function TerritorialSVGMap({
             })()}
           </div>
 
-          <h3 className="font-patrimonial text-xl leading-tight text-white">{active.name}</h3>
+          <h3 className="font-patrimonial text-xl leading-tight text-[#eef2f7]">{active.name}</h3>
           <p className="mt-0.5 text-xs text-slate-400">
             {active.municipality ?? "Real del Monte"}
             {active.altitudeM ? ` · ${active.altitudeM} m` : ""}
           </p>
 
-          <p className="mt-2 text-sm text-slate-300/85">{active.description}</p>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300/85">{active.description}</p>
           {active.significance && (
             <p className="mt-2 text-xs italic text-slate-300/70">«{active.significance}»</p>
           )}
@@ -472,13 +520,17 @@ export function TerritorialSVGMap({
             <button
               type="button"
               onClick={() => onSelect?.(active.id)}
-              className="rounded-full border border-[var(--neblina)]/40 text-[var(--neblina)] hover:bg-[var(--neblina)]/10 px-3 py-1.5 text-[11px] uppercase tracking-widest focus:outline-none focus-visible:ring-2"
+              className="rounded-full border border-[#38bdf8]/40 px-3 py-1.5 text-[11px] uppercase tracking-widest text-[#38bdf8] transition-colors hover:bg-[rgba(56,189,248,0.12)] focus:outline-none focus-visible:ring-2"
             >
               Ver ficha completa
             </button>
           </div>
         </motion.aside>
       )}
+
+      <div className="pointer-events-none absolute bottom-3 right-4 z-20 text-[10px] font-mono text-slate-500">
+        Altitud 2,710 m · Comarca Minera UNESCO
+      </div>
     </div>
   );
 }

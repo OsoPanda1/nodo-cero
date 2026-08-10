@@ -316,6 +316,7 @@ export default function YUNLayout({
   const [coresOpen, setCoresOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const explorarBtnRef = useRef<HTMLButtonElement>(null);
 
   const filteredNodes = searchQuery.trim()
     ? RDM_NODES_35.filter(
@@ -333,7 +334,9 @@ export default function YUNLayout({
   /* Cierra el dropdown al hacer clic fuera o al pulsar Escape. */
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (explorarBtnRef.current?.contains(target)) return;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setPlanosOpen(false);
       }
     }
@@ -475,7 +478,8 @@ export default function YUNLayout({
 
           {/* Botón de navegación por planos */}
           <button
-            onClick={() => setPlanosOpen(!planosOpen)}
+            ref={explorarBtnRef}
+            onClick={() => setPlanosOpen(open => !open)}
             className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold transition-all ${
               planosOpen
                 ? 'border-[#0d4652]/40 bg-[#0d4652] text-white shadow-[0_10px_30px_rgba(13,70,82,0.3)]'

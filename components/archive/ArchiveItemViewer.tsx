@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowLeft, Download, Loader2, Play, FileText, MapPin, Share2,
 } from 'lucide-react';
@@ -17,11 +17,38 @@ interface ArchiveItemViewerProps {
 export function ArchiveItemViewer({ item, onBack }: ArchiveItemViewerProps) {
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   const accessCopy = item.files.find(f => f.fileRole === 'access_copy' && f.isPublic);
   const thumbnail = item.files.find(f => f.fileRole === 'thumbnail' && f.isPublic);
   const transcript = item.files.find(f => f.fileRole === 'transcript' && f.isPublic);
   const canDownload = item.accessLevel === 'open' || item.accessLevel === 'download_only';
+
+  const isEmbeddable =
+    accessCopy !== undefined &&
+    (accessCopy.mimeType === 'application/pdf' || accessCopy.mimeType.startsWith('text/') || accessCopy.mimeType.startsWith('image/'));
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isEmbeddable) return;
+    const params = new URLSearchParams({ fileRole: accessCopy.fileRole });
+    fetch(`/api/archive/items/${item.id}/preview?${params.toString()}`, { cache: 'no-store' })
+      .then(async res => {
+        const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+        if (!res.ok || !data.url) throw new Error(data.error ?? 'No se pudo preparar la vista previa.');
+        return data.url;
+      })
+      .then(url => {
+        if (!cancelled) setPreviewUrl(url);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setPreviewError(e instanceof Error ? e.message : 'Error de vista previa');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [item.id, accessCopy, isEmbeddable]);
 
   const handleDownload = async (fileRole: string) => {
     setDownloading(true);
@@ -94,15 +121,36 @@ export function ArchiveItemViewer({ item, onBack }: ArchiveItemViewerProps) {
     }
     if (accessCopy.mimeType === 'application/pdf' || accessCopy.mimeType.startsWith('text/')) {
       return (
-        <div className="flex h-72 flex-col items-center justify-center gap-4 rounded-3xl border border-[#c9d0d4]/60 bg-gradient-to-br from-[#0d4652] to-[#082f3b] p-6 text-center">
-          <FileText className="h-12 w-12 text-[#f2cc76]" />
-          <p className="font-patrimonial text-xl text-white">{item.title}</p>
-          <p className="text-xs font-mono text-white/60">Documento digitalizado del Archivo</p>
+        <div className="overflow-hidden rounded-3xl border border-[#c9d0d4]/60 bg-white">
+          {previewUrl ? (
+            <iframe
+              src={previewUrl}
+              title={item.title}
+              className="h-[34rem] w-full bg-white"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-downloads"
+            />
+          ) : previewError ? (
+            <div className="flex h-72 flex-col items-center justify-center gap-3 px-6 text-center">
+              <FileText className="h-12 w-12 text-[#f2cc76]" />
+              <p className="font-patrimonial text-xl text-[#082f3b]">{item.title}</p>
+              <p className="text-xs font-mono text-[#8a97a4]">{previewError}</p>
+            </div>
+          ) : (
+            <div className="flex h-72 items-center justify-center gap-3 bg-gradient-to-br from-[#0d4652] to-[#082f3b]">
+              <Loader2 className="h-6 w-6 animate-spin text-[#f2cc76]" />
+              <span className="text-xs font-mono uppercase tracking-widest text-white/70">Preparando la lectura…</span>
+            </div>
+          )}
           {canDownload && (
-            <button onClick={() => void handleDownload('access_copy')} disabled={downloading} className="crystal-button px-5 py-2.5 text-xs font-bold">
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              Descargar documento
-            </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#c9d0d4]/50 bg-[#f7f8f5] px-5 py-4">
+              <p className="text-xs font-mono text-[#536b86]">
+                Documento digitalizado del Archivo · vista previa en línea
+              </p>
+              <button onClick={() => void handleDownload('access_copy')} disabled={downloading} className="crystal-button px-5 py-2.5 text-xs font-bold">
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                Descargar documento
+              </button>
+            </div>
           )}
         </div>
       );

@@ -158,7 +158,7 @@ export default function AAACinematicIntro({
           {/* Audio ambiental */}
           <audio
             ref={audioRef}
-            src="/audio/trailerinicio.mp3"
+            src="/audio/trailerintro.mp3"
             preload="auto"
             loop
           />

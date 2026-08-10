@@ -384,6 +384,36 @@ export async function requestPublicDownload(
   return { ok: true, url: signed.url, expiresAt: signed.expiresAt, fileName: file.objectPath.split('/').pop() ?? 'descarga', mimeType: file.mimeType };
 }
 
+/** Genera una URL firmada de lectura en línea (vista previa). No
+ *  registra evento de descarga y no exige permiso de descarga: la
+ *  consulta en línea es válida también para material `view_only`. */
+export async function requestPublicPreview(
+  itemId: string,
+  fileRole: ArchiveFileRole,
+): Promise<
+  | { ok: true; url: string; expiresAt: number; fileName: string; mimeType: string }
+  | { ok: false; reason: string; status?: number }
+> {
+  const item = findItemById(itemId);
+  if (!item || item.status !== 'published') return { ok: false, reason: 'NO_ENCONTRADO', status: 404 };
+  if (item.accessLevel === 'restricted') return { ok: false, reason: 'NO_ENCONTRADO', status: 404 };
+  if (fileRole === 'original') return { ok: false, reason: 'El original no se expone al público.', status: 403 };
+
+  const file = listFilesByItem(itemId).find(f => f.fileRole === fileRole && f.isPublic);
+  if (!file) return { ok: false, reason: 'NO_ENCONTRADO', status: 404 };
+  if (!isCanonicalSha256(file.sha256)) return { ok: false, reason: 'Integridad no verificada.', status: 409 };
+
+  const signed = await createSignedDownloadUrl({
+    bucket: file.storageBucket,
+    objectPath: file.objectPath,
+    mimeType: file.mimeType,
+    expiresInSeconds: 600,
+  });
+  if (!signed.ok) return { ok: false, reason: 'No se pudo firmar la vista previa.' };
+
+  return { ok: true, url: signed.url, expiresAt: signed.expiresAt, fileName: file.objectPath.split('/').pop() ?? 'preview', mimeType: file.mimeType };
+}
+
 /** Resumen editorial para el panel de administración. */
 export function archiveSummary() {
   const items = listItems();

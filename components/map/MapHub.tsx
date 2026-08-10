@@ -2,9 +2,9 @@
 
 /* ------------------------------------------------------------------ */
 /* HUB DE MAPAS — gemelo digital 2D/3D unificado                       */
-/* Fusión de las visualizaciones del Nodo Cero: Mapa 3D (Three.js),    */
-/* Mapa SVG soberano (accesible) y Mapa 2D Leaflet. Todos alimentados  */
-/* por los mismos datos reales de RDM_POIS.                            */
+/* Tres lecturas del mismo territorio alimentadas por RDM_POIS,        */
+/* envueltas en la barrera de errores para que jamás expulsen al       */
+/* usuario de la plataforma.                                           */
 /* ------------------------------------------------------------------ */
 
 import { useCallback, useState } from "react";
@@ -13,6 +13,7 @@ import { RDM_POIS } from "@/lib/data/rdm-data";
 import { Map3DTwin, DEFAULT_MAP_VIEWPORT, type MapMarkerData, type MapViewportState } from "@/components/map/Map3DTwin";
 import { TerritorialSVGMap, mapRdmPoisToTerritorial } from "@/components/map/TerritorialSVGMap";
 import DigitalTwinMap from "@/components/map/DigitalTwinMap";
+import { MapErrorBoundary } from "@/components/map/MapErrorBoundary";
 
 type MapMode = "3d" | "svg" | "2d";
 
@@ -48,28 +49,34 @@ export default function MapHub() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
-      <header className="space-y-1">
-        <h2 className="text-2xl font-semibold text-[#082f3b] flex items-center gap-2">
-          <Box className="w-6 h-6 text-[#0d4652]" />
-          Gemelo Digital 2D/3D · Cartografía Phygital
+    <div className="mx-auto max-w-7xl space-y-6 p-6 md:p-10">
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-[#c8a356]">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#c8a356]" />
+          <span className="text-[10px] font-mono uppercase tracking-[0.25em]">
+            Núcleo de Experiencia Visual
+          </span>
+        </div>
+        <h2 className="font-patrimonial text-3xl font-bold text-[#0e1b2a] md:text-4xl">
+          Gemelo Digital 2D/3D
+          <span className="text-[#c8a356]"> · Cartografía Phygital</span>
         </h2>
-        <p className="text-xs text-slate-600 font-mono">
-          Tres lecturas del mismo territorio: terreno 3D con niebla, mapa soberano accesible y
-          cartografía Leaflet en vivo. Todos con los datos reales de RDM_POIS.
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
+          Tres lecturas del mismo territorio: terreno 3D con iluminación espacial, mapa soberano
+          accesible y cartografía en vivo. Todos con los datos reales de RDM_POIS.
         </p>
       </header>
 
       {/* Selector de modo */}
-      <div className="flex items-center gap-2 p-1 rounded-2xl glass-panel border border-white/10 w-fit">
+      <div className="flex w-fit items-center gap-1 rounded-2xl border border-[rgba(14,27,42,0.1)] bg-white/70 p-1 shadow-[0_8px_30px_rgba(14,27,42,0.08)] backdrop-blur-md">
         {MODES.map((m) => (
           <button
             key={m.id}
             onClick={() => setMode(m.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-2 ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-mono font-bold transition-all ${
               mode === m.id
-                ? "bg-[#0d4652] text-white shadow-md"
-                : "text-slate-500 hover:text-[#0d4652]"
+                ? "bg-[#0e1b2a] text-[#f5efe0] shadow-md"
+                : "text-slate-500 hover:text-[#0e1b2a]"
             }`}
           >
             {m.icon}
@@ -79,35 +86,37 @@ export default function MapHub() {
       </div>
 
       {/* Contenido según modo */}
-      {mode === "3d" && (
-        <Map3DTwin viewport={viewport} markers={MAP_MARKERS} onViewportChange={handleViewportChange} />
-      )}
+      <MapErrorBoundary label="El mapa encontró un error puntual. Tu sesión sigue activa.">
+        {mode === "3d" && (
+          <Map3DTwin viewport={viewport} markers={MAP_MARKERS} onViewportChange={handleViewportChange} />
+        )}
 
-      {mode === "svg" && (
-        <TerritorialSVGMap pois={TERRITORIAL_POIS} selectedId={selectedPoiId} onSelect={setSelectedPoiId} />
-      )}
+        {mode === "svg" && (
+          <TerritorialSVGMap pois={TERRITORIAL_POIS} selectedId={selectedPoiId} onSelect={setSelectedPoiId} />
+        )}
 
-      {mode === "2d" && <DigitalTwinMap />}
+        {mode === "2d" && <DigitalTwinMap />}
+      </MapErrorBoundary>
 
       {/* Leyenda compartida */}
       <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-slate-500">
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#06b6d4]" /> Minas
+          <span className="h-2.5 w-2.5 rounded-full bg-[#c8a356]" /> Minas
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#f59e0b]" /> Gastronomía
+          <span className="h-2.5 w-2.5 rounded-full bg-[#f59e0b]" /> Gastronomía
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#a855f7]" /> Cultura
+          <span className="h-2.5 w-2.5 rounded-full bg-[#38bdf8]" /> Cultura
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]" /> Naturaleza
+          <span className="h-2.5 w-2.5 rounded-full bg-[#34d399]" /> Naturaleza
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-slate-300" /> Platería
+          <span className="h-2.5 w-2.5 rounded-full bg-slate-300" /> Platería
         </span>
         <span className="ml-auto flex items-center gap-1.5 text-slate-400">
-          <FileJson className="w-3 h-3" /> {RDM_POIS.length} POIs · fuente: lib/data/rdm-data
+          <FileJson className="h-3 w-3" /> {RDM_POIS.length} POIs · fuente: lib/data/rdm-data
         </span>
       </div>
     </div>
