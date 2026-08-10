@@ -20,6 +20,7 @@ import MediaSection from "@/components/media/MediaSection";
 import GamificationSection from "@/components/gamification/GamificationSection";
 import ZombiesInvasionSection from "@/components/gamification/ZombiesInvasionSection";
 import LegendsSection from "@/components/legends/LegendsSection";
+import HeritageSection from "@/components/heritage/HeritageSection";
 import ForumSection from "@/components/forum/ForumSection";
 import HonorWallSection from "@/components/honor/HonorWallSection";
 import GallerySection from "@/components/gallery/GallerySection";
@@ -225,6 +226,13 @@ export default function RDMDigitalHubHome() {
       {activeView === "legends" && (
         <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
           <LegendsSection />
+        </div>
+      )}
+
+      {/* 12c. HERITAGE VIEW — dossier de historia y cultura */}
+      {activeView === "heritage" && (
+        <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-6">
+          <HeritageSection />
         </div>
       )}
 

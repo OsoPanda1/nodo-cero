@@ -2,6 +2,9 @@ import { RDM_BUSINESSES, RDM_DICHOS, RDM_EVENTS, RDM_ROUTES } from '@/lib/data/r
 import { YUN_CORES, RDM_NODES_35, RDM_POIS } from '@/lib/data/rdm-data';
 import { TOPOLOGY_snapshot } from './engines';
 import { getGamificationStatus } from '@/lib/gamification/status';
+import { getWorldRuntimeStatus } from '@/lib/gamification/world/status';
+import { createWorldProposal, listWorldProposals } from '@/lib/gamification/world/proposals';
+import { DEFAULT_WORLD_ID } from '@/lib/gamification/world/seed';
 
 export interface IsabellaTool {
   name: string;
@@ -144,6 +147,95 @@ export const ISABELLA_TOOLS: IsabellaTool[] = [
       },
       note: 'El backend YUN es la fuente de verdad de puntos; el cliente solo reporta eventos firmados.',
     }),
+  },
+  {
+    name: 'get_world_status',
+    description:
+      'Estado del World Runtime Territorial: revisión publicada, entidades del manifiesto, sesiones activas y propuestas pendientes de aprobación humana.',
+    parameters: { worldId: 'string' },
+    execute: (args) => {
+      const worldId = typeof args.worldId === 'string' && args.worldId.length > 0 ? args.worldId : undefined;
+      return getWorldRuntimeStatus(worldId);
+    },
+  },
+  {
+    name: 'list_world_proposals',
+    description:
+      'Lista propuestas de cambio al mundo territorial (Isabella solo propone; un curador aprueba).',
+    parameters: { worldId: 'string', status: 'string' },
+    execute: (args) => {
+      const worldId =
+        typeof args.worldId === 'string' && args.worldId.length > 0 ? args.worldId : DEFAULT_WORLD_ID;
+      const status =
+        typeof args.status === 'string' && args.status.length > 0
+          ? (args.status as 'pending_approval' | 'approved' | 'rejected' | 'published' | 'draft' | 'validated' | 'superseded')
+          : 'pending_approval';
+      return listWorldProposals({ worldId, status }).map((p) => ({
+        proposalId: p.proposalId,
+        intent: p.intent,
+        status: p.status,
+        origin: p.origin,
+        source: p.provenance.source,
+        riskClassification: p.riskClassification,
+        requiresApproval: p.requiresApproval,
+        submittedAt: p.submittedAt,
+      }));
+    },
+  },
+  {
+    name: 'propose_world_change',
+    description:
+      'Crea una PROPUESTA de cambio al mundo territorial (nunca aplica efectos directos). Requiere aprobación humana antes de publicar una nueva revisión del manifiesto.',
+    parameters: {
+      intent: 'string',
+      worldId: 'string',
+      riskClassification: 'string',
+      requestedBy: 'string',
+    },
+    execute: (args) => {
+      const intent =
+        typeof args.intent === 'string' && args.intent.trim().length >= 8
+          ? args.intent.trim().slice(0, 4000)
+          : null;
+      if (!intent) {
+        return {
+          ok: false,
+          error: 'intent es requerido (mínimo 8 caracteres). Isabella solo propone, no publica.',
+        };
+      }
+      const worldId =
+        typeof args.worldId === 'string' && args.worldId.length > 0 ? args.worldId : DEFAULT_WORLD_ID;
+      const requestedBy =
+        typeof args.requestedBy === 'string' && args.requestedBy.length > 0
+          ? args.requestedBy.slice(0, 128)
+          : 'isabella';
+      const riskRaw = typeof args.riskClassification === 'string' ? args.riskClassification : 'medium';
+      const riskClassification =
+        riskRaw === 'low' || riskRaw === 'medium' || riskRaw === 'high' || riskRaw === 'critical'
+          ? riskRaw
+          : 'medium';
+
+      const proposal = createWorldProposal({
+        worldId,
+        intent,
+        requestedBy,
+        source: 'isabella',
+        origin: 'ai-assisted',
+        riskClassification,
+        modelRunId: typeof args.modelRunId === 'string' ? args.modelRunId.slice(0, 128) : undefined,
+      });
+
+      return {
+        ok: true,
+        note: 'Propuesta registrada. Un curador humano debe aprobar antes de publicar.',
+        proposalId: proposal.proposalId,
+        status: proposal.status,
+        requiresApproval: proposal.requiresApproval,
+        worldId: proposal.worldId,
+        intent: proposal.intent,
+        riskClassification: proposal.riskClassification,
+      };
+    },
   },
 ];
 

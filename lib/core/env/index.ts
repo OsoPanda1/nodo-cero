@@ -66,6 +66,26 @@ export const envSchema = z.object({
   MEXA_OPERATOR_KEY: z.string().optional(),
   MEXA_OPERATOR_PUBLIC_KEY: z.string().optional(),
 
+  /* Identidad YUN — bootstrap de la primera clave admin (RDM_ADMIN_API_KEY).
+     Si está definida y el registro de identidad está vacío, se da de alta
+     como clave admin (`admin:keys` + `admin:all`) en el arranque. */
+  RDM_ADMIN_API_KEY: z.string().optional(),
+
+  /* Proveedores LLM del CROWN Gateway (flota federada de IAs).
+     Cada clave activa el proveedor homólogo en lib/isabella/crown-gateway.ts:
+     - GROQ_API_KEY       → Groq LPU (llama-3.3-70b-versatile)
+     - CEREBRAS_API_KEY   → Cerebras (llama-3.3-70b)
+     - OPENROUTER_API_KEY → OpenRouter (enrutador multi-modelo)
+     - MISTRAL_API_KEY    → Mistral Nemo
+     - OLLAMA_*           → inferencia local (nunca egress) */
+  GROQ_API_KEY: rotatableKey,
+  CEREBRAS_API_KEY: rotatableKey,
+  OPENROUTER_API_KEY: rotatableKey,
+  MISTRAL_API_KEY: rotatableKey,
+  CLOUDFLARE_AI_KEY: rotatableKey,
+  CLOUDFLARE_AI_ACCOUNT_ID: z.string().optional(),
+  OLLAMA_BASE_URL: z.string().optional(),
+
   /* Emergencia CROWN */
   CROWN_EMERGENCY_KEY: z.string().optional(),
   CROWN_EMERGENCY_MODE: z.enum(['armed', 'disarmed']).optional(),

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireIdentity } from '@/app/api/_shared/route-guard';
 import { handleIsabellaCryptoVerify } from '@/lib/isabella/http';
 
 const ROUTE_ID = 'api:isabella:crypto:verify';
@@ -89,6 +90,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 400 },
       );
     }
+
+    // Identidad soberana y scopes (capa L6): verificación MSR con mexa:verify.
+    const denied = requireIdentity(req, ['mexa:verify']);
+    if (denied) return denied;
 
     // Delegación al núcleo de verificación MSR / Mexa API (C.R.O.W.N.)
     const response = await handleIsabellaCryptoVerify(req);

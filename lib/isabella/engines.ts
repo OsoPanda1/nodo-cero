@@ -10,6 +10,7 @@ import { ISABELLA_POLICIES } from "./constitution";
 import { getKnowledge, IsabellaIntent } from "./knowledge";
 import { addMemoryItem, getMemoryStats, recallMemory } from "./memory";
 import { getGamificationStatus } from "../gamification/status";
+import { getWorldRuntimeStatus } from "../gamification/world/status";
 import { CanonicalIntent } from "./intention-parser";
 import { clamp } from "./utils";
 
@@ -309,6 +310,12 @@ const INTENT_GRAPH: IntentDescriptor[] = [
       "wave",
       "level up",
       "nivel",
+      "mundo territorial",
+      "world runtime",
+      "manifiesto",
+      "prefab",
+      "entidad del mundo",
+      "propuesta de mundo",
     ],
     weight: 1.2,
   },
@@ -914,6 +921,13 @@ function buildPlan(orion: OrionOutput): PlannedStep[] {
       description:
         "Consultar el estado de la gamificación territorial: puntos, capturas y ranking de guardianes.",
     });
+    plan.push({
+      step: 2,
+      tool: "get_world_status",
+      args: {},
+      description:
+        "Consultar el World Runtime: revisión publicada, entidades del manifiesto y propuestas pendientes.",
+    });
   } else {
     plan.push({
       step: 1,
@@ -968,14 +982,16 @@ export function SOPHIA_reason(
     response = `${opening}\n\n${territoryLine}`;
   } else if (orion.intent === "gamificacion") {
     const game = getGamificationStatus();
+    const world = getWorldRuntimeStatus();
     const guardianLine =
       game.topGuardians.length > 0
         ? `\n\nEn el ranking de guardianes del Nodo lidera «${game.topGuardians[0].name}» con ${game.topGuardians[0].points.toLocaleString('es-MX')} pts. Se han registrado ${game.totalKills.toLocaleString('es-MX')} zombies capturados en la comarca.`
         : "\n\nAún no hay guardianes en el ranking del Nodo: sé el primero en salir a la patrulla.";
+    const worldLine = `\n\nWorld Runtime: revisión publicada ${world.publishedRevision ?? 'n/d'} con ${world.entityCount} entidades; ${world.pendingProposals} propuestas pendientes de aprobación humana (Isabella solo propone, nunca publica).`;
     response = `${opening}\n\n${game.topGuardians
       .slice(1, 3)
       .map(g => `«${g.name}»: ${g.points.toLocaleString('es-MX')} pts (${g.captures} capturas)`)
-      .join(" · ")}${guardianLine}\n\n${memoryLine}`;
+      .join(" · ")}${guardianLine}${worldLine}\n\n${memoryLine}`;
   } else if (orion.intent === "dicho") {
     response = `${opening}\n\n${territoryLine}\n\n${memoryLine}`;
   } else {

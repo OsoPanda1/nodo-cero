@@ -241,8 +241,18 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && nearBottomRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, loading]);
+
+  const nearBottomRef = useRef(true);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    nearBottomRef.current = distance < 140;
+  };
 
   const handleSendRef = useRef(handleSend);
   useEffect(() => {
@@ -259,12 +269,12 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-full max-w-lg h-[620px] glass-panel rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden animate-crystal-float">
+    <div className="fixed bottom-6 right-6 z-50 w-full max-w-lg h-[640px] glass-panel rounded-2xl border border-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.3)] flex flex-col overflow-hidden">
       {/* Header Bar */}
       <div className="p-4 glass-panel border-b border-white/10 flex items-center justify-between bg-slate-950/80">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 via-purple-500 to-amber-400 p-0.5 animate-pulse">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 via-purple-500 to-amber-400 p-0.5">
               <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
                 <Bot className="w-5 h-5 text-cyan-300" />
               </div>
@@ -301,7 +311,7 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
       </div>
 
       {/* Messages Scroll Body */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-950/50">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-950/50" onScroll={handleScroll}>
         {messages.map(msg => (
           <div key={msg.id} className={`flex gap-3 ${msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
             <div
@@ -315,7 +325,7 @@ export default function IsabellaChat({ isOpen, onClose, initialPrompt }: Isabell
             </div>
 
             <div
-              className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${
+              className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed ${
                 msg.sender === 'user'
                   ? 'bg-purple-900/40 text-purple-100 border border-purple-500/30 rounded-tr-none'
                   : 'glass-panel text-slate-200 border border-cyan-500/30 rounded-tl-none shadow-md'

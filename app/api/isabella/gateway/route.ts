@@ -23,6 +23,7 @@ export const POST = guardedRoute(
     route: 'crown-gateway',
     methods: ['POST'],
     rateLimit: 60,
+    identityScopes: ['isabella:gateway'],
   },
   async ({ body }) => {
     try {

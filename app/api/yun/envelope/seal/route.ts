@@ -22,6 +22,7 @@ export const POST = guardedRoute<YunEnvelopeSealInput>(
     rateLimit: 20,
     schema: yunEnvelopeSealSchema,
     cacheControl: 'no-store',
+    identityScopes: ['yun:write'],
   },
   async ({ body }) => {
     try {

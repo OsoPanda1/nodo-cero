@@ -16,6 +16,7 @@ export const GET = guardedRoute(
     rateLimit: 60,
     json: false,
     cacheControl: 'no-store',
+    identityScopes: ['yun:read'],
   },
   async () => {
     return NextResponse.json(yunSemanticCoreStatus());

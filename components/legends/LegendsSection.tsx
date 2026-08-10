@@ -97,9 +97,21 @@ export default function LegendsSection() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {RDM_DICHOS_MINEROS.map((dicho, i) => (
-            <div key={i} className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-amber-500/40 transition-colors space-y-2">
-              <p className="text-sm text-amber-200 font-medium italic leading-snug">{dicho.text}</p>
-              <p className="text-xs text-slate-400 font-mono leading-relaxed">{dicho.meaning}</p>
+            <div key={i} className="rounded-xl overflow-hidden bg-slate-950/60 border border-slate-800/80 hover:border-amber-500/40 transition-colors">
+              <div className="relative h-28">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={['/images/callejon.jpg', '/images/ladificultad.jpg', '/images/mina-acosta.jpg', '/images/real-3.jpg'][i % 4]}
+                  alt="Dicho minero del Real"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
+              </div>
+              <div className="p-4 space-y-2">
+                <p className="text-sm text-amber-200 font-medium italic leading-snug">{dicho.text}</p>
+                <p className="text-xs text-slate-400 font-mono leading-relaxed">{dicho.meaning}</p>
+              </div>
             </div>
           ))}
         </div>

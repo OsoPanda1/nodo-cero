@@ -72,7 +72,9 @@ function getStore(): IdentityStoreShape {
 
 /* Hidratación desde el adaptador durable (si se registra uno). */
 registerHydrator('identity', async () => {
-  /* Sin adaptador durable declarado el registro arranca vacío. */
+  /* Sin adaptador durable declarado, el registro arranca vacío salvo el
+     bootstrap de la primera clave admin (si está configurada). */
+  seedBootstrapAdminKey();
 });
 
 function toPublic(record: ApiKeyRecord): ApiKeyPublic {
@@ -133,6 +135,45 @@ export function createKey(options: CreateKeyOptions): {
   return { ok: true, apiKey, record: toPublic(record) };
 }
 
+/**
+ * Bootstrap de la primera clave admin. Lee `RDM_ADMIN_API_KEY` del entorno
+ * y, si el registro está vacío, la da de alta como clave `admin:keys` +
+ * `admin:all` (almacenada SIEMPRE como hash scrypt). Idempotente: no hace
+ * nada si el registro ya contiene claves o la variable no está definida.
+ */
+export function seedBootstrapAdminKey(): {
+  seeded: boolean;
+  keyId?: string;
+  reason?: string;
+} {
+  const bootstrap = process.env.RDM_ADMIN_API_KEY;
+  if (!bootstrap) return { seeded: false, reason: 'RDM_ADMIN_API_KEY no definida' };
+  if (bootstrap.length < 16) return { seeded: false, reason: 'clave bootstrap demasiado corta' };
+  const store = getStore();
+  if (store.keys.size > 0) return { seeded: false, reason: 'registro ya poblado' };
+
+  const id = crypto.randomUUID();
+  const record: ApiKeyRecord = {
+    id,
+    name: 'bootstrap-admin',
+    description: 'Clave admin de arranque (RDM_ADMIN_API_KEY)',
+    owner: 'operador',
+    scopes: ['admin:keys', 'admin:all'],
+    status: 'active',
+    hash: hashApiKey(bootstrap),
+    prefix: bootstrap.slice(0, 16),
+    createdAt: Date.now(),
+    expiresAt: null,
+    lastUsedAt: null,
+    revokedAt: null,
+    revokeReason: null,
+    rotatedFrom: null,
+    rotatedTo: null,
+  };
+  store.keys.set(id, record);
+  return { seeded: true, keyId: id };
+}
+
 export function authenticate(
   apiKey: string | null | undefined,
 ): { ok: true; record: ApiKeyPublic } | { ok: false; reason: string } {
@@ -162,6 +203,8 @@ export function hasScope(
   record: ApiKeyPublic,
   requiredScopes: IdentityScope[],
 ): boolean {
+  /* admin:all otorga acceso universal (clave maestra del Nodo). */
+  if (record.scopes.includes('admin:all')) return true;
   return requiredScopes.every(scope => record.scopes.includes(scope));
 }
 

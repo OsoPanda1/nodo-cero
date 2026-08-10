@@ -15,6 +15,7 @@ export const GET = guardedRoute(
     rateLimit: 60,
     json: false,
     cacheControl: 'no-store',
+    identityScopes: ['hepta:read'],
   },
   async () => {
     return NextResponse.json({ federations: allFederationHealth() });

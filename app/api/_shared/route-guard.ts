@@ -79,6 +79,26 @@ export type GuardedHandler<T = Record<string, unknown>, TActor = ApiKeyPublic | 
   ctx: GuardedRouteContext<T, TActor>,
 ) => Promise<NextResponse>;
 
+/**
+ * Exige identidad soberana y scopes en rutas que conservan su cadena
+ * propia (soberanas de Isabella). Devuelve la respuesta de denegación
+ * (401/403) o `null` si la credencial es válida y suficiente.
+ */
+export function requireIdentity(
+  req: NextRequest,
+  scopes: IdentityScope[],
+): NextResponse | null {
+  const presentedKey = req.headers.get('x-rdm-api-key');
+  const auth = authenticate(presentedKey);
+  if (!auth.ok) {
+    return apiErrorJson(`Identidad denegada: ${auth.reason ?? 'credencial inválida'}`, 401);
+  }
+  if (!hasScope(auth.record, scopes)) {
+    return apiErrorJson(`Identidad denegada: faltan scopes requeridos (${scopes.join(', ')}).`, 403);
+  }
+  return null;
+}
+
 /** Envuelve un handler de API con una arquitectura de blindaje multicapa avanzada. */
 export function guardedRoute<T = Record<string, unknown>, TActor = ApiKeyPublic | null>(
   options: GuardedRouteOptions,

@@ -4,6 +4,37 @@ import React, { useState } from 'react';
 import { Music, Mic2, Play, Pause, Headphones, Radio, Clock, CalendarDays, BadgeCheck } from 'lucide-react';
 import { RDM_TRACKS, RDM_PODCAST } from '@/lib/rdm/rdm-content';
 
+/* Reproductor del podcast oficial: Ecos de Real del Monte (Spotify).
+   Visible tanto en la pestaña Música como en la pestaña Podcast. */
+function PodcastEmbed() {
+  return (
+    <div className="rounded-2xl glass-panel border border-white/10 p-4 sm:p-5 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Headphones className="w-5 h-5 text-emerald-400" />
+          <div>
+            <h3 className="text-base font-bold text-white">Ecos de Real del Monte</h3>
+            <p className="text-[11px] font-mono text-slate-400">Podcast oficial de la comarca · Transmisión en vivo y episodios</p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono px-2 py-1 rounded-md border border-emerald-500/40 bg-emerald-950/60 text-emerald-300">
+          Spotify · Destacado
+        </span>
+      </div>
+      <div className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950 aspect-video">
+        <iframe
+          src="https://open.spotify.com/embed/show/033VQlzxActi39WO45lHwM/video?utm_source=generator&t=0"
+          title="Ecos de Real del Monte — Spotify"
+          className="absolute inset-0 w-full h-full"
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MediaSection() {
   const [activeTab, setActiveTab] = useState<'musica' | 'podcast'>('musica');
   const [playing, setPlaying] = useState<string | null>(null);
@@ -43,6 +74,7 @@ export default function MediaSection() {
 
       {activeTab === 'musica' && (
         <div className="space-y-3">
+          <PodcastEmbed />
           {RDM_TRACKS.map(track => (
             <div
               key={track.id}
@@ -93,30 +125,7 @@ export default function MediaSection() {
       {activeTab === 'podcast' && (
         <div className="space-y-5">
           {/* Featured podcast: Ecos de Real del Monte (Spotify) */}
-          <div className="rounded-2xl glass-panel border border-white/10 p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <Headphones className="w-5 h-5 text-emerald-400" />
-                <div>
-                  <h3 className="text-base font-bold text-white">Ecos de Real del Monte</h3>
-                  <p className="text-[11px] font-mono text-slate-400">Podcast oficial de la comarca · Transmisión en vivo y episodios</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-1 rounded-md border border-emerald-500/40 bg-emerald-950/60 text-emerald-300">
-                Spotify · Destacado
-              </span>
-            </div>
-            <div className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-slate-950 aspect-video">
-              <iframe
-                src="https://open.spotify.com/embed/show/033VQlzxActi39WO45lHwM/video?utm_source=generator&t=0"
-                title="Ecos de Real del Monte — Spotify"
-                className="absolute inset-0 w-full h-full"
-                frameBorder="0"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-              />
-            </div>
-          </div>
+          <PodcastEmbed />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {RDM_PODCAST.map(episode => (

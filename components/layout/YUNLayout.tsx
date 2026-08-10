@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { YUN_CORES, RDM_NODES_35, YUNNode } from '@/lib/data/rdm-data';
 import {
-  Cpu, ShieldCheck, Box, Activity, Store, UserCheck, Globe,
-  ChevronRight, ChevronDown, Search, Menu, Radio, Sparkles,
-  Map, Database, Key, ShoppingBag, Lock, Zap,
+  Cpu, ShieldCheck, Box, Activity, Store,
+  ChevronDown, Search, Radio, Sparkles,
+  Map, Database, Key, ShoppingBag, Zap,
   Palette, UtensilsCrossed, Trophy, Ghost, MessagesSquare, Award, Images, Users, Skull, Network, BookMarked,
   HandCoins, Compass, CreditCard, SlidersHorizontal, Landmark, Mountain, Music, UserPlus, Home,
+  Layers, X, PanelsTopLeft, Globe, ChevronRight, MessageCircle, ArrowRight,
+  BookOpen,
 } from 'lucide-react';
 
 interface YUNLayoutProps {
@@ -54,6 +56,7 @@ const PLANOS: Plano[] = [
       { id: 'gastronomy', label: 'Gastronomía del Monte', icon: <UtensilsCrossed className="w-4 h-4" /> },
       { id: 'art', label: 'Arte y artesanos', icon: <Palette className="w-4 h-4" /> },
       { id: 'legends', label: 'Historia, mitos y leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'heritage', label: 'Historia y Cultura · Dossier', icon: <BookOpen className="w-4 h-4" /> },
       { id: 'archive', label: 'Archivo Histórico', icon: <BookMarked className="w-4 h-4" /> },
       { id: 'media', label: 'Música y podcast', icon: <Music className="w-4 h-4" /> },
       { id: 'gallery', label: 'Galería compartida', icon: <Images className="w-4 h-4" /> },
@@ -112,6 +115,193 @@ const PLANOS: Plano[] = [
   },
 ];
 
+/* ================================================================== */
+/* Contexto inteligente por sección — navbar izquierda flotante        */
+/* Muestra información y acciones solo relevantes a la sección actual. */
+/* ================================================================== */
+interface SectionContext {
+  eyebrow: string;
+  title: string;
+  blurb: string;
+  quick: NavItem[];
+}
+
+const SECTION_CONTEXT: Record<string, SectionContext> = {
+  home: {
+    eyebrow: 'Vitrina del Real',
+    title: 'Bienvenida al pueblo mágico',
+    blurb: 'Patrimonio, arte, cocina, historia y comunidad en un solo lugar.',
+    quick: [
+      { id: 'tourism', label: 'Ver turismo', icon: <Mountain className="w-4 h-4" /> },
+      { id: 'legends', label: 'Historia y leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'map', label: 'Mapa 2D/3D', icon: <Map className="w-4 h-4" /> },
+    ],
+  },
+  tourism: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Turismo y rutas',
+    blurb: 'Atractivos, agenda, rutas, relatos y la línea histórica del pueblo.',
+    quick: [
+      { id: 'legends', label: 'Leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'gastronomy', label: 'Gastronomía', icon: <UtensilsCrossed className="w-4 h-4" /> },
+      { id: 'map', label: 'Mapa interactivo', icon: <Map className="w-4 h-4" /> },
+      { id: 'archive', label: 'Archivo Histórico', icon: <BookMarked className="w-4 h-4" /> },
+    ],
+  },
+  gastronomy: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Gastronomía del Monte',
+    blurb: 'Pastes, pan de pulque, mixiotes y café de altura de las pasteadoras históricas.',
+    quick: [
+      { id: 'business', label: 'Negocios con sello', icon: <Store className="w-4 h-4" /> },
+      { id: 'marketplace', label: 'Marketplace', icon: <ShoppingBag className="w-4 h-4" /> },
+      { id: 'tourism', label: 'Turismo', icon: <Mountain className="w-4 h-4" /> },
+    ],
+  },
+  art: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Arte y artesanos',
+    blurb: 'Platería .925, textiles, alebrijes y la tradición viva del Real.',
+    quick: [
+      { id: 'business', label: 'Talleres y tiendas', icon: <Store className="w-4 h-4" /> },
+      { id: 'gallery', label: 'Galería', icon: <Images className="w-4 h-4" /> },
+      { id: 'honor', label: 'Muro de honor', icon: <Award className="w-4 h-4" /> },
+    ],
+  },
+  legends: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Historia, mitos y leyendas',
+    blurb: 'De la huelga de 1766 a la niebla del Panteón Inglés: la memoria viva del pueblo.',
+    quick: [
+      { id: 'tourism', label: 'Turismo', icon: <Mountain className="w-4 h-4" /> },
+      { id: 'heritage', label: 'Dossier de identidad', icon: <BookOpen className="w-4 h-4" /> },
+      { id: 'archive', label: 'Archivo Histórico', icon: <BookMarked className="w-4 h-4" /> },
+      { id: 'media', label: 'Podcast', icon: <Music className="w-4 h-4" /> },
+    ],
+  },
+  heritage: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Historia y Cultura del Monte',
+    blurb: 'El expediente integral: identidad, minería, Cornualles, el paste, leyendas y patrimonio en 12 capítulos ilustrados.',
+    quick: [
+      { id: 'legends', label: 'Leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'gastronomy', label: 'El paste', icon: <UtensilsCrossed className="w-4 h-4" /> },
+      { id: 'tourism', label: 'Rutas', icon: <Mountain className="w-4 h-4" /> },
+      { id: 'archive', label: 'Archivo', icon: <BookMarked className="w-4 h-4" /> },
+    ],
+  },
+  archive: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Archivo Histórico',
+    blurb: 'Documentos, mapas, fotografías y memoria oral de la Real de Minas.',
+    quick: [
+      { id: 'legends', label: 'Leyendas', icon: <Ghost className="w-4 h-4" /> },
+      { id: 'about', label: 'Quiénes somos', icon: <Users className="w-4 h-4" /> },
+    ],
+  },
+  media: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Música y podcast',
+    blurb: 'Sonidos, cantos mineros y el podcast Ecos de Real del Monte.',
+    quick: [
+      { id: 'tourism', label: 'Turismo', icon: <Mountain className="w-4 h-4" /> },
+      { id: 'gallery', label: 'Galería', icon: <Images className="w-4 h-4" /> },
+    ],
+  },
+  gallery: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Galería compartida',
+    blurb: 'Fotografías y miradas de quienes viven y visitan el pueblo.',
+    quick: [
+      { id: 'media', label: 'Música y podcast', icon: <Music className="w-4 h-4" /> },
+      { id: 'forum', label: 'Foro', icon: <MessagesSquare className="w-4 h-4" /> },
+    ],
+  },
+  map: {
+    eyebrow: 'Plano I · Descubre',
+    title: 'Mapa interactivo',
+    blurb: 'El gemelo phygital del territorio en 2D y 3D con los 35 nodos YUN.',
+    quick: [
+      { id: 'twins', label: 'Gemelo DTDL', icon: <Box className="w-4 h-4" /> },
+      { id: 'tourism', label: 'Turismo', icon: <Mountain className="w-4 h-4" /> },
+    ],
+  },
+  business: {
+    eyebrow: 'Plano II · Comercia',
+    title: 'Catálogo de negocios',
+    blurb: 'Negocios verificados del pueblo: pastes, platería, café y artesanías.',
+    quick: [
+      { id: 'marketplace', label: 'Marketplace', icon: <ShoppingBag className="w-4 h-4" /> },
+      { id: 'payments', label: 'Pagos y donaciones', icon: <HandCoins className="w-4 h-4" /> },
+      { id: 'register', label: 'Registrar negocio', icon: <UserPlus className="w-4 h-4" /> },
+    ],
+  },
+  marketplace: {
+    eyebrow: 'Plano II · Comercia',
+    title: 'Marketplace',
+    blurb: 'Experiencias, pastes y platería .925 verificados del territorio.',
+    quick: [
+      { id: 'business', label: 'Catálogo de negocios', icon: <Store className="w-4 h-4" /> },
+      { id: 'payments', label: 'Pagos', icon: <HandCoins className="w-4 h-4" /> },
+    ],
+  },
+  payments: {
+    eyebrow: 'Plano II · Comercia',
+    title: 'Pagos y donaciones',
+    blurb: 'Soporta al Nodo y a la comunidad con donaciones y suscripciones.',
+    quick: [
+      { id: 'business', label: 'Negocios', icon: <Store className="w-4 h-4" /> },
+      { id: 'honor', label: 'Muro de honor', icon: <Award className="w-4 h-4" /> },
+    ],
+  },
+  register: {
+    eyebrow: 'Plano III · Personaliza',
+    title: 'Registro',
+    blurb: 'Da de alta tu cuenta de vecino, negocio o artesano en el Nodo.',
+    quick: [
+      { id: 'forum', label: 'Foro', icon: <MessagesSquare className="w-4 h-4" /> },
+      { id: 'honor', label: 'Muro de honor', icon: <Award className="w-4 h-4" /> },
+    ],
+  },
+  forum: {
+    eyebrow: 'Plano III · Personaliza',
+    title: 'Foro del Real',
+    blurb: 'La conversación del pueblo: avisos, historia y vida cotidiana.',
+    quick: [
+      { id: 'honor', label: 'Muro de honor', icon: <Award className="w-4 h-4" /> },
+      { id: 'register', label: 'Unirme', icon: <UserPlus className="w-4 h-4" /> },
+    ],
+  },
+  honor: {
+    eyebrow: 'Plano III · Personaliza',
+    title: 'Muro de honor',
+    blurb: 'Reconocimientos a vecinos, artesanos y guardianes del Nodo.',
+    quick: [
+      { id: 'forum', label: 'Foro', icon: <MessagesSquare className="w-4 h-4" /> },
+      { id: 'gallery', label: 'Galería', icon: <Images className="w-4 h-4" /> },
+    ],
+  },
+  about: {
+    eyebrow: 'Identidad',
+    title: 'Quiénes somos',
+    blurb: 'La plataforma, su arquitectura y la visión del Nodo Cero.',
+    quick: [
+      { id: 'home', label: 'Inicio', icon: <Home className="w-4 h-4" /> },
+      { id: 'archive', label: 'Archivo', icon: <BookMarked className="w-4 h-4" /> },
+    ],
+  },
+};
+
+const FALLBACK_CONTEXT: SectionContext = {
+  eyebrow: 'Nodo Cero',
+  title: 'Ecosistema RDM',
+  blurb: 'Explora los cuatro planos de la plataforma territorial.',
+  quick: [
+    { id: 'home', label: 'Inicio', icon: <Home className="w-4 h-4" /> },
+    { id: 'map', label: 'Mapa', icon: <Map className="w-4 h-4" /> },
+  ],
+};
+
 export default function YUNLayout({
   children,
   activeView,
@@ -120,10 +310,12 @@ export default function YUNLayout({
   onSelectNode,
   onOpenIsabella,
 }: YUNLayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [openPlano, setOpenPlano] = useState<string>('descubre');
+  const [planosOpen, setPlanosOpen] = useState(false);
+  const [openPlano, setOpenPlano] = useState<string>('');
+  const [contextOpen, setContextOpen] = useState(true);
   const [coresOpen, setCoresOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const filteredNodes = searchQuery.trim()
     ? RDM_NODES_35.filter(
@@ -135,44 +327,128 @@ export default function YUNLayout({
     : [];
 
   const activePlano = PLANOS.find(p => p.items.some(i => i.id === activeView));
+  const context = SECTION_CONTEXT[activeView] ?? FALLBACK_CONTEXT;
+  const accentColor = activePlano?.accent ?? '#0d4652';
+
+  /* Cierra el dropdown al hacer clic fuera o al pulsar Escape. */
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setPlanosOpen(false);
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setPlanosOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, []);
+
+  const navigateTo = (id: string) => {
+    setActiveView(id);
+    setPlanosOpen(false);
+  };
+
+  const expandedPlanoKey = planosOpen
+    ? (activePlano?.key ?? openPlano ?? 'descubre')
+    : openPlano;
+
+  const renderDropdownColumns = () =>
+    PLANOS.map(plano => {
+      const isExpanded = expandedPlanoKey === plano.key;
+      const hasActive = plano.items.some(i => i.id === activeView);
+      return (
+        <div
+          key={plano.key}
+          className="rounded-2xl border border-[#c9d0d4]/60 bg-white/60 overflow-hidden flex flex-col"
+          style={hasActive ? { borderColor: plano.accent, boxShadow: `0 14px 40px ${plano.accent}1f` } : undefined}
+        >
+          <button
+            onClick={() => setOpenPlano(isExpanded ? '' : plano.key)}
+            className="w-full p-3.5 flex items-center justify-between text-left transition-all hover:bg-white/80"
+            aria-expanded={isExpanded}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
+                style={{ background: plano.accent }}
+              >
+                {plano.icon}
+              </span>
+              <span className="min-w-0">
+                <span className="font-rdm-mono text-[9px] tracking-widest" style={{ color: plano.accent }}>
+                  PLANO {plano.order}
+                </span>
+                <span className="block font-patrimonial text-sm font-bold text-[#082f3b] leading-tight">
+                  {plano.name}
+                </span>
+                <span className="block text-[10px] text-[#536b86] truncate">{plano.tagline}</span>
+              </span>
+            </div>
+            <ChevronDown
+              className="w-4 h-4 shrink-0 transition-transform"
+              style={{ color: plano.accent, transform: isExpanded ? 'rotate(180deg)' : 'none' }}
+            />
+          </button>
+
+          {isExpanded && (
+            <div className="px-2 pb-2 space-y-1 border-t border-[#c9d0d4]/50 pt-2">
+              {plano.items.map(item => {
+                const active = activeView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => navigateTo(item.id)}
+                    className="w-full p-2.5 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all text-left"
+                    style={
+                      active
+                        ? { background: `${plano.accent}14`, color: plano.accent, border: `1px solid ${plano.accent}55` }
+                        : { color: '#3c4750' }
+                    }
+                    onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#eef1ec'; }}
+                    onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span style={{ color: active ? plano.accent : '#7c8894' }}>{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    });
 
   return (
     <div className="min-h-screen text-[#283038] font-sans flex flex-col">
 
       {/* ============ TOP NAVBAR — cristal perlado ============ */}
-      <header className="h-16 w-full fixed top-0 z-40 px-4 md:px-8 flex items-center justify-between border-b border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.82)] backdrop-blur-xl shadow-[0_8px_30px_rgba(13,70,82,0.06)]">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-xl text-[#0d4652] hover:bg-[#0d4652]/8 transition-all"
-            title="Alternar navegación"
-            aria-label="Alternar navegación"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-
-          <button onClick={() => setActiveView('home')} className="flex items-center gap-3 group text-left">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#c9d0d4] via-[#f2cc76] to-[#2e9cff] p-0.5 shadow-[0_6px_20px_rgba(13,70,82,0.16)] group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#082f3b] rounded-[10px] flex items-center justify-center font-black text-xs text-white">
-                RDM
-              </div>
+      <header className="h-16 w-full fixed top-0 z-50 px-4 md:px-8 flex items-center justify-between gap-3 border-b border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.85)] backdrop-blur-xl shadow-[0_8px_30px_rgba(13,70,82,0.06)]">
+        <button onClick={() => setActiveView('home')} className="flex items-center gap-3 group text-left min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#c9d0d4] via-[#f2cc76] to-[#2e9cff] p-0.5 shadow-[0_6px_20px_rgba(13,70,82,0.16)] group-hover:scale-105 transition-transform shrink-0">
+            <div className="w-full h-full bg-[#082f3b] rounded-[10px] flex items-center justify-center font-black text-xs text-white">
+              RDM
             </div>
-            <div>
-              <h1 className="font-patrimonial text-sm font-bold tracking-wider text-[#082f3b] flex items-center gap-1.5">
-                RDM DIGITAL HUB
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#0d4652] text-[#f2cc76] border border-[#c89a45]/40">
-                  NODO CERO
-                </span>
-              </h1>
-              <p className="text-[10px] text-[#536b86] font-mono tracking-tight hidden sm:block">
-                Pueblo Mágico de Real del Monte · Hidalgo
-              </p>
-            </div>
-          </button>
-        </div>
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-patrimonial text-sm font-bold tracking-wider text-[#082f3b] flex items-center gap-1.5 truncate">
+              RDM DIGITAL HUB
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#0d4652] text-[#f2cc76] border border-[#c89a45]/40 shrink-0">
+                NODO CERO
+              </span>
+            </h1>
+            <p className="text-[10px] text-[#536b86] font-mono tracking-tight hidden sm:block truncate">
+              Pueblo Mágico de Real del Monte · Hidalgo
+            </p>
+          </div>
+        </button>
 
         {/* Indicadores en vivo */}
-        <div className="hidden lg:flex items-center gap-3 text-xs font-mono">
+        <div className="hidden xl:flex items-center gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-[#c9d0d4]/80 text-[#0d4652]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
             <span>Territorio en vivo</span>
@@ -181,212 +457,324 @@ export default function YUNLayout({
             <Radio className="w-3.5 h-3.5 animate-pulse" />
             <span>Isabella AI</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 border border-[#c9d0d4]/80 text-[#a9481e]">
-            <Lock className="w-3.5 h-3.5" />
-            <span>Post-Quantum</span>
-          </div>
         </div>
 
-        {/* Acciones rápidas */}
-        <div className="flex items-center gap-3">
+        {/* Acciones rápidas + Navegación de planos (dropdown superior derecho) */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setActiveView('register')}
-            className="crystal-button crystal-button-gold px-3.5 py-1.5 text-xs font-bold"
+            className="crystal-button crystal-button-gold px-3 py-1.5 text-xs font-bold"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Únete</span>
           </button>
-          <button onClick={onOpenIsabella} className="crystal-button px-3.5 py-1.5 text-xs font-bold">
+          <button onClick={onOpenIsabella} className="crystal-button px-3 py-1.5 text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-[#0d4652]" />
             <span className="hidden sm:inline">Isabella AI</span>
+          </button>
+
+          {/* Botón de navegación por planos */}
+          <button
+            onClick={() => setPlanosOpen(!planosOpen)}
+            className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-bold transition-all ${
+              planosOpen
+                ? 'border-[#0d4652]/40 bg-[#0d4652] text-white shadow-[0_10px_30px_rgba(13,70,82,0.3)]'
+                : 'border-[#c9d0d4]/80 bg-white/80 text-[#0d4652] hover:border-[#0d4652]/40 hover:bg-white'
+            }`}
+            aria-expanded={planosOpen}
+            aria-haspopup="dialog"
+          >
+            <PanelsTopLeft className="w-4 h-4" />
+            <span className="hidden md:inline">Explorar</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${planosOpen ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </header>
 
-      {/* ============ CUERPO: SIDEBAR + VISTA ============ */}
-      <div className="flex pt-16 h-screen overflow-hidden relative">
-
-        {/* SIDEBAR DE 4 PLANOS */}
-        <aside
-          className={`h-full flex flex-col justify-between transition-all duration-300 z-30 border-r border-[#c9d0d4]/70 bg-[rgba(255,255,255,0.72)] backdrop-blur-xl ${
-            sidebarOpen ? 'w-80' : 'w-16'
-          }`}
+      {/* ============ DROPDOWN DE LOS 4 PLANOS (acordeón en 4 columnas) ============ */}
+      {planosOpen && (
+        <div
+          ref={dropdownRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navegación por planos"
+          className="fixed inset-0 z-40 flex items-start justify-end p-3 sm:p-5"
         >
-          <div className="p-3 space-y-3 overflow-y-auto custom-scrollbar flex-1">
-
-            {sidebarOpen && (
-              <div className="relative">
-                <Search className="w-4 h-4 text-[#536b86] absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Buscar en los 35 nodos…"
-                  className="w-full bg-white/80 border border-[#c9d0d4] focus:border-[#2e9cff] rounded-xl pl-9 pr-3 py-2 text-xs text-[#283038] placeholder-[#8a97a4] focus:outline-none transition-all font-mono"
-                />
-              </div>
-            )}
-
-            {sidebarOpen && searchQuery.trim().length > 0 && (
-              <div className="p-2 rounded-xl bg-white/90 border border-[#2e9cff]/40 space-y-1 max-h-60 overflow-y-auto shadow-sm">
-                <div className="text-[10px] font-mono text-[#0d4652] px-2 py-1 uppercase">
-                  Nodos encontrados ({filteredNodes.length})
+          <div
+            className="absolute inset-0 bg-[#082f3b]/25 backdrop-blur-sm"
+            onClick={() => setPlanosOpen(false)}
+          />
+          <div className="relative w-full max-w-5xl mt-16 rounded-[2rem] border border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.92)] backdrop-blur-2xl shadow-[0_40px_120px_rgba(8,47,59,0.35)] overflow-hidden">
+            {/* Cabecera del dropdown */}
+            <div className="flex items-center justify-between gap-4 px-5 pt-5 pb-4 border-b border-[#c9d0d4]/60">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#c9d0d4] via-[#f2cc76] to-[#2e9cff] p-px shadow-sm shrink-0">
+                  <span className="flex h-full w-full items-center justify-center rounded-[14px] bg-[#082f3b] text-white">
+                    <Layers className="w-4 h-4" />
+                  </span>
+                </span>
+                <div className="min-w-0">
+                  <p className="font-rdm-mono text-[10px] uppercase tracking-[0.28em] text-[#c89a45]">
+                    Mapa del ecosistema
+                  </p>
+                  <h2 className="font-patrimonial text-lg font-bold text-[#082f3b] truncate">
+                    Los 4 planos de RDM Digital
+                  </h2>
                 </div>
-                {filteredNodes.map(node => (
-                  <button
-                    key={node.id}
-                    onClick={() => { onSelectNode(node); setSearchQuery(''); }}
-                    className="w-full p-2 rounded-lg hover:bg-[#eef1ec] text-left text-xs transition-all flex items-center justify-between"
-                  >
-                    <span className="font-medium text-[#082f3b] truncate">{node.title}</span>
-                    <span className="text-[9px] font-mono text-[#2e9cff]">{node.code}</span>
-                  </button>
-                ))}
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-mono text-[#536b86]">
+                  <Search className="w-3.5 h-3.5" />
+                  35 nodos YUN
+                </span>
+                <button
+                  onClick={() => setPlanosOpen(false)}
+                  className="p-2 rounded-xl border border-[#c9d0d4]/70 bg-white/80 text-[#536b86] hover:text-[#082f3b] hover:border-[#0d4652]/40 transition-all"
+                  aria-label="Cerrar navegación"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-            {/* Acordeón de los 4 planos */}
-            <nav className="space-y-2" aria-label="Navegación por planos">
-              {PLANOS.map(plano => {
-                const isOpen = sidebarOpen && openPlano === plano.key;
-                const hasActive = plano.items.some(i => i.id === activeView);
-                return (
-                  <div
-                    key={plano.key}
-                    className="rounded-2xl border border-[#c9d0d4]/60 bg-white/55 overflow-hidden"
-                    style={hasActive ? { borderColor: plano.accent, boxShadow: `0 10px 30px ${plano.accent}1f` } : undefined}
-                  >
-                    <button
-                      onClick={() => (sidebarOpen ? setOpenPlano(isOpen ? '' : plano.key) : setSidebarOpen(true))}
-                      className="w-full p-3 flex items-center justify-between text-left transition-all hover:bg-white/70"
-                      aria-expanded={isOpen}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
-                          style={{ background: plano.accent }}
-                        >
-                          {plano.icon}
-                        </span>
-                        {sidebarOpen && (
-                          <span className="min-w-0">
-                            <span className="flex items-center gap-1.5">
-                              <span className="font-rdm-mono text-[9px] tracking-widest" style={{ color: plano.accent }}>
-                                PLANO {plano.order}
-                              </span>
-                            </span>
-                            <span className="block font-patrimonial text-sm font-bold text-[#082f3b] leading-tight truncate">
-                              {plano.name}
-                            </span>
-                            <span className="block text-[10px] text-[#536b86] truncate">{plano.tagline}</span>
-                          </span>
-                        )}
-                      </div>
-                      {sidebarOpen && (
-                        <ChevronDown
-                          className="w-4 h-4 shrink-0 transition-transform"
-                          style={{ color: plano.accent, transform: isOpen ? 'rotate(180deg)' : 'none' }}
-                        />
-                      )}
-                    </button>
+            {/* 4 columnas acordeón */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 p-4 max-h-[58vh] overflow-y-auto custom-scrollbar">
+              {renderDropdownColumns()}
+            </div>
 
-                    {isOpen && (
-                      <div className="px-2 pb-2 space-y-1 border-t border-[#c9d0d4]/50 pt-2">
-                        {plano.items.map(item => {
-                          const active = activeView === item.id;
-                          return (
-                            <button
-                              key={item.id}
-                              onClick={() => setActiveView(item.id)}
-                              className="w-full p-2.5 rounded-xl text-xs font-semibold flex items-center gap-3 transition-all"
-                              style={
-                                active
-                                  ? { background: `${plano.accent}14`, color: plano.accent, border: `1px solid ${plano.accent}55` }
-                                  : { color: '#3c4750' }
-                              }
-                              onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#eef1ec'; }}
-                              onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
-                            >
-                              <span style={{ color: active ? plano.accent : '#7c8894' }}>{item.icon}</span>
-                              <span className="truncate text-left">{item.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
-
-            {/* Arquitectura heptafederada (nodos técnicos) — dentro de Gobierna */}
-            {sidebarOpen && (
-              <div className="rounded-2xl border border-[#c9d0d4]/60 bg-white/55 overflow-hidden">
+            {/* Arquitectura YUN + buscador */}
+            <div className="px-5 pb-5 pt-2 border-t border-[#c9d0d4]/60">
+              <div className="flex flex-col lg:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-[#536b86] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder="Buscar en los 35 nodos YUN…"
+                    className="w-full bg-white/80 border border-[#c9d0d4] focus:border-[#2e9cff] rounded-xl pl-9 pr-3 py-2 text-xs text-[#283038] placeholder-[#8a97a4] focus:outline-none transition-all font-mono"
+                  />
+                </div>
                 <button
                   onClick={() => setCoresOpen(!coresOpen)}
-                  className="w-full p-3 flex items-center justify-between text-left hover:bg-white/70 transition-all"
+                  className="flex items-center justify-between gap-2 px-4 py-2 rounded-xl border border-[#c9d0d4]/70 bg-white/70 text-xs font-bold text-[#0d4652] hover:bg-white transition-all"
                   aria-expanded={coresOpen}
                 >
-                  <div className="flex items-center gap-2.5">
+                  <span className="flex items-center gap-2">
                     <Globe className="w-4 h-4 text-[#536b86]" />
-                    <span className="font-rdm-mono text-[10px] uppercase tracking-widest text-[#536b86]">
-                      7 Núcleos heptafederados
-                    </span>
-                  </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-[#536b86] transition-transform ${coresOpen ? 'rotate-180' : ''}`} />
+                    7 Núcleos heptafederados
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${coresOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {coresOpen && (
-                  <div className="p-2 space-y-1 border-t border-[#c9d0d4]/50">
-                    {YUN_CORES.map(core => {
-                      const coreNodes = RDM_NODES_35.filter(n => n.coreId === core.id);
-                      return (
-                        <details key={core.id} className="rounded-lg bg-[#f7f8f5]/70">
-                          <summary className="cursor-pointer p-2 text-[11px] font-bold text-[#0d4652] flex items-center gap-2">
-                            <ShieldCheck className="w-3.5 h-3.5 text-[#c89a45]" />
-                            <span className="truncate">{core.name}</span>
-                          </summary>
-                          <div className="p-1 space-y-1">
-                            {coreNodes.map(node => (
-                              <button
-                                key={node.id}
-                                onClick={() => onSelectNode(node)}
-                                className={`w-full p-2 rounded-lg text-left text-[11px] font-mono transition-all flex items-center justify-between ${
-                                  selectedNode?.id === node.id
-                                    ? 'bg-[#e6eef1] text-[#0d4652] border border-[#2e9cff]/40 font-bold'
-                                    : 'text-[#536b86] hover:text-[#082f3b] hover:bg-white'
-                                }`}
-                              >
-                                <span className="truncate pr-2">{node.title}</span>
-                                <span className="text-[9px] text-[#2e9cff] shrink-0">{node.code}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </details>
-                      );
-                    })}
+              </div>
+
+              {searchQuery.trim().length > 0 && (
+                <div className="mt-2 p-2 rounded-xl bg-white/90 border border-[#2e9cff]/40 space-y-1 max-h-52 overflow-y-auto shadow-sm">
+                  <div className="text-[10px] font-mono text-[#0d4652] px-2 py-1 uppercase">
+                    Nodos encontrados ({filteredNodes.length})
                   </div>
+                  {filteredNodes.map(node => (
+                    <button
+                      key={node.id}
+                      onClick={() => { onSelectNode(node); setSearchQuery(''); setPlanosOpen(false); }}
+                      className="w-full p-2 rounded-lg hover:bg-[#eef1ec] text-left text-xs transition-all flex items-center justify-between"
+                    >
+                      <span className="font-medium text-[#082f3b] truncate">{node.title}</span>
+                      <span className="text-[9px] font-mono text-[#2e9cff]">{node.code}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {coresOpen && (
+                <div className="mt-2 p-2 rounded-xl border border-[#c9d0d4]/60 bg-white/60 max-h-56 overflow-y-auto custom-scrollbar space-y-1">
+                  {YUN_CORES.map(core => {
+                    const coreNodes = RDM_NODES_35.filter(n => n.coreId === core.id);
+                    return (
+                      <details key={core.id} className="rounded-lg bg-[#f7f8f5]/70">
+                        <summary className="cursor-pointer p-2 text-[11px] font-bold text-[#0d4652] flex items-center gap-2">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#c89a45]" />
+                          <span className="truncate">{core.name}</span>
+                          <span className="ml-auto text-[9px] font-mono text-[#8a97a4] shrink-0">{coreNodes.length}</span>
+                        </summary>
+                        <div className="p-1 space-y-1">
+                          {coreNodes.map(node => (
+                            <button
+                              key={node.id}
+                              onClick={() => { onSelectNode(node); setPlanosOpen(false); }}
+                              className={`w-full p-2 rounded-lg text-left text-[11px] font-mono transition-all flex items-center justify-between ${
+                                selectedNode?.id === node.id
+                                  ? 'bg-[#e6eef1] text-[#0d4652] border border-[#2e9cff]/40 font-bold'
+                                  : 'text-[#536b86] hover:text-[#082f3b] hover:bg-white'
+                              }`}
+                            >
+                              <span className="truncate pr-2">{node.title}</span>
+                              <span className="text-[9px] text-[#2e9cff] shrink-0">{node.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ CUERPO ============ */}
+      <div className="flex pt-16 relative">
+
+        {/* ============ NAVBAR IZQUIERDA FLOTANTE INTELIGENTE (contextual) ============ */}
+        <aside
+          className={`fixed left-0 top-16 bottom-0 z-30 flex flex-col transition-all duration-300 ${
+            contextOpen ? 'w-72' : 'w-14'
+          }`}
+          aria-label="Navegación contextual"
+        >
+          {/* Pestaña / rail colapsado */}
+          <div
+            className="flex-1 my-3 ml-3 rounded-2xl border border-[#c9d0d4]/70 bg-[rgba(251,252,250,0.85)] backdrop-blur-xl shadow-[0_18px_50px_rgba(13,70,82,0.14)] flex flex-col overflow-hidden transition-all"
+          >
+            {contextOpen ? (
+              <>
+                {/* Cabecera contextual */}
+                <div className="p-4 border-b border-[#c9d0d4]/60 flex items-start justify-between gap-2" style={{ background: `linear-gradient(135deg, ${accentColor}14, transparent 60%)` }}>
+                  <div className="min-w-0">
+                    <p className="font-rdm-mono text-[9px] uppercase tracking-[0.24em]" style={{ color: accentColor }}>
+                      {context.eyebrow}
+                    </p>
+                    <h2 className="mt-1 font-patrimonial text-base font-bold text-[#082f3b] leading-tight">
+                      {context.title}
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setContextOpen(false)}
+                    className="p-1.5 rounded-lg text-[#536b86] hover:text-[#082f3b] hover:bg-white/70 transition-all shrink-0"
+                    aria-label="Contraer navegación contextual"
+                    title="Contraer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Descripción + acciones */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+                  <p className="text-[11px] leading-relaxed text-[#536b86]">{context.blurb}</p>
+
+                  <div className="space-y-1">
+                    <p className="font-rdm-mono text-[9px] uppercase tracking-widest text-[#c89a45] px-1">
+                      Ir a…
+                    </p>
+                    {context.quick.map(action => (
+                      <button
+                        key={action.id}
+                        onClick={() => setActiveView(action.id)}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold text-[#3c4750] hover:text-[#082f3b] hover:bg-white/80 transition-all text-left"
+                      >
+                        <span className="text-[#7c8894]">{action.icon}</span>
+                        <span className="truncate flex-1">{action.label}</span>
+                        <ArrowRight className="w-3 h-3 text-[#c9d0d4]" />
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Plano activo — mini acordeón */}
+                  {activePlano && (
+                    <div className="rounded-xl border border-[#c9d0d4]/60 bg-white/60 overflow-hidden">
+                      <button
+                        onClick={() => setCoresOpen(!coresOpen)}
+                        className="w-full p-2.5 flex items-center justify-between text-left hover:bg-white/80 transition-all"
+                        aria-expanded={coresOpen}
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-white text-[10px] font-bold"
+                            style={{ background: activePlano.accent }}
+                          >
+                            {activePlano.order}
+                          </span>
+                          <span className="text-[11px] font-bold text-[#082f3b] truncate">
+                            {activePlano.name}
+                          </span>
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 text-[#536b86] transition-transform ${coresOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {coresOpen && (
+                        <div className="px-2 pb-2 space-y-1 border-t border-[#c9d0d4]/50 pt-2">
+                          {activePlano.items.map(item => {
+                            const active = activeView === item.id;
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => setActiveView(item.id)}
+                                className="w-full p-2 rounded-lg text-[11px] font-semibold flex items-center gap-2.5 transition-all text-left"
+                                style={
+                                  active
+                                    ? { background: `${activePlano.accent}14`, color: activePlano.accent }
+                                    : { color: '#3c4750' }
+                                }
+                              >
+                                <span className="text-[#7c8894]">{item.icon}</span>
+                                <span className="truncate">{item.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Acción Isabella */}
+                  <button
+                    onClick={onOpenIsabella}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#0d4652] to-[#082f3b] hover:opacity-90 transition-all shadow-sm"
+                  >
+                    <MessageCircle className="w-4 h-4 text-[#f2cc76]" />
+                    Preguntar a Isabella AI
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* Rail colapsado — botones verticales */
+              <div className="flex-1 flex flex-col items-center gap-1 py-3">
+                <button
+                  onClick={() => setContextOpen(true)}
+                  className="p-2 rounded-xl hover:bg-white/80 text-[#0d4652] transition-all"
+                  aria-label="Expandir navegación contextual"
+                  title="Expandir contexto"
+                >
+                  <ChevronRight className="w-4 h-4 -scale-x-100" />
+                </button>
+                {activePlano && (
+                  <span
+                    className="flex h-9 w-9 items-center justify-center rounded-xl text-white text-xs font-black shadow-sm"
+                    style={{ background: activePlano.accent }}
+                    title={`Plano ${activePlano.order} · ${activePlano.name}`}
+                  >
+                    {activePlano.order}
+                  </span>
                 )}
+                <div className="mt-2 flex flex-col items-center gap-1">
+                  {context.quick.slice(0, 4).map(action => (
+                    <button
+                      key={action.id}
+                      onClick={() => setActiveView(action.id)}
+                      className="p-2 rounded-xl text-[#7c8894] hover:text-[#0d4652] hover:bg-white/80 transition-all"
+                      title={action.label}
+                    >
+                      {action.icon}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-          </div>
-
-          {/* Footer del sidebar */}
-          <div className="p-3 border-t border-[#c9d0d4]/70 bg-white/60 flex items-center justify-between">
-            {sidebarOpen && (
-              <span className="text-[10px] font-mono text-[#8a97a4]">RDM v3.0 · Soberano</span>
-            )}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-1.5 rounded-lg hover:bg-[#0d4652]/8 text-[#536b86] hover:text-[#0d4652] transition-all mx-auto"
-              aria-label="Colapsar navegación"
-            >
-              <ChevronRight className={`w-4 h-4 transition-transform ${sidebarOpen ? 'rotate-180' : ''}`} />
-            </button>
           </div>
         </aside>
 
         {/* VISTA PRINCIPAL */}
-        <main className="flex-1 overflow-y-auto relative custom-scrollbar">
+        <main className={`flex-1 overflow-y-auto relative custom-scrollbar transition-[padding] duration-300 ${contextOpen ? 'lg:pl-72' : 'lg:pl-14'}`}>
           {/* Barra de contexto: plano activo */}
           {activePlano && activeView !== 'home' && (
             <div className="sticky top-0 z-20 px-6 md:px-10 py-2.5 border-b border-[#c9d0d4]/60 bg-[rgba(251,252,250,0.85)] backdrop-blur-md">

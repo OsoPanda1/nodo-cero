@@ -24,6 +24,7 @@ export const POST = guardedRoute<YunEnvelopeVerifyInput>(
     rateLimit: 20,
     schema: yunEnvelopeVerifySchema,
     cacheControl: 'no-store',
+    identityScopes: ['yun:read'],
   },
   async ({ body }) => {
     let envelope;

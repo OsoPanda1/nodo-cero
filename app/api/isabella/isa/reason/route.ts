@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireIdentity } from '@/app/api/_shared/route-guard';
 import { handleIsabellaReason } from '@/lib/isabella/http';
 import { reasonSchema } from '@/lib/core/contracts';
 
@@ -77,6 +78,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 400 },
       );
     }
+
+    // Identidad soberana y scopes (capa L6) antes de tocar el núcleo ISA.
+    const denied = requireIdentity(req, ['isa:read']);
+    if (denied) return denied;
 
     // Delegación al núcleo de razonamiento ISA API v4.0 (C.R.O.W.N.)
     const response = await handleIsabellaReason(req);

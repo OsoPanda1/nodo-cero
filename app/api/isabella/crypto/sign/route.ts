@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireIdentity } from '@/app/api/_shared/route-guard';
 import { handleIsabellaCryptoSign } from '@/lib/isabella/http';
 
 const ROUTE_ID = 'api:isabella:crypto:sign';
@@ -88,6 +89,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { status: 400 },
       );
     }
+
+    // Identidad soberana y scopes (capa L6): firma MSR restringida a mexa:sign.
+    const denied = requireIdentity(req, ['mexa:sign']);
+    if (denied) return denied;
 
     // Delegación al núcleo de firma MSR / Mexa API (C.R.O.W.N.)
     const response = await handleIsabellaCryptoSign(req);

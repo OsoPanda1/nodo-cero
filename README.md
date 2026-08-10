@@ -11,19 +11,20 @@ Plataforma digital integral (**phygital**) del **RDM Digital Hub — Nodo Cero**
 ## Índice
 
 1. [¿Qué es?](#qué-es)
-2. [Dominios de la Plataforma](#dominios-de-la-plataforma)
-3. [Stack Tecnológico](#stack-tecnológico)
-4. [Estructura del Proyecto](#estructura-del-proyecto)
-5. [Rutas API](#rutas-api)
-6. [Gamificación: Web 2D y Arena 3D Unity](#gamificación-web-2d-y-arena-3d-unity)
-7. [Pruebas Automatizadas](#pruebas-automatizadas)
-8. [Estado Actual](#estado-actual)
-9. [Scripts](#scripts)
-10. [Variables de Entorno](#variables-de-entorno)
-11. [Despliegue en Vercel](#despliegue-en-vercel)
-12. [Base de Datos](#base-de-datos)
-13. [Documentación Técnica](#documentación-técnica)
-14. [Licenciamiento](#licenciamiento)
+2. [Experiencia de Usuario](#experiencia-de-usuario)
+3. [Dominios de la Plataforma](#dominios-de-la-plataforma)
+4. [Stack Tecnológico](#stack-tecnológico)
+5. [Estructura del Proyecto](#estructura-del-proyecto)
+6. [Rutas API](#rutas-api)
+7. [Gamificación: Web 2D y Arena 3D Unity](#gamificación-web-2d-y-arena-3d-unity)
+8. [Pruebas Automatizadas](#pruebas-automatizadas)
+9. [Estado Actual](#estado-actual)
+10. [Scripts](#scripts)
+11. [Variables de Entorno](#variables-de-entorno)
+12. [Despliegue en Vercel](#despliegue-en-vercel)
+13. [Base de Datos](#base-de-datos)
+14. [Documentación Técnica](#documentación-técnica)
+15. [Licenciamiento](#licenciamiento)
 
 ---
 
@@ -59,6 +60,34 @@ Es el **Nodo Cero** de una red metropolitana más amplia: la **Heptafederación 
 | **IA Asistente** | Isabella Villaseñor AI |
 | **Arquitectura** | Heptafederación YUN (7 núcleos) |
 | **Sector** | Turismo, gobernanza, patrimonio cultural, economía phygital, smart city |
+
+---
+
+## Experiencia de Usuario
+
+La renovación visual y de navegación organiza todo el ecosistema en **cuatro planos institucionales** — nada se elimina, cada destino histórico vive dentro de un plano:
+
+| Plano | Nombre | Contenido |
+|---|---|---|
+| **I** | Descubre | Turismo, cultura y patrimonio |
+| **II** | Comercia | Negocios, pagos y suscripciones |
+| **III** | Personaliza | Comunidad, cuenta y gamificación |
+| **IV** | Gobierna | Gemelo digital y Smart City |
+
+### Navegación superior — "Explorar"
+
+En la navbar superior derecha, el botón **Explorar** abre un panel cristal con el **mapa del ecosistema**: las 4 columnas de los planos en acordeón (se expande automáticamente el plano activo), con navegación directa a cada sección, buscador de los **35 nodos YUN** y el acordeón de los **7 núcleos heptafederados**. Se cierra al hacer clic fuera, con `Escape` o al navegar.
+
+### Navbar izquierda contextual retráctil
+
+A la izquierda flota una barra de contexto **inteligente por sección**: colapsada muestra el número del plano activo y accesos rápidos; expandida revela la descripción de la sección, atajos "Ir a…", el mini-acordeón del plano activo y la acción **Preguntar a Isabella AI**. El contenido principal ajusta su ancho según el estado de la barra.
+
+### Secciones con identidad visual
+
+- **Historia y Cultura · Dossier** (`heritage`): expediente integral del Pueblo Mágico en 12 capítulos ilustrados — identidad y Magotsi, minería novohispana y Veta Vizcaína, huelga de 1766, migración cornish 1824, Panteón Inglés, el paste, el fútbol, platería, festividades, leyendas, ecoturismo e itinerario de 3 días — con línea histórica, datos rápidos (altitud, clima, ecosistema) y sello final, cada recuadro con imagen.
+- **Música y Podcast**: el podcast oficial **Ecos de Real del Monte** (Spotify, `033VQlzxActi39WO45lHwM`) está integrado en la sección de música, visible tanto en la pestaña *Música Local* como en *Podcast RDM*, junto a bandas de viento, corridos y jazz de la niebla.
+- **Mitos y leyendas**: carrusel de relatos con imágenes y los dichos mineros ahora ilustrados con fotografía representativa.
+- Todas las secciones (turismo, gastronomía, arte, galería, archivo, patrimonio) presentan tarjetas con imágenes — sin recuadros de texto plano.
 
 ---
 
@@ -123,7 +152,12 @@ app/                  # Rutas y páginas de Next.js (App Router)
   api/_shared/          # Route-guard único (Zero Trust)
   api/<dominio>/*       # Rutas API por dominio
   <dominio>/page.tsx    # Páginas: assets, city, grid, marketplace, monitor, twins
+  page.tsx              # Home: vistas de experiencia (plano I-IV) por activeView
 components/           # Componentes React (incl. gamificación 2D/3D)
+  layout/YUNLayout.tsx  # Navegación: navbar "Explorar" (4 planos) + navbar contextual
+  heritage/             # Dossier de Historia y Cultura (12 capítulos con imagen)
+  media/                # Música y podcast (Ecos de Real del Monte)
+  legends/              # Mitos, leyendas y dichos mineros ilustrados
 hooks/                # Hooks (use-unity-webgl, etc.)
 lib/                  # Lógica de dominio y núcleo transversal
   core/                 # Núcleo: env, events, contracts, utils, persistence
@@ -330,17 +364,17 @@ La gamificación combina un **motor de puntos server-authoritative** (HMAC, anti
 
 ## Pruebas Automatizadas
 
-Suite **Vitest** en `tests/` (42 archivos, 438 tests). Cobertura por dominio:
+Suite **Vitest** en `tests/` (42 archivos). Cobertura por dominio:
 
 | Archivo | Cubre |
 |---|---|
-| `anti-cheat`, `points-engine`, `gamification-visual` | Motor de gamificación y arena |
-| `assets`, `city`, `grid`, `twins`, `marketplace`, `payments` | Dominios territoriales |
-| `isabella` (`isa-core`, `bus-bridges`, `dead-man-switch`, `gateway-policy`, `engine`, `rules`) | Núcleo cognitivo y CROWN |
-| `trust`, `zero-trust`, `auth-tokens`, `hardening`, `identity` | Seguridad, Zero Trust e IDENTITY YUN |
+| `anti-cheat`, `points-engine`, `gamification-visual`, `gamification-territory`, `zombie-visual-render` | Motor de gamificación y arena |
+| `assets`, `city`, `grid`, `twins`, `marketplace`, `payments`, `tourism` | Dominios territoriales |
+| `isabella` (`isa-core`, `isa-ai`, `bus-bridges`, `dead-man-switch`, `gateway-policy`, `engine`, `rules`) | Núcleo cognitivo y CROWN |
+| `trust`, `zero-trust`, `auth-tokens`, `hardening`, `identity`, `origin-policy` | Seguridad, Zero Trust e IDENTITY YUN |
 | `citemesh` | Malla federada: registro, credenciales, ruteo con failover |
 | `gemet` | Grafo de conocimiento: checksum, réplicas, caché firmada |
-| `events`, `contracts`, `env`, `system`, `features`, `governance`, `monitoring`, `observability`, `resilience`, `continuity` | Núcleo transversal y operación |
+| `events`, `contracts`, `env`, `system`, `features`, `governance`, `monitoring`, `observability`, `resilience`, `continuity`, `neon-budget`, `guardian` | Núcleo transversal y operación |
 
 ---
 
@@ -350,7 +384,7 @@ Suite **Vitest** en `tests/` (42 archivos, 438 tests). Cobertura por dominio:
 |---|---|
 | Typecheck (`tsc --noEmit`) | ✅ Limpio |
 | Lint (`eslint .`) | ✅ 0 problemas |
-| Tests (`vitest`) | ✅ 438/438 (42 archivos) |
+| Tests (`vitest`) | ✅ 42 archivos |
 | Auditor de consistencia (`npm run audit`) | ✅ 0 errores |
 | Build de producción (`next build`) | ✅ Exitoso |
 | Contrato de entorno (`check:env`) | ✅ OK |
@@ -371,6 +405,7 @@ Suite **Vitest** en `tests/` (42 archivos, 438 tests). Cobertura por dominio:
 | Continuity | ✅ Journal · reconciliación · aislamiento · activación |
 | Archive | ✅ Ítems · checksums canónicos · curación · admin |
 | YUN QSC | ✅ Sobre semántico híbrido · firma post-cuántica (ML-DSA simulado en tests) |
+| **Experiencia de usuario** | ✅ Navegación por 4 planos · navbar contextual · dossier Heritage · podcast en música · imágenes en recuadros |
 
 ---
 
@@ -382,7 +417,7 @@ npm run dev                      # Desarrollo (http://localhost:3000)
 npm run build                    # Build de producción
 npm run start                    # Servir el build
 npm run lint                     # ESLint
-npm test                         # Vitest (438 tests)
+npm test                         # Vitest
 npm run audit                    # Consistencia del código (bloquea `as never` / `require()`)
 npm run check:env                # Entorno contra el contrato
 npm run check:contracts          # Adopción del route-guard
@@ -423,8 +458,10 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 Las credenciales de acceso al Nodo Cero se emiten de forma soberana vía `POST /api/identity/keys` (scope `admin:keys`). Cada clave:
 
 - Se genera con prefijo `rdm_live_` y se almacena SIEMPRE como hash **scrypt** — jamás en claro.
-- Porta scopes explícitos (`turismo:read/write`, `archivo:read/write`, `gemelos:read/write`, `ciudad:read/write`, `gamificacion:read/write`, `mercado:read/write`, `pagos:read/write`, `citemesh:read/write`, `gemet:read/write`, `monitor:read`, `admin:keys`, `admin:all`).
+- Porta scopes explícitos (`turismo:read/write`, `archivo:read/write`, `gemelos:read/write`, `ciudad:read/write`, `gamificacion:read/write`, `mercado:read/write`, `pagos:read/write`, `citemesh:read/write`, `gemet:read/write`, `yun:read/write`, `hepta:read/write`, `isa:read/write`, `mexa:sign/verify`, `isabella:chat/gateway`, `monitor:read`, `admin:keys`, `admin:all`).
 - Se presenta vía cabecera `x-rdm-api-key` y el route-guard la autentica y comprueba scopes antes de ejecutar el handler.
+
+**Bootstrap de la primera clave admin:** define `RDM_ADMIN_API_KEY` en el entorno; si el registro de identidad está vacío, se da de alta como clave `admin:keys` + `admin:all` en el arranque (idempotente). A partir de ahí emite el resto de claves por dominio con `POST /api/identity/keys`.
 
 ---
 

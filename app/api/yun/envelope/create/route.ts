@@ -19,6 +19,7 @@ export const POST = guardedRoute<YunEnvelopeCreateInput>(
     rateLimit: 20,
     schema: yunEnvelopeCreateSchema,
     cacheControl: 'no-store',
+    identityScopes: ['yun:write'],
   },
   async ({ body }) => {
     const envelope = await createEnvelope(body);

@@ -49,6 +49,7 @@ export const POST = guardedRoute<IsabellaPayload>(
     schema: IsabellaChatSchema,
     hardenHeaders: true,
     cacheControl: 'no-store',
+    identityScopes: ['isabella:chat'],
   },
   async ({ req, route, traceId, body, actor }) => {
     const startTime = performance.now();
