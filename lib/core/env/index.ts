@@ -157,6 +157,21 @@ export const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
+  /* Spotify — panel de gestión multimedia del Nodo (RDM Digital Hub).
+     SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET: credenciales de la app
+       "RDM DIGITAL HUB" (dashboard developers.spotify.com). El flujo de
+       autorización es Authorization Code con code_verifier (PKCE).
+     SPOTIFY_REDIRECT_URI: URI de redirección registrada en Spotify.
+       Producción: https://visitarealdelmonte.online/api/spotify/auth/callback
+       Desarrollo: http://localhost:3000/api/spotify/auth/callback
+     SPOTIFY_SCOPES: ámbitos solicitados (por defecto, el conjunto para
+       leer historial de reproducción, listas, biblioteca y controlar el
+       reproductor con Web Playback SDK). */
+  SPOTIFY_CLIENT_ID: z.string().optional(),
+  SPOTIFY_CLIENT_SECRET: z.string().optional(),
+  SPOTIFY_REDIRECT_URI: z.string().url('SPOTIFY_REDIRECT_URI debe ser una URL válida').optional().or(z.literal('')),
+  SPOTIFY_SCOPES: z.string().optional(),
+
   /* Desarrollo */
   DISABLE_HMR: z.string().optional(),
 });

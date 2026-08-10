@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Music, Mic2, Play, Pause, Headphones, Radio, Clock, CalendarDays, BadgeCheck } from 'lucide-react';
+import { Music, Mic2, Play, Pause, Headphones, Radio, Clock, CalendarDays, BadgeCheck, Podcast } from 'lucide-react';
 import { RDM_TRACKS, RDM_PODCAST } from '@/lib/rdm/rdm-content';
+import SpotifySection from './SpotifySection';
 
 /* Reproductor del podcast oficial: Ecos de Real del Monte (Spotify).
    Visible tanto en la pestaña Música como en la pestaña Podcast. */
@@ -36,7 +37,7 @@ function PodcastEmbed() {
 }
 
 export default function MediaSection() {
-  const [activeTab, setActiveTab] = useState<'musica' | 'podcast'>('musica');
+  const [activeTab, setActiveTab] = useState<'musica' | 'podcast' | 'spotify'>('musica');
   const [playing, setPlaying] = useState<string | null>(null);
 
   return (
@@ -70,7 +71,18 @@ export default function MediaSection() {
           <Mic2 className="w-4 h-4" />
           Podcast RDM
         </button>
+        <button
+          onClick={() => setActiveTab('spotify')}
+          className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'spotify' ? 'bg-green-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          <Podcast className="w-4 h-4" />
+          Mi Spotify
+        </button>
       </div>
+
+      {activeTab === 'spotify' && <SpotifySection />}
 
       {activeTab === 'musica' && (
         <div className="space-y-3">
