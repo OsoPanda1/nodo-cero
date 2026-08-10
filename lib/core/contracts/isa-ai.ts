@@ -12,7 +12,7 @@
  *
  * Reglas:
  * - Todo objeto es `.strict()` para rechazar propiedades no reconocidas.
- * - Toda colección tiene límite de longitud para reducir payload abuse.
+ * - Toda colección tiene límite de longitud para reducir abuso de payload.
  * - Los IDs, URLs, fechas y valores sensibles se validan explícitamente.
  * - `content` es una respuesta final para usuarios; no es un canal de control.
  * - `structured.data` y `tool.result` se restringen a JSON seguro.
@@ -25,7 +25,7 @@ import { z } from 'zod';
 /* Límites canónicos                                                          */
 /* -------------------------------------------------------------------------- */
 
-export const ISA_AI_CONTRACT_VERSION = '2.0.0' as const;
+export const ISA_AI_CONTRACT_VERSION = 'mexa-ai-v2.1.0' as const;
 
 export const ISA_AI_LIMITS = {
   contentMaxChars: 24_000,
@@ -41,7 +41,6 @@ export const ISA_AI_LIMITS = {
   securitySystemCountMax: 16,
   knowledgeEntryCountMax: 24,
   appliedPolicyCountMax: 32,
-  structuredItemsMax: 64,
   safeJsonDepthMax: 8,
   safeJsonArrayMax: 100,
   safeJsonObjectKeysMax: 100,
@@ -52,19 +51,10 @@ export const ISA_AI_LIMITS = {
 /* -------------------------------------------------------------------------- */
 
 const nonEmptyTrimmedString = (max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(max);
+  z.string().trim().min(1).max(max);
 
 const optionalTrimmedString = (max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(max)
-    .optional();
+  z.string().trim().min(1).max(max).optional();
 
 const safeIdentifierSchema = z
   .string()
@@ -80,10 +70,7 @@ const sha256Schema = z
   .string()
   .regex(/^sha256:[a-f0-9]{64}$/i, 'Expected sha256:<64 hex chars>');
 
-const isoDateTimeSchema = z
-  .string()
-  .datetime({ offset: true })
-  .or(z.string().datetime());
+const isoDateTimeSchema = z.string().datetime({ offset: true });
 
 const uuidSchema = z.string().uuid();
 
@@ -120,31 +107,34 @@ const safeUrlSchema = z
   );
 
 /* -------------------------------------------------------------------------- */
-/* JSON seguro: evita functions, BigInt, ciclos y payloads no serializables  */
+/* JSON seguro: evita functions, BigInt, ciclos y payload no serializable    */
 /* -------------------------------------------------------------------------- */
 
-export type IsaAiSafeJson =
+type SafeJsonValue =
   | null
   | boolean
   | number
   | string
-  | IsaAiSafeJson[]
-  | { [key: string]: IsaAiSafeJson };
+  | SafeJsonValue[]
+  | { [key: string]: SafeJsonValue };
 
 function isSafeJsonValue(
   value: unknown,
   depth = 0,
   seen = new WeakSet<object>(),
-): value is IsaAiSafeJson {
+): value is SafeJsonValue {
   if (depth > ISA_AI_LIMITS.safeJsonDepthMax) return false;
 
   if (
     value === null ||
     typeof value === 'boolean' ||
-    typeof value === 'number' ||
     typeof value === 'string'
   ) {
-    return Number.isFinite(value) || typeof value !== 'number';
+    return true;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value);
   }
 
   if (Array.isArray(value)) {
@@ -154,7 +144,7 @@ function isSafeJsonValue(
     );
   }
 
-  if (typeof value !== 'object' || value instanceof Date) {
+  if (!value || typeof value !== 'object' || value instanceof Date) {
     return false;
   }
 
@@ -162,10 +152,16 @@ function isSafeJsonValue(
   seen.add(value);
 
   const prototype = Object.getPrototypeOf(value);
-  if (prototype !== Object.prototype && prototype !== null) return false;
+
+  if (prototype !== Object.prototype && prototype !== null) {
+    return false;
+  }
 
   const entries = Object.entries(value);
-  if (entries.length > ISA_AI_LIMITS.safeJsonObjectKeysMax) return false;
+
+  if (entries.length > ISA_AI_LIMITS.safeJsonObjectKeysMax) {
+    return false;
+  }
 
   return entries.every(
     ([key, item]) =>
@@ -175,7 +171,7 @@ function isSafeJsonValue(
   );
 }
 
-export const isaAiSafeJsonSchema = z.custom<IsaAiSafeJson>(isSafeJsonValue, {
+export const isaAiSafeJsonSchema = z.custom<SafeJsonValue>(isSafeJsonValue, {
   message: 'Expected bounded, serializable and prototype-safe JSON',
 });
 
@@ -344,7 +340,7 @@ export const isaAiToolExecutionSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['policyDecision'],
-        message: 'Blocked tool execution requires a restrictive policy decision',
+        message: 'Blocked tool execution requires restrictive policy decision',
       });
     }
   });
@@ -471,6 +467,7 @@ export const isaAiEnvelopeSchema = z
     version: z.literal(ISA_AI_CONTRACT_VERSION),
     provider: z.literal('isa-ai'),
     model: nonEmptyTrimmedString(ISA_AI_LIMITS.modelMaxChars),
+
     traceId: traceIdSchema,
     requestId: uuidSchema,
     issuedAt: isoDateTimeSchema,
@@ -526,14 +523,13 @@ export const isaAiEnvelopeSchema = z
 
     if (
       value.security.promptInjectionDetected &&
-      value.policy.decision === 'allow' &&
       value.structured?.tools.some((tool) => tool.status === 'applied')
     ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['security', 'promptInjectionDetected'],
         message:
-          'Tool execution is forbidden when prompt injection is detected',
+          'Applied tools are forbidden when prompt injection is detected',
       });
     }
 
@@ -557,6 +553,17 @@ export const ISA_AI_SAFE_FALLBACK_CONTENT =
   'Isabella no puede completar esta solicitud en este momento. ' +
   'La operación fue degradada de forma segura; inténtalo nuevamente más tarde.';
 
+function createFallbackRequestId(): string {
+  if (
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
+  ) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return '00000000-0000-4000-8000-000000000000';
+}
+
 export function createIsaAiDegradedEnvelope(input: {
   traceId: string;
   requestId?: string;
@@ -572,15 +579,16 @@ export function createIsaAiDegradedEnvelope(input: {
     version: ISA_AI_CONTRACT_VERSION,
     provider: 'isa-ai',
     model: input.model ?? 'unavailable',
+
     traceId: input.traceId,
-    requestId: input.requestId ?? crypto.randomUUID(),
+    requestId: input.requestId ?? createFallbackRequestId(),
     issuedAt: now.toISOString(),
 
     intent: input.intent ?? 'unknown',
     responseMode: 'degraded',
     confidence: 0,
     confidenceBand: 'very-low',
-    sessionId: input.sessionId,
+    ...(input.sessionId ? { sessionId: input.sessionId } : {}),
 
     content: ISA_AI_SAFE_FALLBACK_CONTENT,
 
