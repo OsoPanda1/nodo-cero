@@ -1,47 +1,89 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type {
-  FederationHealthResponse,
-  FederationStatus,
-} from '@/lib/core/contracts/telemetry';
-import { federationHealthResponseSchema } from '@/lib/core/contracts/telemetry';
+import {
+  Activity,
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  Radio,
+  RefreshCw,
+  WifiOff,
+} from 'lucide-react';
 
-const POLL_INTERVAL_MS = 30_000;
+type TelemetryStatus = 'online' | 'degraded' | 'offline' | 'planned';
+
+type TelemetrySnapshot = {
+  status: TelemetryStatus;
+  online: number;
+  total: number;
+  latencyMs: number | null;
+  source: 'demo' | 'live';
+  updatedAt: Date;
+};
+
+const REFRESH_INTERVAL_MS = 30_000;
+
+const DEMO_SNAPSHOT: Omit<TelemetrySnapshot, 'updatedAt'> = {
+  status: 'planned',
+  online: 0,
+  total: 0,
+  latencyMs: null,
+  source: 'demo',
+};
 
 const STATUS_UI: Record<
-  FederationStatus,
+  TelemetryStatus,
   {
     label: string;
-    dot: string;
-    ping: string;
-    text: string;
+    description: string;
+    dotClass: string;
+    pulseClass: string;
+    textClass: string;
+    borderClass: string;
+    backgroundClass: string;
+    Icon: typeof Activity;
   }
 > = {
   online: {
     label: 'En línea',
-    dot: 'bg-emerald-400',
-    ping: 'bg-emerald-400/50',
-    text: 'text-emerald-300',
+    description: 'Federación operativa con señal validada.',
+    dotClass: 'bg-emerald-400',
+    pulseClass: 'bg-emerald-400/50',
+    textClass: 'text-emerald-300',
+    borderClass: 'border-emerald-400/25',
+    backgroundClass: 'bg-emerald-400/[0.07]',
+    Icon: CheckCircle2,
   },
   degraded: {
     label: 'Degradado',
-    dot: 'bg-amber-400',
-    ping: 'bg-amber-400/50',
-    text: 'text-amber-300',
+    description: 'Servicio disponible con latencia o señal parcial.',
+    dotClass: 'bg-amber-400',
+    pulseClass: 'bg-amber-400/50',
+    textClass: 'text-amber-300',
+    borderClass: 'border-amber-400/25',
+    backgroundClass: 'bg-amber-400/[0.07]',
+    Icon: AlertTriangle,
   },
   offline: {
     label: 'Sin conexión',
-    dot: 'bg-rose-400',
-    ping: 'bg-rose-400/50',
-    text: 'text-rose-300',
+    description: 'No hay una señal verificable disponible.',
+    dotClass: 'bg-rose-400',
+    pulseClass: 'bg-rose-400/50',
+    textClass: 'text-rose-300',
+    borderClass: 'border-rose-400/25',
+    backgroundClass: 'bg-rose-400/[0.07]',
+    Icon: WifiOff,
   },
-  unknown: {
-    label: 'Verificando',
-    dot: 'bg-slate-400',
-    ping: 'bg-slate-400/50',
-    text: 'text-slate-300',
+  planned: {
+    label: 'Etapa 2',
+    description: 'Telemetría contemplada; integración aún no implementada.',
+    dotClass: 'bg-slate-400',
+    pulseClass: 'bg-slate-400/40',
+    textClass: 'text-slate-300',
+    borderClass: 'border-slate-400/25',
+    backgroundClass: 'bg-slate-400/[0.06]',
+    Icon: Radio,
   },
 };
 
@@ -54,118 +96,121 @@ function formatClock(date: Date): string {
   }).format(date);
 }
 
-function statusFromHealth(
-  health: FederationHealthResponse | null,
-): FederationStatus {
-  if (!health?.summary) return 'unknown';
-  if (health.summary.offline > 0) return 'offline';
-  if (health.summary.degraded > 0) return 'degraded';
-  return health.summary.online > 0 ? 'online' : 'unknown';
+function createDemoSnapshot(): TelemetrySnapshot {
+  return {
+    ...DEMO_SNAPSHOT,
+    updatedAt: new Date(),
+  };
 }
 
 export default function LiveTelemetryBadge() {
+  const [snapshot, setSnapshot] = useState<TelemetrySnapshot>(
+    createDemoSnapshot,
+  );
   const [time, setTime] = useState(() => new Date());
-  const [health, setHealth] = useState<FederationHealthResponse | null>(null);
-  const [status, setStatus] = useState<FederationStatus>('unknown');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setTime(new Date()), 1_000);
-    return () => window.clearInterval(timer);
+    const clockTimer = window.setInterval(() => {
+      setTime(new Date());
+    }, 1_000);
+
+    return () => window.clearInterval(clockTimer);
   }, []);
+
+  const refresh = () => {
+    setIsRefreshing(true);
+
+    window.setTimeout(() => {
+      setSnapshot(createDemoSnapshot());
+      setIsRefreshing(false);
+    }, 350);
+  };
 
   useEffect(() => {
-    let mounted = true;
+    const refreshTimer = window.setInterval(refresh, REFRESH_INTERVAL_MS);
 
-    async function refreshHealth(): Promise<void> {
-      try {
-        const response = await supabase.functions.invoke('federation-health');
-
-        if (response.error) {
-          throw response.error;
-        }
-
-        const parsed = federationHealthResponseSchema.safeParse(response.data);
-
-        if (!parsed.success) {
-          throw new Error('Respuesta de salud federada inválida');
-        }
-
-        if (!mounted) return;
-
-        setHealth(parsed.data);
-        setStatus(statusFromHealth(parsed.data));
-      } catch {
-        if (mounted) {
-          setStatus('offline');
-        }
-      }
-    }
-
-    void refreshHealth();
-
-    const interval = window.setInterval(() => {
-      void refreshHealth();
-    }, POLL_INTERVAL_MS);
-
-    return () => {
-      mounted = false;
-      window.clearInterval(interval);
-    };
+    return () => window.clearInterval(refreshTimer);
   }, []);
 
-  const ui = STATUS_UI[status];
+  const ui = STATUS_UI[snapshot.status];
+  const StatusIcon = ui.Icon;
 
   const tooltip = useMemo(() => {
-    const summary = health?.summary;
+    const availability =
+      snapshot.total > 0
+        ? `${snapshot.online}/${snapshot.total} federaciones operativas`
+        : 'Sin fuentes operativas conectadas';
 
-    if (!summary) {
-      return `RDM·OS · ${ui.label}`;
-    }
+    const latency =
+      snapshot.latencyMs !== null
+        ? `${Math.round(snapshot.latencyMs)} ms de latencia promedio`
+        : 'Latencia no disponible';
 
     return [
       `RDM·OS · ${ui.label}`,
-      `${summary.online}/${summary.total} federaciones online`,
-      `${Math.round(summary.avg_latency_ms)} ms`,
+      ui.description,
+      availability,
+      latency,
+      `Vista actualizada: ${formatClock(snapshot.updatedAt)}`,
     ].join(' · ');
-  }, [health?.summary, ui.label]);
+  }, [snapshot, ui.description, ui.label]);
 
   return (
-    <div
+    <aside
       role="status"
       aria-live="polite"
       aria-label={tooltip}
       title={tooltip}
-      className="fixed bottom-4 left-4 z-40 hidden items-center gap-2 rounded-full border border-border/50 bg-background/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground shadow-soft backdrop-blur-xl transition-colors hover:text-foreground md:flex"
+      className={`fixed bottom-4 left-4 z-40 hidden max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] shadow-2xl backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:shadow-cyan-950/30 md:flex ${ui.borderClass} ${ui.backgroundClass}`}
     >
-      <span className="relative flex h-2 w-2" aria-hidden="true">
-        {status === 'online' && (
+      <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
+        {snapshot.status === 'online' && (
           <span
-            className={`absolute inline-flex h-full w-full rounded-full ${ui.ping} animate-ping`}
+            className={`absolute inline-flex h-full w-full animate-ping rounded-full ${ui.pulseClass}`}
           />
         )}
-        <span className={`relative inline-flex h-2 w-2 rounded-full ${ui.dot}`} />
+        <span
+          className={`relative inline-flex h-2.5 w-2.5 rounded-full ${ui.dotClass}`}
+        />
       </span>
 
-      <span className="text-foreground/80">RDM·OS</span>
-      <span className="opacity-40">·</span>
-      <span className={ui.text}>{ui.label}</span>
-      <span className="opacity-40">·</span>
+      <span className="flex items-center gap-1.5 whitespace-nowrap text-slate-100">
+        <Activity className="h-3 w-3 text-cyan-300" />
+        RDM·OS
+      </span>
 
-      <time
-        className="text-[hsl(var(--electric))]"
-        dateTime={time.toISOString()}
+      <span className="text-slate-500">·</span>
+
+      <span className={`flex items-center gap-1 whitespace-nowrap ${ui.textClass}`}>
+        <StatusIcon className="h-3 w-3" />
+        {ui.label}
+      </span>
+
+      <span className="text-slate-500">·</span>
+
+      <span className="flex items-center gap-1 whitespace-nowrap text-slate-400">
+        <Clock3 className="h-3 w-3" />
+        <time dateTime={time.toISOString()}>{formatClock(time)}</time>
+      </span>
+
+      <span className="text-slate-500">·</span>
+
+      <span className="rounded-md border border-slate-500/25 bg-slate-950/35 px-1.5 py-0.5 text-[9px] text-slate-300">
+        DEMO
+      </span>
+
+      <button
+        type="button"
+        onClick={refresh}
+        aria-label="Actualizar estado de telemetría"
+        title="Actualizar vista"
+        className="ml-0.5 rounded-md p-1 text-slate-400 transition-colors hover:bg-white/10 hover:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
       >
-        {formatClock(time)}
-      </time>
-
-      {health?.summary && (
-        <>
-          <span className="opacity-40">·</span>
-          <span className="text-foreground/70">
-            {Math.round(health.summary.avg_latency_ms)}ms
-          </span>
-        </>
-      )}
-    </div>
+        <RefreshCw
+          className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`}
+        />
+      </button>
+    </aside>
   );
 }
