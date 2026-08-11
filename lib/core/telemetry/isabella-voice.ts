@@ -51,7 +51,7 @@ export interface RecordIsabellaVoiceTelemetryInput {
   details?: IsabellaVoiceTelemetryDetails;
 }
 
-const defaultVoiceLogger = createTelemetryLogger('isabella.voice', 'ai');
+const defaultVoiceLogger = createTelemetryLogger('isabella.voice', 'isabella');
 
 function resolveLevel(
   event: IsabellaVoiceTelemetryEvent,
@@ -83,7 +83,7 @@ export function recordIsabellaVoiceTelemetry(
   input: RecordIsabellaVoiceTelemetryInput,
 ) {
   const log =
-    input.scope && input.scope !== 'ai'
+    input.scope
       ? createTelemetryLogger('isabella.voice', input.scope)
       : defaultVoiceLogger;
 

@@ -31,4 +31,13 @@ describe('bóveda CROWN · agentes de ingeniería', () => {
     expect(PROVIDERS.ollama).toBeDefined();
     expect(getGatewayProviders().qwen).toBeDefined();
   });
+
+  it('registra el proveedor OpenCode Zen con egress permitido', () => {
+    const zen = PROVIDERS.zen;
+    expect(zen).toBeDefined();
+    expect(zen.kind).toBe('openai-compatible');
+    expect(zen.baseUrl).toBe('https://opencode.ai/zen/v1');
+    expect(zen.envKey).toBe('OPENCODE_ZEN_API_KEY');
+    expect(zen.egress).toBe('allowed');
+  });
 });

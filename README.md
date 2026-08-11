@@ -438,6 +438,7 @@ Copia `.env.example` a `.env.local`. El contrato tipado vive en `lib/core/env/in
 | `CEREBRAS_API_KEY` | Bóveda OSS: Llama 3.3 70B (Cerebras) |
 | `MISTRAL_API_KEY` | Bóveda OSS: Mistral Nemo |
 | `CLOUDFLARE_AI_KEY` / `CLOUDFLARE_AI_ACCOUNT_ID` | Bóveda OSS: Phi-3.5 Mini (Workers AI) |
+| `OPENCODE_ZEN_API_KEY` | Bóveda OSS: OpenCode Zen (Big Pickle / DeepSeek V4) |
 | `OLLAMA_BASE_URL` | Bóveda OSS local (zona roja, cero egress) |
 | `APP_URL` | URL canónica de la app |
 | `NEXT_PUBLIC_SITE_URL` | URL pública para SEO / Open Graph |

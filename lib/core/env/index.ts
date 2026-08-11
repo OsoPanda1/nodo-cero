@@ -77,6 +77,7 @@ export const envSchema = z.object({
      - CEREBRAS_API_KEY   → Cerebras (llama-3.3-70b)
      - OPENROUTER_API_KEY → OpenRouter (enrutador multi-modelo)
      - MISTRAL_API_KEY    → Mistral Nemo
+     - OPENCODE_ZEN_API_KEY → OpenCode Zen (Chat Completions en opencode.ai/zen/v1)
      - OLLAMA_*           → inferencia local (nunca egress) */
   GROQ_API_KEY: rotatableKey,
   CEREBRAS_API_KEY: rotatableKey,
@@ -84,6 +85,11 @@ export const envSchema = z.object({
   MISTRAL_API_KEY: rotatableKey,
   CLOUDFLARE_AI_KEY: rotatableKey,
   CLOUDFLARE_AI_ACCOUNT_ID: z.string().optional(),
+  OPENCODE_ZEN_API_KEY: rotatableKey,
+  /* Clave de integración de los servicios OpenCode con Isabella (copiloto
+     de ingeniería ↔ Nodo). No es un proveedor de inferencia: autentica los
+     servicios externos que colaboran con el Nodo bajo Zero Trust. */
+  OPENCODE_SERVICES_API_KEY: rotatableKey,
   OLLAMA_BASE_URL: z.string().optional(),
 
   /* Emergencia CROWN */

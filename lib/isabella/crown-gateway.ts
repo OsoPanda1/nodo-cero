@@ -137,6 +137,13 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     note: '35+ modelos abiertos free con una sola key.',
     badge: 'OPEN SOURCE',
   },
+  zen: {
+    id: 'zen', name: 'OpenCode Zen (Big Pickle / DeepSeek V4)', kind: 'openai-compatible',
+    baseUrl: 'https://opencode.ai/zen/v1', model: 'big-pickle',
+    envKey: 'OPENCODE_ZEN_API_KEY', timeoutMs: 15000, free: true, egress: 'allowed',
+    note: 'Endpoint soberano de OpenCode: modelos de razonamiento y código, con tier gratuito.',
+    badge: 'RAZONAMIENTO Y CÓDIGO',
+  },
   phi: {
     id: 'phi', name: 'Phi-3.5 Mini (Microsoft OSS)', kind: 'cloudflare',
     model: '@cf/microsoft/phi-3.5-mini-instruct',
@@ -178,7 +185,7 @@ export const CROWN_ROUTING: Record<CanonicalDomain, RoutingRule> = {
   constitution: { domain: 'constitution', trustZone: 'red', chain: ['ollama', 'simulation'], rationale: 'Marco constitucional: ZERO EGRESS. Jamás sale del Nodo.' },
   governance: { domain: 'governance', trustZone: 'red', chain: ['ollama', 'simulation'], rationale: 'Gobernanza: ZERO EGRESS por pol-no-secrets y aislamiento de dominio.' },
   ecosystem: { domain: 'ecosystem', trustZone: 'green', chain: ['llama', 'cerebras', 'qwen', 'simulation'], rationale: 'Ecosistema YUN: respuestas rápidas de bajo costo.' },
-  education: { domain: 'education', trustZone: 'green', chain: ['deepseek', 'qwen', 'openrouter', 'simulation'], rationale: 'Educación: profundidad de razonamiento, contexto amplio.' },
+  education: { domain: 'education', trustZone: 'green', chain: ['deepseek', 'qwen', 'zen', 'openrouter', 'simulation'], rationale: 'Educación: profundidad de razonamiento, contexto amplio.' },
   skills: { domain: 'skills', trustZone: 'amber', chain: ['mistral', 'llama', 'phi', 'simulation'], rationale: 'Habilidades: solo proveedores sin entrenamiento con datos en tier free.' },
   ethics: { domain: 'ethics', trustZone: 'red', chain: ['ollama', 'simulation'], rationale: 'Principios éticos: ZERO EGRESS, capa LUMEN decide.' },
 };

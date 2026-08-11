@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
+import { ModeProvider } from '@/lib/ui';
 import './globals.css';
 
 /* Dominio canónico del despliegue: https://visitarealdelmonte.online.
@@ -91,8 +92,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className="min-h-screen bg-[#f4f6f2] text-[#283038]"
       >
-        {children}
-        <Analytics />
+        <ModeProvider>
+          {children}
+          <Analytics />
+        </ModeProvider>
       </body>
     </html>
   );

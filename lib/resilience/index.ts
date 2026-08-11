@@ -106,3 +106,5 @@ export function resilienceStatus(): Array<{
     }),
   );
 }
+
+export * from './consistency';

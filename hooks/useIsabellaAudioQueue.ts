@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { IsabellaAudioClip } from '@/lib/isabella/voice/contracts';
 
 const priorityRank = {
@@ -14,6 +14,9 @@ export function useIsabellaAudioQueue() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentRef = useRef<IsabellaAudioClip | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [pending, setPending] = useState(0);
+
+  const playNextRef = useRef<() => void>(() => {});
 
   const stopCurrent = useCallback(() => {
     audioRef.current?.pause();
@@ -43,7 +46,7 @@ export function useIsabellaAudioQueue() {
       audioRef.current = null;
       currentRef.current = null;
       setIsPlaying(false);
-      playNext();
+      playNextRef.current();
     };
 
     audio.onerror = () => {
@@ -51,7 +54,7 @@ export function useIsabellaAudioQueue() {
       audioRef.current = null;
       currentRef.current = null;
       setIsPlaying(false);
-      playNext();
+      playNextRef.current();
     };
 
     void audio.play().catch((error) => {
@@ -60,6 +63,10 @@ export function useIsabellaAudioQueue() {
       setIsPlaying(false);
     });
   }, []);
+
+  useEffect(() => {
+    playNextRef.current = playNext;
+  }, [playNext]);
 
   const enqueue = useCallback(
     (clip: IsabellaAudioClip) => {
@@ -75,6 +82,7 @@ export function useIsabellaAudioQueue() {
       queueRef.current = [...queueRef.current, clip].sort(
         (a, b) => priorityRank[a.priority] - priorityRank[b.priority],
       );
+      setPending(queueRef.current.length);
 
       playNext();
     },
@@ -83,15 +91,24 @@ export function useIsabellaAudioQueue() {
 
   const cancelAll = useCallback(() => {
     queueRef.current = [];
+    setPending(0);
     stopCurrent();
   }, [stopCurrent]);
+
+  const pause = useCallback(() => {
+    audioRef.current?.pause();
+  }, []);
+
+  const resume = useCallback(() => {
+    void audioRef.current?.play();
+  }, []);
 
   return {
     enqueue,
     cancelAll,
-    pause: () => audioRef.current?.pause(),
-    resume: () => void audioRef.current?.play(),
+    pause,
+    resume,
     isPlaying,
-    pending: queueRef.current.length,
+    pending,
   };
 }

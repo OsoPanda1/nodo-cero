@@ -24,16 +24,19 @@ function chooseMexicanVoice(
   );
 }
 
+function isSpeechSynthesisSupported(): boolean {
+  return typeof window !== 'undefined' && 'speechSynthesis' in window;
+}
+
 export function useIsabellaVoice() {
-  const [state, setState] = useState<IsabellaLocalVoiceState>('idle');
+  const [state, setState] = useState<IsabellaLocalVoiceState>(() =>
+    isSpeechSynthesisSupported() ? 'idle' : 'unsupported',
+  );
   const [voice, setVoice] = useState<SpeechSynthesisVoice | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      setState('unsupported');
-      return;
-    }
+    if (!isSpeechSynthesisSupported()) return;
 
     const load = () => {
       setVoice(chooseMexicanVoice(window.speechSynthesis.getVoices()));

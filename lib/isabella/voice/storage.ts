@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import {
   ISABELLA_SIGNED_URL_TTL_SECONDS,
   ISABELLA_VOICE_BUCKET,
@@ -8,6 +8,7 @@ export async function uploadVoiceAudio(
   storagePath: string,
   audio: Uint8Array,
 ): Promise<void> {
+  const supabaseAdmin = await getSupabaseAdmin();
   const { error } = await supabaseAdmin.storage
     .from(ISABELLA_VOICE_BUCKET)
     .upload(storagePath, audio, {
@@ -24,6 +25,7 @@ export async function uploadVoiceAudio(
 export async function createVoiceSignedUrl(
   storagePath: string,
 ): Promise<string> {
+  const supabaseAdmin = await getSupabaseAdmin();
   const { data, error } = await supabaseAdmin.storage
     .from(ISABELLA_VOICE_BUCKET)
     .createSignedUrl(storagePath, ISABELLA_SIGNED_URL_TTL_SECONDS);

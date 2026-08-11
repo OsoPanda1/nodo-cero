@@ -11,6 +11,7 @@ import {
   Layers, X, PanelsTopLeft, Globe, ChevronRight, MessageCircle, ArrowRight,
   BookOpen,
 } from 'lucide-react';
+import ModeSwitch from './ModeSwitch';
 
 interface YUNLayoutProps {
   children: React.ReactNode;

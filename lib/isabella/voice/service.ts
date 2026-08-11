@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { prisma } from '@/lib/db/prisma';
+import { getVoicePersistence } from '@/lib/db/prisma';
+import type { VoicePersistence } from '@/lib/db/prisma';
 import { createVoiceSignedUrl, uploadVoiceAudio } from './storage';
 import { buildVoiceCacheKey } from './cache-key';
 import { ISABELLA_VOICE_VERSION } from './constants';
@@ -20,6 +21,53 @@ function getProvider(): TtsProvider {
   }
 
   return new MockTtsProvider();
+}
+
+async function getPersistence(): Promise<VoicePersistence | null> {
+  try {
+    return await getVoicePersistence();
+  } catch {
+    return null;
+  }
+}
+
+async function recordMetric(
+  persistence: VoicePersistence | null,
+  data: {
+    requestId: string;
+    textHash: string;
+    profileId: string;
+    voiceVersion: string;
+    provider: string;
+    providerVoiceId: string | null;
+    mode: 'CLOUD' | 'LOCAL' | 'TEXT';
+    status: 'SUCCESS' | 'FALLBACK' | 'BLOCKED' | 'ERROR' | 'CANCELLED';
+    cacheHit: boolean;
+    latencyMs?: number;
+    durationMs?: number;
+    failureCode?: string;
+    federationId?: string | null;
+  },
+): Promise<void> {
+  if (!persistence) return;
+  await persistence.isabellaVoiceMetric.create({
+    data: {
+      requestId: data.requestId,
+      textHash: data.textHash,
+      profileId: data.profileId,
+      voiceVersion: data.voiceVersion,
+      provider: data.provider,
+      providerVoiceId: data.providerVoiceId ?? null,
+      mode: data.mode,
+      status: data.status,
+      cacheHit: data.cacheHit,
+      latencyMs: data.latencyMs ?? null,
+      durationMs: data.durationMs ?? null,
+      failureCode: data.failureCode ?? null,
+      federationId: data.federationId ?? null,
+      userId: null,
+    },
+  });
 }
 
 export async function synthesizeIsabellaVoice(
@@ -70,6 +118,7 @@ export async function synthesizeIsabellaVoice(
   }
 
   const provider = getProvider();
+  const persistence = await getPersistence();
   const cacheKey = buildVoiceCacheKey({
     normalizedText,
     profile,
@@ -79,27 +128,34 @@ export async function synthesizeIsabellaVoice(
     format: 'mp3',
   });
 
-  const existing = await prisma.isabellaVoiceAsset.findUnique({
-    where: { cacheKey },
-  });
+  let existing: Awaited<
+    ReturnType<NonNullable<VoicePersistence>['isabellaVoiceAsset']['findUnique']>
+  > | null = null;
+  if (persistence) {
+    try {
+      existing = await persistence.isabellaVoiceAsset.findUnique({
+        where: { cacheKey },
+      });
+    } catch {
+      existing = null;
+    }
+  }
 
   if (existing) {
     const audioUrl = await createVoiceSignedUrl(existing.storagePath);
 
-    await prisma.isabellaVoiceMetric.create({
-      data: {
-        requestId,
-        textHash: existing.textHash,
-        profileId: profile,
-        voiceVersion: ISABELLA_VOICE_VERSION,
-        provider: provider.name,
-        providerVoiceId: provider.voiceId,
-        mode: 'CLOUD',
-        status: 'SUCCESS',
-        cacheHit: true,
-        latencyMs: Date.now() - startedAt,
-        federationId: input.federationId,
-      },
+    await recordMetric(persistence, {
+      requestId,
+      textHash: existing.textHash,
+      profileId: profile,
+      voiceVersion: ISABELLA_VOICE_VERSION,
+      provider: provider.name,
+      providerVoiceId: provider.voiceId,
+      mode: 'CLOUD',
+      status: 'SUCCESS',
+      cacheHit: true,
+      latencyMs: Date.now() - startedAt,
+      federationId: input.federationId,
     });
 
     return {
@@ -123,38 +179,42 @@ export async function synthesizeIsabellaVoice(
 
     await uploadVoiceAudio(storagePath, result.audio);
 
-    await prisma.isabellaVoiceAsset.create({
-      data: {
-        cacheKey,
-        storagePath,
-        profileId: profile,
-        voiceVersion: ISABELLA_VOICE_VERSION,
-        provider: result.provider,
-        providerVoiceId: result.voiceId,
-        textHash: cacheKey,
-        durationMs: result.durationMs,
-        byteSize: result.audio.byteLength,
-      },
-    });
+    if (persistence) {
+      try {
+        await persistence.isabellaVoiceAsset.create({
+          data: {
+            cacheKey,
+            storagePath,
+            profileId: profile,
+            voiceVersion: ISABELLA_VOICE_VERSION,
+            provider: result.provider,
+            providerVoiceId: result.voiceId,
+            textHash: cacheKey,
+            durationMs: result.durationMs ?? null,
+            byteSize: result.audio.byteLength,
+          },
+        });
+      } catch {
+        // degradación: el audio ya está subido; la métrica lo reporta
+      }
+    }
 
     const audioUrl = await createVoiceSignedUrl(storagePath);
     const latencyMs = Date.now() - startedAt;
 
-    await prisma.isabellaVoiceMetric.create({
-      data: {
-        requestId,
-        textHash: cacheKey,
-        profileId: profile,
-        voiceVersion: ISABELLA_VOICE_VERSION,
-        provider: result.provider,
-        providerVoiceId: result.voiceId,
-        mode: 'CLOUD',
-        status: 'SUCCESS',
-        cacheHit: false,
-        latencyMs,
-        durationMs: result.durationMs,
-        federationId: input.federationId,
-      },
+    await recordMetric(persistence, {
+      requestId,
+      textHash: cacheKey,
+      profileId: profile,
+      voiceVersion: ISABELLA_VOICE_VERSION,
+      provider: result.provider,
+      providerVoiceId: result.voiceId,
+      mode: 'CLOUD',
+      status: 'SUCCESS',
+      cacheHit: false,
+      latencyMs,
+      durationMs: result.durationMs,
+      federationId: input.federationId,
     });
 
     return {
@@ -169,21 +229,19 @@ export async function synthesizeIsabellaVoice(
       voiceVersion: ISABELLA_VOICE_VERSION,
     };
   } catch (error) {
-    await prisma.isabellaVoiceMetric.create({
-      data: {
-        requestId,
-        textHash: cacheKey,
-        profileId: profile,
-        voiceVersion: ISABELLA_VOICE_VERSION,
-        provider: provider.name,
-        providerVoiceId: provider.voiceId,
-        mode: 'LOCAL',
-        status: 'FALLBACK',
-        cacheHit: false,
-        latencyMs: Date.now() - startedAt,
-        failureCode: error instanceof Error ? error.message : 'unknown_error',
-        federationId: input.federationId,
-      },
+    await recordMetric(persistence, {
+      requestId,
+      textHash: cacheKey,
+      profileId: profile,
+      voiceVersion: ISABELLA_VOICE_VERSION,
+      provider: provider.name,
+      providerVoiceId: provider.voiceId,
+      mode: 'LOCAL',
+      status: 'FALLBACK',
+      cacheHit: false,
+      latencyMs: Date.now() - startedAt,
+      failureCode: error instanceof Error ? error.message : 'unknown_error',
+      federationId: input.federationId,
     });
 
     return {
