@@ -30,6 +30,10 @@ const MAX_PENDING_EVENTS = 100;
 let activeTransport: TelemetryTransport | null = null;
 const pendingEvents: TelemetryEvent[] = [];
 
+/**
+ * Genera un identificador único sin introducir dependencias externas.
+ * Opera tanto en navegador como en runtimes modernos de Node/Vercel.
+ */
 function createTelemetryId(): string {
   if (
     typeof globalThis.crypto !== 'undefined' &&
@@ -38,142 +42,152 @@ function createTelemetryId(): string {
     return globalThis.crypto.randomUUID();
   }
 
-  const timestamp = Date.now().toString(16).padStart(12, '0').slice(-12);
-  const random = Math.random().toString(16).slice(2, 14).padEnd(12, '0');
+  const random = Math.random().toString(36).slice(2);
+  const now = Date.now().toString(36);
 
-  return `00000000-0000-4000-8000-${timestamp}${random}`.slice(0, 36);
+  return `tel_${now}_${random}`;
 }
 
-function writeToConsole(event: TelemetryEvent): void {
-  const message =
-    `[telemetry:${event.level}] ` +
-    `[${event.scope}] ` +
-    `[${event.source}] ` +
-    `${event.event}: ${event.message}`;
-
-  const details =
-    event.details && Object.keys(event.details).length > 0
-      ? event.details
-      : undefined;
-
-  switch (event.level) {
-    case 'fatal':
-    case 'error':
-      console.error(message, details);
-      return;
-
-    case 'warn':
-      console.warn(message, details);
-      return;
-
-    case 'info':
-      console.info(message, details);
-      return;
-
-    default:
-      console.debug(message, details);
-  }
-}
-
-function dispatch(event: TelemetryEvent): void {
-  if (!activeTransport) {
-    if (pendingEvents.length >= MAX_PENDING_EVENTS) {
-      pendingEvents.shift();
-    }
-
-    pendingEvents.push(event);
-    return;
-  }
-
-  try {
-    const dispatched = activeTransport(event);
-
-    if (
-      dispatched &&
-      typeof (dispatched as Promise<void>).then === 'function'
-    ) {
-      void (dispatched as Promise<void>).catch(() => {
-        // La observabilidad nunca debe interrumpir el flujo principal.
-      });
-    }
-  } catch {
-    // La observabilidad nunca debe interrumpir el flujo principal.
-  }
-}
-
+/**
+ * Configura el transporte que recibirá eventos de telemetría.
+ * Si existen eventos acumulados antes de configurar el transporte,
+ * se entregan de forma ordenada al nuevo destino.
+ */
 export function setTelemetryTransport(
   transport: TelemetryTransport | null,
 ): void {
   activeTransport = transport;
 
-  if (!activeTransport || pendingEvents.length === 0) {
+  if (!transport || pendingEvents.length === 0) {
     return;
   }
 
-  const queuedEvents = pendingEvents.splice(0, pendingEvents.length);
+  const eventsToFlush = pendingEvents.splice(0, pendingEvents.length);
 
-  for (const event of queuedEvents) {
-    dispatch(event);
+  for (const event of eventsToFlush) {
+    void Promise.resolve(transport(event)).catch(() => {
+      enqueuePendingEvent(event);
+    });
   }
 }
 
+/**
+ * Devuelve el transporte actual, principalmente para pruebas e integración.
+ */
+export function getTelemetryTransport(): TelemetryTransport | null {
+  return activeTransport;
+}
+
+/**
+ * Registra un evento de telemetría validado y sanitizado.
+ * Nunca lanza errores: la observabilidad no debe romper el flujo principal.
+ */
 export function recordTelemetry(
   input: RecordTelemetryInput,
 ): TelemetryEvent {
-  const telemetryEvent = telemetryEventSchema.parse({
-    version: TELEMETRY_CONTRACT_VERSION,
+  const event = telemetryEventSchema.parse({
     id: createTelemetryId(),
+    version: TELEMETRY_CONTRACT_VERSION,
     occurredAt: new Date().toISOString(),
     level: input.level,
-    scope: input.scope ?? 'ui',
+    scope: input.scope ?? 'system',
     source: input.source,
     event: input.event,
     message: input.message,
-    ...(input.route ? { route: input.route } : {}),
-    ...(input.traceId ? { traceId: input.traceId } : {}),
-    ...(input.requestId ? { requestId: input.requestId } : {}),
-    ...(input.sessionId ? { sessionId: input.sessionId } : {}),
-    ...(input.userId ? { userId: input.userId } : {}),
+    route: input.route,
+    traceId: input.traceId,
+    requestId: input.requestId,
+    sessionId: input.sessionId,
+    userId: input.userId,
     details: sanitizeTelemetryDetails(input.details),
   });
 
-  const shouldLogLocally =
-    process.env.NODE_ENV !== 'production' ||
-    telemetryEvent.level === 'warn' ||
-    telemetryEvent.level === 'error' ||
-    telemetryEvent.level === 'fatal';
+  dispatchTelemetryEvent(event);
 
-  if (shouldLogLocally) {
-    writeToConsole(telemetryEvent);
-  }
-
-  dispatch(telemetryEvent);
-
-  return telemetryEvent;
+  return event;
 }
 
-function createLevelHelper(level: TelemetryLevel) {
-  return (
-    source: string,
-    event: string,
-    message: string,
-    details?: Record<string, unknown>,
-  ): TelemetryEvent =>
+/**
+ * Emite un evento preconstruido. Es útil para adaptadores de infraestructura.
+ */
+export function emitTelemetry(event: TelemetryEvent): void {
+  const normalizedEvent = telemetryEventSchema.parse({
+    ...event,
+    details: sanitizeTelemetryDetails(event.details),
+  });
+
+  dispatchTelemetryEvent(normalizedEvent);
+}
+
+/**
+ * Crea una función registradora ligada a una fuente y un scope.
+ * Reduce repetición en dominios como Isabella, YUN, CITEMESH o GEMET.
+ */
+export function createTelemetryLogger(
+  source: string,
+  scope: TelemetryScope = 'system',
+): (input: Omit<RecordTelemetryInput, 'source' | 'scope'>) => TelemetryEvent {
+  return (input) =>
     recordTelemetry({
-      level,
+      ...input,
       source,
-      event,
-      message,
-      details,
+      scope,
     });
 }
 
-export const telemetry = {
-  debug: createLevelHelper('debug'),
-  info: createLevelHelper('info'),
-  warn: createLevelHelper('warn'),
-  error: createLevelHelper('error'),
-  fatal: createLevelHelper('fatal'),
+/**
+ * Consulta eventos que esperan a que se configure un transporte.
+ * Retorna una copia para evitar mutación externa.
+ */
+export function getPendingTelemetryEvents(): readonly TelemetryEvent[] {
+  return [...pendingEvents];
+}
+
+/**
+ * Elimina eventos pendientes. Útil exclusivamente para pruebas controladas
+ * o reinicios explícitos del runtime.
+ */
+export function clearPendingTelemetryEvents(): void {
+  pendingEvents.splice(0, pendingEvents.length);
+}
+
+function dispatchTelemetryEvent(event: TelemetryEvent): void {
+  if (!activeTransport) {
+    enqueuePendingEvent(event);
+    return;
+  }
+
+  void Promise.resolve(activeTransport(event)).catch(() => {
+    enqueuePendingEvent(event);
+  });
+}
+
+function enqueuePendingEvent(event: TelemetryEvent): void {
+  if (pendingEvents.length >= MAX_PENDING_EVENTS) {
+    pendingEvents.shift();
+  }
+
+  pendingEvents.push(event);
+}
+
+/**
+ * Exporta contratos para que los consumidores puedan importar todo desde
+ * '@/lib/core/telemetry'.
+ */
+export {
+  TELEMETRY_CONTRACT_VERSION,
+  telemetryEventSchema,
 };
 
-export default telemetry;
+export type {
+  TelemetryEvent,
+  TelemetryLevel,
+  TelemetryScope,
+};
+
+/**
+ * Telemetría especializada del subsistema de voz de Isabella.
+ * Requiere que exista el archivo:
+ * lib/core/telemetry/isabella-voice.ts
+ */
+export * from './isabella-voice';
