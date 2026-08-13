@@ -17,20 +17,44 @@
 
 ---
 
-## Tabla de contenidos
+# 🏛️ RDM Digital Hub — Nodo Cero
+
+> Plataforma digital territorial para turismo, patrimonio cultural, economía local y participación comunitaria en Real del Monte, Hidalgo, México.
+
+[![Estado](https://img.shields.io/badge/estado-en%20desarrollo-F59E0B?style=flat-square)](#estado-real-del-proyecto)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vitest](https://img.shields.io/badge/tests-Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Repositorio](https://img.shields.io/badge/GitHub-OsoPanda1%2Fnodo--cero-181717?style=flat-square&logo=github)](https://github.com/OsoPanda1/nodo-cero)
+
+**Nodo Cero** es una plataforma territorial en desarrollo para visibilizar el patrimonio, las experiencias turísticas, la gastronomía, los negocios locales y las iniciativas comunitarias de Real del Monte.
+
+Su diseño técnico plantea módulos independientes para turismo, comercio local, gamificación, cartografía, gestión territorial, identidad y conocimiento. Los módulos avanzados se encuentran en distintas etapas de implementación y no deben considerarse disponibles en producción salvo que se indique expresamente.
+
+- 🌐 Sitio: [visitarealdelmonte.online](https://www.visitarealdelmonte.online)
+- 🐙 Repositorio: [github.com/OsoPanda1/nodo-cero](https://github.com/OsoPanda1/nodo-cero)
+- 📚 Documentación técnica: [`/docs`](./docs)
+- 📍 Territorio: Real del Monte, Hidalgo, México
+
+---
+
+## Contenido
 
 - [Propósito](#propósito)
+- [Estado real del proyecto](#estado-real-del-proyecto)
 - [Ámbitos funcionales](#ámbitos-funcionales)
 - [Arquitectura](#arquitectura)
 - [Stack tecnológico](#stack-tecnológico)
-- [Estado del proyecto](#estado-del-proyecto)
 - [Inicio rápido](#inicio-rápido)
-- [Calidad y validación](#calidad-y-validación)
+- [Variables de entorno](#variables-de-entorno)
+- [Calidad local](#calidad-local)
 - [Estructura del repositorio](#estructura-del-repositorio)
+- [Despliegue](#despliegue)
 - [Seguridad](#seguridad)
-- [Documentación](#documentación)
 - [Contribución](#contribución)
 - [Reporte de vulnerabilidades](#reporte-de-vulnerabilidades)
+- [Documentación](#documentación)
 - [Licencia](#licencia)
 - [Contacto](#contacto)
 
@@ -38,120 +62,130 @@
 
 ## Propósito
 
-Nodo Cero busca consolidar capacidades digitales territoriales en una plataforma integrada:
+Nodo Cero busca construir una presencia digital territorial que conecte cuatro dimensiones:
 
-- **Turismo cultural:** contenidos, rutas, patrimonio, gastronomía y experiencias locales.
-- **Economía local:** visibilidad para negocios y servicios verificados del territorio.
-- **Participación comunitaria:** mecanismos de reconocimiento y gamificación.
-- **Gestión territorial:** bases para incidentes, activos, infraestructura y análisis operativo.
-- **Soberanía tecnológica:** contratos explícitos, trazabilidad, seguridad por diseño y control gradual de los datos territoriales.
+- **Turismo y patrimonio:** lugares, rutas, historia, gastronomía, leyendas y experiencias.
+- **Economía local:** directorio y visibilidad para negocios, servicios, artesanos y anfitriones.
+- **Participación comunitaria:** retos, reconocimientos, contenido local y mecanismos de interacción.
+- **Capacidades territoriales:** bases técnicas para mapas, datos, incidentes, activos e integración gradual de servicios.
 
-La plataforma se desarrolla bajo una visión modular: cada dominio puede avanzar de forma independiente sin acoplar innecesariamente la interfaz, las APIs y las reglas de negocio.
+La plataforma adopta una arquitectura modular para que cada dominio pueda evolucionar sin acoplar innecesariamente la interfaz, la lógica de negocio, los contratos de datos y los mecanismos de persistencia.
+
+---
+
+## Estado real del proyecto
+
+> **Estado general: desarrollo activo. No se declara listo para producción integral.**
+
+El repositorio contiene una aplicación Next.js con componentes, dominios, scripts internos, pruebas y configuraciones de persistencia. Sin embargo, la disponibilidad productiva de cada módulo depende de que cuente con implementación funcional, pruebas reproducibles, configuración segura, monitoreo y proceso de despliegue verificable.
+
+### Base existente
+
+- Estructura de aplicación con Next.js y App Router.
+- Componentes de interfaz, layouts y módulos visuales.
+- Código organizado por dominios en `lib/`.
+- Scripts internos de auditoría, validación de entorno y revisión de contratos.
+- Configuración de TypeScript, ESLint y Vitest.
+- Integraciones y dependencias para PostgreSQL, Prisma, Supabase y Redis.
+- Dependencias para mapas, visualización 3D, gráficas y formularios.
+- Configuración inicial de Vercel.
+
+### En desarrollo
+
+- Experiencias turísticas y contenidos territoriales.
+- Mapas, puntos de interés y visualización geográfica.
+- Directorio o marketplace de negocios locales.
+- Flujos de gamificación, puntos, retos y reconocimientos.
+- APIs por dominio y persistencia de información.
+- Cobertura de pruebas funcionales e integración.
+- Consolidación de modelos de datos y migraciones.
+
+### Planeado o sujeto a validación
+
+- Asistente cognitivo Isabella.
+- Centro de operaciones territorial.
+- Gemelo digital e integraciones de sensores.
+- Federación de nodos mediante CITEMESH.
+- Grafo de conocimiento e integridad mediante GEMET.
+- Continuidad operativa, recuperación y reconciliación.
+- Pagos, identidad avanzada y mecanismos de credenciales.
+
+> No se deben presentar los módulos planeados como servicios disponibles, auditados o desplegados hasta contar con evidencia técnica verificable.
 
 ---
 
 ## Ámbitos funcionales
 
-| Dominio | Objetivo | Estado |
+| Dominio | Propósito | Situación |
 |---|---|---|
-| **Turismo y patrimonio** | Difusión de lugares, historia, gastronomía, leyendas y rutas | En desarrollo |
-| **Isabella** | Asistente cognitivo con respuestas trazables y controles de seguridad | Especificado / integración gradual |
-| **Marketplace** | Directorio y experiencias de negocios locales | Modelo y APIs en desarrollo |
-| **Gamificación** | Puntos, logros, retos y clasificación territorial | En desarrollo |
-| **Gemelo territorial** | Modelo digital para infraestructura, puntos de interés y señales operativas | Modelo de datos en desarrollo |
-| **Centro de operaciones** | Incidentes, visualización geográfica y flujos de atención | Especificado |
-| **Identidad YUN** | Credenciales, scopes, rotación y revocación de acceso | Especificado |
-| **CITEMESH** | Comunicación federada entre nodos territoriales | Investigación / diseño |
-| **GEMET** | Integridad y trazabilidad de conocimiento territorial | Investigación / diseño |
-| **Continuidad** | Journal, reconciliación y recuperación operativa | Diseño inicial |
-
-> Los módulos marcados como “especificados”, “en investigación” o “en desarrollo” no deben interpretarse como funciones disponibles en producción.
+| Turismo y patrimonio | Lugares, historias, rutas, gastronomía y cultura local | En desarrollo |
+| Mapas y geografía | Puntos de interés, rutas y exploración del territorio | En desarrollo |
+| Marketplace | Directorio y futura conexión entre negocios locales y visitantes | En desarrollo |
+| Gamificación | Retos, puntos, badges y participación territorial | En desarrollo |
+| Isabella | Interfaz y lógica para asistente cognitivo contextual | Diseño e integración gradual |
+| Ciudad | Bases para incidentes, servicios y visualización operativa | Diseño / desarrollo parcial |
+| Gemelo territorial | Modelado de activos, lugares y datos territoriales | Diseño / desarrollo parcial |
+| Identidad | Acceso, autorización y credenciales por alcance | Diseño e implementación gradual |
+| CITEMESH | Comunicación y federación entre nodos | Investigación y diseño |
+| GEMET | Integridad, conocimiento y trazabilidad de registros | Investigación y diseño |
+| Continuidad | Journal, respaldo, recuperación y reconciliación | Diseño inicial |
 
 ---
 
 ## Arquitectura
 
-La arquitectura separa la experiencia de usuario, las APIs, los dominios de negocio y los componentes transversales.
+La aplicación separa la experiencia de usuario, las rutas HTTP, la lógica de dominio y los componentes transversales.
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ Experiencia                                              │
-│ Next.js · React · Tailwind · Planos territoriales        │
-├─────────────────────────────────────────────────────────┤
-│ API                                                      │
-│ Route handlers · Validación · Autorización · Observabilidad │
-├─────────────────────────────────────────────────────────┤
-│ Dominios                                                 │
-│ Turismo · Ciudad · Marketplace · Gamificación · IA       │
-├─────────────────────────────────────────────────────────┤
-│ Núcleo transversal                                       │
-│ Eventos · Contratos · Configuración · Utilidades         │
-├─────────────────────────────────────────────────────────┤
-│ Datos e integraciones                                    │
-│ PostgreSQL · Redis · Servicios externos configurables    │
-└─────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│ Experiencia                                                │
+│ Next.js · React · Tailwind · Componentes · Planos UX      │
+├───────────────────────────────────────────────────────────┤
+│ Aplicación y API                                           │
+│ Route Handlers · Validación · Contratos · Respuestas HTTP  │
+├───────────────────────────────────────────────────────────┤
+│ Dominios                                                   │
+│ Turismo · Ciudad · Marketplace · Gamificación · Isabella  │
+├───────────────────────────────────────────────────────────┤
+│ Núcleo transversal                                         │
+│ Configuración · Eventos · Seguridad · Utilidades           │
+├───────────────────────────────────────────────────────────┤
+│ Datos e integraciones                                      │
+│ PostgreSQL · Prisma · Supabase · Redis · Servicios externos│
+└───────────────────────────────────────────────────────────┘
 ```
 
-### Principios de diseño
+### Principios técnicos
 
-- **Modularidad por dominio:** responsabilidades aisladas y contratos explícitos.
-- **Validación en límites:** esquemas para datos de entrada, eventos y respuestas.
-- **Seguridad por defecto:** autenticación, autorización, límites de tasa y validaciones centralizadas.
-- **Trazabilidad:** identificadores de correlación y eventos para diagnóstico.
-- **Evolución progresiva:** los componentes avanzados se incorporan cuando cuenten con implementación, pruebas y operación verificable.
+- **Separación por dominios:** cada módulo define responsabilidades y contratos claros.
+- **Validación en los límites:** uso de esquemas para datos de entrada, salida y configuración.
+- **Tipado estricto:** TypeScript como base de seguridad y mantenibilidad.
+- **Interfaces reutilizables:** componentes y patrones visuales compartidos.
+- **Evolución incremental:** capacidades críticas solo se habilitan tras pruebas, revisión y operación verificable.
+- **Seguridad por diseño:** autenticación, autorización, validación y protección de secretos deben centralizarse.
 
 ---
 
 ## Stack tecnológico
 
-| Capa | Tecnología |
+| Capa | Tecnologías presentes |
 |---|---|
-| Aplicación web | Next.js con App Router |
-| Interfaz | React y TypeScript |
-| Estilos | Tailwind CSS y componentes reutilizables |
+| Framework web | Next.js 16 con App Router |
+| Interfaz | React 19 y TypeScript 5.9 |
+| Estilos | Tailwind CSS 4, CVA, `clsx`, `tailwind-merge` |
+| Formularios | React Hook Form y resolvers |
 | Validación | Zod |
-| Persistencia | PostgreSQL |
-| Caché / colas | Redis, cuando aplique |
+| Persistencia | PostgreSQL, Prisma y Supabase |
+| Caché / datos rápidos | Upstash Redis |
+| Cartografía | Leaflet |
+| 3D | Three.js, React Three Fiber y Drei |
+| Visualización | Recharts |
 | Pruebas | Vitest |
-| Calidad | TypeScript, ESLint y scripts internos |
-| Despliegue | Configurable según el entorno |
+| Calidad | ESLint, TypeScript y scripts internos |
+| Analítica | Vercel Analytics |
+| Despliegue | Configuración inicial para Vercel |
 
-> Las versiones efectivas y dependencias autorizadas son las declaradas en [`package.json`](./package.json).
-
----
-
-## Estado del proyecto
-
-**Estado general: desarrollo activo.**
-
-### Disponible o base implementada
-
-- Estructura modular del proyecto.
-- Configuración de TypeScript y herramientas de calidad.
-- Base de componentes y layouts de la experiencia web.
-- Contratos y utilidades transversales.
-- Documentación técnica inicial y decisiones arquitectónicas.
-- Scripts de verificación del repositorio.
-
-### En desarrollo
-
-- Experiencias turísticas y contenidos territoriales.
-- Mapa y visualización de puntos de interés.
-- Directorio o marketplace de negocios locales.
-- Mecánicas de gamificación.
-- APIs de dominio y persistencia.
-- Pruebas automatizadas por módulo.
-
-### Planeado
-
-- Integración operativa de Isabella.
-- Centro de operaciones territorial.
-- Gemelo digital e integraciones IoT.
-- Malla federada CITEMESH.
-- Grafo de conocimiento GEMET.
-- Estrategias avanzadas de continuidad y recuperación.
-
-Consulta el avance vigente en los issues, pull requests y documentos del repositorio.
+Las versiones exactas están definidas en [`package.json`](./package.json).
 
 ---
 
@@ -159,30 +193,30 @@ Consulta el avance vigente en los issues, pull requests y documentos del reposit
 
 ### Requisitos
 
-- Node.js 20 o superior
-- npm 10 o superior
-- Git
+- Node.js 20 o superior.
+- npm 10 o superior.
+- Git.
+- Acceso a las variables de entorno necesarias, si se usan integraciones externas.
 
-### Instalación
+### Clonar e instalar
 
 ```bash
 git clone https://github.com/OsoPanda1/nodo-cero.git
 cd nodo-cero
-
 npm install
 ```
 
-Si el repositorio documenta una estrategia distinta de resolución de dependencias, sigue la instrucción indicada en `package.json`, `AGENTS.md` o la guía de desarrollo.
+> Si la instalación requiere `--legacy-peer-deps`, resuelve la incompatibilidad de dependencias antes de considerar un despliegue de producción. Para builds reproducibles, el objetivo es utilizar `npm ci` con un `package-lock.json` sano.
 
-### Configuración
+### Configurar entorno
 
 ```bash
 cp .env.example .env.local
 ```
 
-Completa únicamente las variables requeridas para el entorno local. **Nunca subas secretos, tokens, claves privadas ni archivos `.env.local` al repositorio.**
+Edita `.env.local` con las credenciales y URLs requeridas por tu entorno local.
 
-### Desarrollo local
+### Ejecutar en desarrollo
 
 ```bash
 npm run dev
@@ -190,28 +224,72 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000).
 
----
-
-## Calidad y validación
-
-Antes de abrir un pull request, ejecuta los comandos disponibles en el proyecto:
+### Build local
 
 ```bash
-npx tsc --noEmit
-npm run lint
-npm test
+npm run build
+npm run start
 ```
 
-Si están definidos en `package.json`, también puedes usar:
+---
+
+## Variables de entorno
+
+Las variables de entorno deben validarse antes de iniciar servicios dependientes de datos, autenticación, caché o APIs externas.
+
+Buenas prácticas:
+
+- Mantén `.env.local` fuera del control de versiones.
+- Nunca expongas secretos en variables con prefijo `NEXT_PUBLIC_`.
+- Usa valores distintos para desarrollo, preview, staging y producción.
+- Rota credenciales cuando exista sospecha de exposición.
+- Documenta cada variable en `.env.example` sin incluir valores reales.
+- Ejecuta la validación del proyecto antes de desplegar:
+
+```bash
+npm run check:env
+```
+
+---
+
+## Calidad local
+
+El repositorio incluye scripts para validar diferentes aspectos del proyecto.
+
+```bash
+# Auditoría de consistencia interna
+npm run audit
+
+# Validación de variables de entorno
+npm run check:env
+
+# Revisión de contratos y route guards
+npm run check:contracts
+
+# Lint
+npm run lint
+
+# Verificación de tipos
+npx tsc --noEmit
+
+# Pruebas
+npm test
+
+# Suite local completa
+npm run quality
+
+# Build de producción
+npm run build
+```
+
+Antes de abrir un pull request, ejecuta:
 
 ```bash
 npm run quality
-npm run audit
-npm run check:env
-npm run check:contracts
+npm run build
 ```
 
-> Ejecuta solo scripts presentes en el `package.json` vigente. No declares métricas de cobertura, auditorías o resultados como hechos si no son reproducibles en CI.
+> La validación local no sustituye una integración continua. Antes de declarar producción, estos comandos deben ejecutarse automáticamente en cada pull request y antes de cualquier despliegue a `main`.
 
 ---
 
@@ -219,116 +297,193 @@ npm run check:contracts
 
 ```text
 app/
-├── api/                       # Route handlers y recursos HTTP
-├── (planos)/                  # Experiencias principales de la plataforma
-├── globals.css                # Estilos globales
-└── layout.tsx                 # Layout raíz
+├── api/                        # Rutas HTTP y recursos de aplicación
+├── (planos)/                   # Experiencias y secciones principales
+├── globals.css                 # Estilos globales
+└── layout.tsx                  # Layout raíz
 
 components/
-├── design-system/             # Componentes reutilizables
-├── layout/                    # Navegación y estructura visual
-├── tourism/                   # Turismo y patrimonio
-├── marketplace/               # Comercio local
-├── gamification/              # Retos, puntos y logros
-├── isabella/                  # Interfaz del asistente
-├── map/                       # Mapas y geografía
-└── city/                      # Experiencias de ciudad
+├── design-system/              # Componentes reutilizables
+├── layout/                     # Navegación y estructura visual
+├── hero/                       # Secciones de presentación
+├── tourism/                    # Turismo y patrimonio
+├── marketplace/                # Negocios y comercio local
+├── gamification/               # Retos, puntos y badges
+├── isabella/                   # Interfaz del asistente
+├── map/                        # Mapas y geografía
+├── twins/                      # Visualización territorial
+└── city/                       # Experiencias urbanas y operativas
 
 lib/
-├── core/                      # Configuración, eventos, contratos y utilidades
-├── security/                  # Controles de seguridad e identidad
-├── isabella/                  # Lógica del asistente
-├── tourism/                   # Dominio turístico
-├── marketplace/               # Dominio comercial
-├── gamification/              # Dominio de participación
-├── city/                      # Dominio urbano
-├── twins/                     # Modelo territorial
-├── citemesh/                  # Federación de nodos
-├── gemet/                     # Conocimiento e integridad
-└── continuity/                # Continuidad operativa
+├── core/                       # Entorno, eventos, contratos y utilidades
+├── security/                   # Seguridad, confianza e identidad
+├── isabella/                   # Lógica del asistente
+├── tourism/                    # Dominio turístico
+├── city/                       # Dominio territorial y urbano
+├── twins/                      # Gemelo territorial
+├── marketplace/                # Dominio comercial
+├── gamification/               # Dominio de participación
+├── citemesh/                   # Federación de nodos
+├── gemet/                      # Conocimiento e integridad
+├── continuity/                 # Continuidad operativa
+└── archive/                    # Archivo y preservación
 
-docs/                          # Arquitectura, ADRs, guías y contratos
-scripts/                       # Automatización y validaciones
-tests/                         # Pruebas automatizadas
-public/                        # Activos estáticos
+db/                             # Acceso, esquemas o utilidades de datos
+prisma/                         # Configuración y esquema Prisma
+supabase/migrations/            # Migraciones de Supabase/PostgreSQL
+scripts/                        # Automatización y verificaciones
+tests/                          # Pruebas automatizadas
+types/                          # Tipos compartidos
+public/                         # Recursos estáticos
+unity/                          # Recursos o integración Unity WebGL
+docs/                           # Documentación técnica
 ```
 
-La estructura puede evolucionar conforme se consoliden los dominios y sus contratos.
+> La coexistencia de `prisma/`, `db/` y `supabase/migrations/` requiere una estrategia explícita de migraciones y una fuente de verdad para el esquema de datos antes de operar con información de usuarios o transacciones.
+
+---
+
+## Despliegue
+
+El repositorio incluye configuración inicial para Vercel. Antes de desplegar a un entorno público, verifica lo siguiente:
+
+```text
+[ ] npm ci funciona desde un clon limpio
+[ ] npm run quality termina correctamente
+[ ] npm run build termina correctamente
+[ ] Las variables de producción están configuradas y validadas
+[ ] Las migraciones de base de datos están aplicadas y comprobadas
+[ ] Existen backups y se ha probado una restauración
+[ ] El dominio usa HTTPS
+[ ] Existen logs y monitoreo de errores
+[ ] Hay una estrategia de rollback
+[ ] Se validaron rutas públicas y manejo de errores
+[ ] No se exponen secretos en cliente, repositorio o logs
+```
+
+### Estrategia recomendada
+
+1. **Development:** ejecución local con datos de prueba.
+2. **Preview:** despliegue automático por pull request.
+3. **Staging:** entorno aislado con configuración equivalente a producción.
+4. **Production:** despliegue desde `main` solo después de controles de calidad y revisión.
+
+Para un lanzamiento inicial, limita el alcance a contenido turístico público, mapas y directorio informativo. No habilites pagos, datos sensibles, credenciales, APIs públicas, telemetría municipal o procesos automatizados críticos sin controles adicionales.
 
 ---
 
 ## Seguridad
 
-Nodo Cero adopta un enfoque de seguridad por capas. Las rutas y módulos sensibles deben centralizar controles de:
+Nodo Cero busca aplicar seguridad en capas, particularmente en módulos que manejan datos, identidad, automatización o integraciones externas.
 
-- Validación de entrada y salida mediante contratos.
-- Autenticación y autorización por scopes o roles.
-- Verificación de origen cuando aplique.
-- Limitación de tasa para recursos expuestos.
-- Manejo seguro de secretos mediante variables de entorno.
-- Registro y trazabilidad de operaciones relevantes.
-- Pruebas de seguridad antes de habilitar funciones sensibles.
+Los controles esperados incluyen:
 
-Los mecanismos criptográficos, la federación, los sellos de compilación y las garantías post-cuánticas solo deben anunciarse como operativos cuando existan implementación revisable, pruebas reproducibles y documentación técnica verificable.
+- Validación de entrada mediante esquemas.
+- Autorización por usuario, rol o scope.
+- Control de acceso a información por propiedad y contexto.
+- Gestión segura de secretos mediante variables de entorno.
+- Rate limiting en endpoints expuestos.
+- Cabeceras HTTP de seguridad.
+- Registro estructurado de errores y acciones críticas.
+- Revisión de dependencias y análisis de vulnerabilidades.
+- Pruebas de autorización y aislamiento de datos.
+- Backups, restauración y procedimientos de rollback.
 
----
+### Alcance de seguridad
 
-## Documentación
+No se deben declarar como operativos, auditados o resistentes a amenazas específicas los mecanismos que no cuenten con:
 
-- [Arquitectura](./docs/ARCHITECTURE.md)
-- [Guía de desarrollo](./docs/guia-desarrollador.md)
-- [Guía de modularización](./docs/guia-modularizacion.md)
-- [Decisiones arquitectónicas](./docs/)
-- [Especificación OpenAPI](./docs/openapi-yun.yaml)
-- [RFC-0001 / C.R.O.W.N.](./RFC-0001.md)
-
-Si algún enlace no existe aún, crea el documento correspondiente o elimina el enlace hasta que esté disponible.
+1. Implementación revisable.
+2. Pruebas automatizadas y reproducibles.
+3. Configuración activa en el entorno de producción.
+4. Documentación técnica y operativa.
+5. Evidencia de monitoreo y respuesta a incidentes.
 
 ---
 
 ## Contribución
 
-Las contribuciones son bienvenidas, especialmente en accesibilidad, documentación, patrimonio local, pruebas, diseño de interfaz y módulos territoriales.
+Las contribuciones son bienvenidas en áreas como:
 
-1. Haz un fork del repositorio.
-2. Crea una rama descriptiva:
+- Contenido cultural e histórico verificable.
+- Accesibilidad y experiencia de usuario.
+- Pruebas automatizadas.
+- Componentes de interfaz.
+- Cartografía y datos abiertos.
+- Rendimiento web.
+- Documentación técnica.
+- Seguridad y observabilidad.
 
-   ```bash
-   git checkout -b feature/nombre-descriptivo
-   ```
+### Flujo de trabajo
 
-3. Implementa cambios acotados y documentados.
-4. Añade o actualiza pruebas cuando corresponda.
-5. Ejecuta las validaciones disponibles.
-6. Abre un pull request con contexto, alcance y evidencia de pruebas.
+```bash
+# 1. Haz un fork y clona tu copia
+git clone https://github.com/TU_USUARIO/nodo-cero.git
 
-Revisa [`AGENTS.md`](./AGENTS.md) y la documentación del repositorio antes de contribuir.
+# 2. Crea una rama descriptiva
+git checkout -b feature/nombre-descriptivo
+
+# 3. Instala dependencias
+npm install
+
+# 4. Ejecuta validaciones
+npm run quality
+npm run build
+```
+
+Después:
+
+1. Describe el objetivo y alcance del cambio.
+2. Incluye pruebas cuando modifiques lógica de negocio.
+3. Mantén los cambios acotados y documentados.
+4. No incluyas secretos, archivos `.env` ni credenciales.
+5. Abre un pull request con evidencia de validación.
+
+Consulta [`AGENTS.md`](./AGENTS.md), si está disponible, y los documentos en [`/docs`](./docs).
 
 ---
 
 ## Reporte de vulnerabilidades
 
-**No publiques vulnerabilidades ni secretos en issues públicos.**
+**No publiques vulnerabilidades, secretos, tokens ni detalles explotables en issues públicos.**
 
-Envía un reporte responsable a:
+Reporta vulnerabilidades de manera responsable a:
 
-- `security@visitarealdelmonte.online`
+```text
+security@visitarealdelmonte.online
+```
 
-Incluye, cuando sea posible:
+Incluye:
 
-- Descripción clara del hallazgo.
-- Pasos para reproducirlo.
+- Descripción del problema.
+- Componente, ruta o versión afectada.
+- Pasos para reproducir.
 - Impacto potencial.
 - Evidencia mínima necesaria.
-- Recomendación de mitigación, si la tienes.
+- Sugerencia de mitigación, si existe.
+
+---
+
+## Documentación
+
+| Documento | Ubicación |
+|---|---|
+| Arquitectura | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) |
+| Guía de desarrollo | [`docs/guia-desarrollador.md`](./docs/guia-desarrollador.md) |
+| Guía de modularización | [`docs/guia-modularizacion.md`](./docs/guia-modularizacion.md) |
+| Decisiones arquitectónicas | [`docs/`](./docs) |
+| Contratos API | [`docs/openapi-yun.yaml`](./docs/openapi-yun.yaml) |
+| Gobernanza / RFC | [`RFC-0001.md`](./RFC-0001.md) |
+
+Elimina o corrige cualquier enlace que no exista aún en el repositorio.
 
 ---
 
 ## Licencia
 
-Este proyecto se distribuye bajo la **CROWN Sovereign License**. Consulta el archivo [`LICENSE`](./LICENSE) y el marco de gobernanza en [`RFC-0001.md`](./RFC-0001.md) para conocer los permisos, restricciones y condiciones aplicables.
+La licencia aplicable debe estar definida de forma explícita en el archivo [`LICENSE`](./LICENSE).
 
-Si esos archivos aún no están presentes, no declares una licencia definitiva: añade primero un texto legal revisado y versionado.
+Si se adopta la **CROWN Sovereign License**, el texto legal completo, versionado y revisable debe existir en el repositorio antes de utilizarla como condición de uso, redistribución o contribución.
 
 ---
 
