@@ -16,10 +16,6 @@
 
 **Nodo Cero** es el nodo inicial de una plataforma territorial orientada a fortalecer la identidad cultural, la economía local y la gestión digital de Real del Monte. Su arquitectura prioriza modularidad, trazabilidad, seguridad y evolución gradual hacia una red federada de territorios.
 
-- 🌐 Sitio: [visitarealdelmonte.online](https://www.visitarealdelmonte.online)
-- 📚 Documentación: [`/docs`](./docs)
-- 🐙 Repositorio: [OsoPanda1/nodo-cero](https://github.com/OsoPanda1/nodo-cero)
-
 ---
 
 > Plataforma digital territorial para turismo, patrimonio cultural, economía local y participación comunitaria en Real del Monte, Hidalgo, México.
