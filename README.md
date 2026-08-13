@@ -9,6 +9,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Licencia](https://img.shields.io/badge/licencia-CROWN%20Sovereign-8B1E3F?style=flat-square)](#licencia)
 [![Sitio](https://img.shields.io/badge/sitio-visitarealdelmonte.online-0F766E?style=flat-square)](https://www.visitarealdelmonte.online)
+[![Vitest](https://img.shields.io/badge/tests-Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Repositorio](https://img.shields.io/badge/GitHub-OsoPanda1%2Fnodo--cero-181717?style=flat-square&logo=github)](https://github.com/OsoPanda1/nodo-cero)
+
+---
 
 **Nodo Cero** es el nodo inicial de una plataforma territorial orientada a fortalecer la identidad cultural, la economía local y la gestión digital de Real del Monte. Su arquitectura prioriza modularidad, trazabilidad, seguridad y evolución gradual hacia una red federada de territorios.
 
@@ -18,16 +22,8 @@
 
 ---
 
-# 🏛️ RDM Digital Hub — Nodo Cero
-
 > Plataforma digital territorial para turismo, patrimonio cultural, economía local y participación comunitaria en Real del Monte, Hidalgo, México.
 
-[![Estado](https://img.shields.io/badge/estado-en%20desarrollo-F59E0B?style=flat-square)](#estado-real-del-proyecto)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vitest](https://img.shields.io/badge/tests-Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)](https://vitest.dev/)
-[![Repositorio](https://img.shields.io/badge/GitHub-OsoPanda1%2Fnodo--cero-181717?style=flat-square&logo=github)](https://github.com/OsoPanda1/nodo-cero)
 
 **Nodo Cero** es una plataforma territorial en desarrollo para visibilizar el patrimonio, las experiencias turísticas, la gastronomía, los negocios locales y las iniciativas comunitarias de Real del Monte.
 
