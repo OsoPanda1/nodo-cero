@@ -1,1 +1,348 @@
-# 🏛️ RDM Digital Hub — Nodo Cero\n\n**Sistema Operativo Territorial Soberano para Real del Monte, Hidalgo, México**\n\n> Plataforma Turística Inteligente Territorial **Pionera a Nivel Latinoamérica**, implementada en un Pueblo Mágico. Gemelo digital + IoC urbano + Marketplace soberano + Gamificación territorial.\n\n![Status](https://img.shields.io/badge/Status-Arquitectura%20%2B%20Core%20Completados-blue)\n![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)\n![Next.js](https://img.shields.io/badge/Next.js-16-blue)\n![React](https://img.shields.io/badge/React-19-blue)\n![License](https://img.shields.io/badge/License-CROWN%20Sovereign-red)\n![Homepage](https://img.shields.io/badge/Site-visitarealdelmonte.online-green)\n\n---\n\n## 📍 Índice de Contenidos\n\n1. [Visión General](#visión-general)\n2. [El Problema](#el-problema)\n3. [La Solución](#la-solución-nodo-cero)\n4. [Arquitectura Técnica](#arquitectura-técnica)\n5. [Estado del Proyecto](#estado-del-proyecto-actual)\n6. [Características Clave](#características-clave)\n7. [Cómo Empezar](#cómo-empezar)\n8. [Estructura del Código](#estructura-del-código)\n9. [Gobernanza y Marco Legal](#gobernanza-y-marco-legal)\n10. [Contribuyendo](#contribuyendo)\n11. [Licencia y Soberanía](#licencia-y-soberanía)\n12. [Importancia para Latinoamérica](#importancia-para-latinoamérica)\n\n---\n\n## 🎯 Visión General\n\n### Qué es Nodo Cero\n\n**Nodo Cero** es el primer nodo operativo de la **Heptafederación YUN**, un ecosistema descentralizado de municipios inteligentes en la Comarca Minera de Hidalgo, México (Real del Monte, Pachuca, Mineral del Chico, Huasca, Omitlán y otros).\n\nNodo Cero implementa un **Sistema Operativo Territorial Soberano (TOS)** que combina:\n\n- 🗺️ **Gemelo Digital Territorial** (DTDL + grafo de conocimiento federado)\n- 🚨 **Centro de Operaciones Urbano (IOC)** (monitoreo de incidentes, movilidad, servicios)\n- 🏭 **Gestión de Activos y Mantenimiento (EAM/APM)** (infraestructura crítica)\n- ⚡ **Redes Inteligentes (Smart Grid/Agua)** (optimización de recursos)\n- 🛍️ **Marketplace Soberano** (licencias, datos, suscripciones sin intermediarios)\n- 🎮 **Gamificación Territorial** (motor de puntos + arena 3D inmersiva)\n- 🆔 **Identidad Soberana (IDENTITY YUN)** (API keys nativas sin dependencia de proveedores)\n- 🌐 **Malla Federada Autopoi\u00e9tica (CITEMESH)** (P2P con failover inteligente)\n- 📚 **Grafo de Conocimiento Federado (GEMET)** (checksums canónicos + réplicas verificadas)\n- 💾 **Continuidad del Negocio** (journal inmutable + reconciliación)\n\n---\n\n## 🚨 El Problema\n\n### Desafíos que Identifica Nodo Cero\n\n#### 1. **Dependencia Tecnológica Colonial**\n- Municipios mexicanos operan sobre infraestructuras cloud de empresas americanas/chinas\n- Datos territoriales fluyen sin control hacia servidores extranjeros\n- Decisiones municipales condicionadas por SLAs de terceros\n- **Soberanía de datos comprometida**\n\n#### 2. **Fragmentación de Sistemas**\n- Turismo, gobernanza, comercio operan en silos desconectados\n- No hay vista unificada de la salud territorial\n- Ciudadanos no tienen incentivos para participar\n- **Ineficiencia operativa y fragmentación ciudadana**\n\n#### 3. **Pérdida de Identidad y Patrimonio**\n- Pueblos mágicos enfrentan presión homogeneizadora global\n- Historia local no digitalizada, en riesgo\n- Gastronomía y cultura sin cadena de valor clara\n- **Identidad cultural en peligro**\n\n#### 4. **Falta de Confianza en Sistemas Digitales**\n- Ciudadanos desconfían de plataformas opacas\n- No hay verificabilidad de transacciones o decisiones\n- Fraude, corrupción digital sin rastreo claro\n- **Crisis de confianza en lo digital**\n\n#### 5. **Economía Local Desconectada**\n- Pequeños negocios no tienen acceso a mercados globales\n- Intermediarios tradicionales cobran comisiones insostenibles\n- Turistas no tienen forma verificada de gastar en lo local\n- **Economia local anémica**\n\n---\n\n## 💡 La Solución: Nodo Cero\n\n### Propuesta de Valor\n\nNodo Cero resuelve estos desafíos mediante un **Sistema Operativo Territorial Soberano** basado en:\n\n### 1. **Soberanía de Datos Verificada**\n```\n✅ Todos los datos residen en infrastructure municipal\n✅ Zero dependencia de cloud providers externos\n✅ Criptografía post-cuántica (CRYSTALS-Dilithium-5, Falcon-1024)\n✅ Auditoría transparente de acceso (Zero Trust 7 capas)\n```\n\n### 2. **Unificación Territorial Inteligente**\n```\n✅ Gemelo digital sincronizado en tiempo real\n✅ Vista 360° de incidentes, infraestructura, movilidad\n✅ Decisiones municipales basadas en datos verificados\n✅ Gobernanza transparente y rastreable\n```\n\n### 3. **Preservación de Patrimonio Digital**\n```\n✅ 12 capítulos ilustrados de Historia (Real del Monte)\n✅ 20+ recetas de gastronomía local con genealogía\n✅ 15+ Mitos y leyendas archivados (audio narrativo)\n✅ Galería de patrimonio inmaterial (fotos + metadatos)\n✅ Archivo histórico con checksums canónicos (GEMET)\n```\n\n### 4. **Confianza a través de Transparencia**\n```\n✅ Isabella AI™: Asistente cognitivo soberano (sin dependencia OpenAI/Google)\n✅ Todas las decisiones rastreables (traceId + correlationId)\n✅ Criptografía MSR-P256: firma inmutable de transacciones\n✅ Verificación de origen (Canonical Origins vs. Trusted Hosts)\n```\n\n### 5. **Economía Digital Inclusiva**\n```\n✅ Marketplace soberano: negocios locales conectan directamente con turistas\n✅ Sistema de puntos gamificado: incentivos por participación\n✅ Licencias y suscripciones verificables (no opacas)\n✅ Leaderboard territorial: reconocimiento público de contribuyentes\n```\n\n---\n\n## 🏗️ Arquitectura Técnica\n\n### Stack Tecnológico Actual\n\n| Capa | Tecnología | Versión | Estado |\n|------|-----------|---------|--------|\n| **Frontend** | Next.js (App Router) | 16 | ✅ Estable |\n| **Runtime** | React + TypeScript | 19 / 5.9 | ✅ Estable |\n| **Estilos** | Tailwind CSS + CVA | 4.1 | ✅ Estable |\n| **Persistencia** | Postgres (Neon) | 15 | ✅ Integrado |\n| **Cache** | Redis (Upstash) | Latest | ✅ Integrado |\n| **Validación** | Zod JSON Schema | 4.4 | ✅ Estable |\n| **Testing** | Vitest | 4.1 | ✅ Configurado |\n| **3D/Gamificación** | Unity WebGL | 2022.3 | ⏳ Implementación |\n| **Seguridad** | CRYSTALS + MSR-P256 | Post-Q | ✅ Especificado |\n| **Deployment** | Vercel Edge + Postgres | Latest | ✅ Activo |\n\n### Dominios de la Plataforma\n\n```\nlib/\n├── isabella/          # IA Soberana (razonamiento + Mexa)\n├── security/          # Zero Trust + Identidad YUN\n├── city/              # IOC urbano (incidentes, movilidad)\n├── twins/             # Gemelo territorial DTDL\n├── assets/            # EAM/APM (mantenimiento)\n├── grid/              # Smart Grid/Agua\n├── marketplace/       # Comercio soberano\n├── gamification/      # Sistema de puntos\n├── citemesh/          # Malla federada P2P\n├── gemet/             # Grafo de conocimiento\n├── continuity/        # Journal + reconciliación\n├── archive/           # Archivo histórico\n└── core/              # Núcleo transversal\n    ├── env/           # Variables de entorno (tipadas)\n    ├── events/        # Bus de eventos unificado\n    ├── contracts/     # Esquemas Zod\n    └── utils/         # Utilidades compartidas\n```\n\n### Arquitectura en Capas\n\n```\n┌─────────────────────────────────────────────┐\n│  Frontend: Next.js + React + Tailwind       │ (4 Planos de UX)\n├─────────────────────────────────────────────┤\n│  API Layer: Route-Guard Zero Trust (7 cap)  │ (enforceTrust)\n├─────────────────────────────────────────────┤\n│  Domain Layer: 12 dominios independientes   │ (modularidad)\n├─────────────────────────────────────────────┤\n│  Core Layer: Events + Env + Contracts       │ (transversal)\n├─────────────────────────────────────────────┤\n│  Persistence: Postgres + Redis + Archive    │ (durabilidad)\n├─────────────────────────────────────────────┤\n│  Security: CRYSTALS + MSR-P256 + Identity   │ (soberanía)\n└─────────────────────────────────────────────┘\n```\n\n### Cadena de Seguridad Zero Trust (7 Capas)\n\n```\n1️⃣  Origen Verificado (Canonical Origins vs. Trusted Hosts)\n2️⃣  Rate Limiting (por origen + globalmente)\n3️⃣  Método HTTP Permitido (GET, POST, PATCH, DELETE)\n4️⃣  Headers de Seguridad (Content-Type, User-Agent)\n5️⃣  Firma HMAC (SHA-256, si requiresSignature=true)\n6️⃣  Validación de Contrato (Zod JSON Schema)\n7️⃣  Autorización (Scopes de API Key + RBAC)\n```\n\n**Implementación:** `app/api/_shared/route-guard.ts` (ÚNICO punto de aplicación)\n\n---\n\n## 📊 Estado del Proyecto Actual\n\n### Fase de Desarrollo: **Arquitectura + Core (80% completo)**\n\n#### ✅ Completado\n\n- [x] **Arquitectura de referencia** (RFC-0001: Manifiesto C.R.O.W.N.)\n- [x] **Stack técnico establecido** (Next.js 16 + React 19 + TypeScript 5.9)\n- [x] **Sistema de seguridad** (Zero Trust 7 capas + route-guard único)\n- [x] **Variables de entorno tipadas** (lib/core/env/index.ts)\n- [x] **Bus de eventos unificado** (lib/core/events/)\n- [x] **Contratos Zod por dominio** (lib/core/contracts/)\n- [x] **Modelos de datos conceptuales** (12 dominios documentados)\n- [x] **Migraciones Postgres** (estructura base con RLS)\n- [x] **Temas visuales** (Nocturno Minero: dorado, terracota, navy, esmeralda)\n- [x] **Documentación arquitectónica** (docs/ARCHITECTURE.md)\n- [x] **Guías para desarrolladores** (docs/guia-*.md)\n- [x] **5 ADRs técnicos** (Decisiones arquitectónicas ratificadas)\n- [x] **Scripts de validación** (audit, check:env, check:contracts)\n\n#### ⏳ En Curso (Próximas 2 semanas)\n\n- [ ] **Componentes Design System** (10+ componentes base: Button, Card, Input, etc.)\n- [ ] **Rutas API funcionales** por dominio (isabella, city, marketplace, gamification)\n- [ ] **Mock data de prueba** (Heritage, Gastronomy, Legends, Map POIs)\n- [ ] **Mapa interactivo** (Leaflet + OpenStreetMap)\n- [ ] **Sistema de gamificación funcional** (puntos, badges, leaderboard)\n- [ ] **Motor de anti-cheat server-side** (validación de eventos)\n- [ ] **Tests completos** (target >80% cobertura)\n\n#### ⏸️ Pendiente (Semanas 3-4)\n\n- [ ] **Arena 3D (Unity WebGL)** - Zombies RDM Invasion\n- [ ] **2D Fallback** - Si WebGL no disponible\n- [ ] **Integración Isabella AI** - Modelo LLM soberano\n- [ ] **Malla federada (CITEMESH)** - Sincronización con otros nodos\n- [ ] **Grafo de conocimiento (GEMET)** - Checksums y réplicas\n- [ ] **Continidad del negocio** - Journal inmutable\n\n### Métricas de Calidad Actual\n\n```bash\n✅ Tipos TypeScript:    100% strict\n✅ ESLint:              0 errores (eslint v9)\n✅ Auditor consistencia: 0 errores (sin 'as never' / 'require()')\n✅ Variables env:       Tipadas (schema Zod)\n✅ Route-guard:         Adoptado en arquitectura\n✅ Tests:               Vitest configurado (222+ tests esperados)\n✅ Build:               Optimizado para Vercel Edge\n```\n\n---\n\n## 🌟 Características Clave\n\n### 1. **Isabella AI™ — Asistente Cognitivo Soberano**\n\n- IA especializada sin dependencia de OpenAI/Google\n- 9 categorías de Prompt Guard (seguridad)\n- 8 dominios de Intention Parser (clasificación)\n- Razonamiento estructurado con trazabilidad completa\n- Respuestas verificables con sources + trace\n- **Estado:** Especificado en `lib/isabella/`, integración en semana 3\n\n### 2. **Gemelo Digital Territorial (DTDL)**\n\n- Modelado de infraestructura en tiempo real\n- Sincronización con IoT sensors (próximamente)\n- Simulaciones predictivas (weather, traffic, energy)\n- Visualización 3D (Cesium.js + Three.js)\n- **Estado:** Modelo de datos + API en desarrollo\n\n### 3. **Centro de Operaciones Urbano (IOC)**\n\n- Dashboard de incidentes en mapa\n- Alertas en tiempo real (SLA < 2 min)\n- Flujos de respuesta (asignación → resolución)\n- Análisis histórico de patrones\n- **Estado:** Especificado, implementación próxima semana\n\n### 4. **Marketplace Soberano**\n\n- Listados de negocios locales (verificados)\n- Checkout con pagos locales (Conekta, Banco Azteca)\n- Smart contracts para reputación (próximamente)\n- Verificación de autenticidad de productos\n- **Estado:** Schema Postgres, APIs en desarrollo\n\n### 5. **Gamificación Territorial**\n\n- **Motor server-authoritative:** Anti-cheat verificado backend\n- **Puntos por acciones:** Explorar, leer, comprar, compartir\n- **Badges (10+):** Explorador, Historiador, Gourmet, Cazador, etc.\n- **Leaderboard:** Top 100 global + regional (semana/mes/año)\n- **Arena 3D:** Zombies RDM Invasion (Unity WebGL)\n  - Jefe final: El Conde de Regla (leyenda local)\n  - Monstruos con arquetipos mineros (Caminero del Socavón, etc.)\n  - Fallback 2D si WebGL no disponible\n- **Estado:** Especificado, integración semanas 2-3\n\n### 6. **Identidad Soberana (IDENTITY YUN)**\n\n- API keys nativas (prefijo `rdm_live_*`)\n- Hash scrypt (NUNCA en claro)\n- Scopes granulares (turismo:read/write, etc.)\n- Rotación sin downtime (_V1, _V2, _V3)\n- Revocación inmediata\n- **Estado:** Sistema especificado, implementación semana 2\n\n### 7. **Malla Federada (CITEMESH)**\n\n- Topología P2P con celdas F1, F2, F3\n- Registro de nodos con credencial derivada\n- Ruteo con failover automático\n- Degradación inteligente por carga/falla\n- **Estado:** Especificado en RFC-0001, implementación semana 4\n\n### 8. **Grafo de Conocimiento Federado (GEMET)**\n\n- Registros ontológicos con checksum SHA256 canónico\n- Réplicas remotas (sincronización eventual)\n- Detección de manipulaciones\n- Cache firmada con validación previa\n- **Estado:** Especificado, implementación semana 4\n\n### 9. **Continuidad del Negocio**\n\n- Journal inmutable (hash-chain)\n- Reconciliación primario ↔ réplica automática\n- Aislamiento en caso de falla (primary → isolated)\n- Switchover a réplica con rollback en cascada\n- RTO/RPO matrix documentada\n- **Estado:** Especificado, implementación semana 4\n\n---\n\n## 🚀 Cómo Empezar\n\n### Requisitos Previos\n\n```bash\n- Node.js 20+\n- npm 10+\n- Git\n```\n\n### Instalación Local\n\n```bash\n# Clonar repositorio\ngit clone https://github.com/OsoPanda1/nodo-cero.git\ncd nodo-cero\n\n# Instalar dependencias\nnpm install --legacy-peer-deps\n\n# Configurar variables de entorno\ncp .env.example .env.local\n# Completar claves opcionales de Isabella, marketplace, etc.\n\n# Ejecutar servidor de desarrollo\nnpm run dev\n# Abierto en http://localhost:3000\n```\n\n### Verificación de Calidad\n\n```bash\n# Auditoría completa (requiere todas las validaciones)\nnpm run quality\n\n# O individualmente:\nnpx tsc --noEmit              # Tipado\nnpm run lint                  # ESLint\nnpm test                      # Vitest\nnpm run audit                 # Consistencia\nnpm run check:env             # Entorno\nnpm run check:contracts       # Route-guard\n```\n\n### Generar Nuevo Componente\n\n```bash\nnode scripts/generate-component.mjs Card design-system\n# Crea:\n#   - components/design-system/Card.tsx\n#   - components/design-system/Card.types.ts\n#   - components/design-system/Card.module.css\n#   - tests/Card.test.ts\n```\n\n### Validar Componentes\n\n```bash\nnode scripts/validate-components.mjs\n# Reporta:\n#   - Componentes vacíos\n#   - Tests faltantes\n#   - Route-guard no adoptado\n#   - Variables env sin tipificar\n```\n\n---\n\n## 📁 Estructura del Código\n\n```\napp/\n├── (layouts)/                 # Layout root\n├── api/\n│   ├── _shared/route-guard.ts # Zero Trust único\n│   ├── isabella/*             # Isabella API\n│   ├── city/*                 # IOC urbano\n│   ├── marketplace/*          # Marketplace\n│   ├── gamification/*         # Gamificación\n│   └── monitor/health/*       # Health checks\n├── (planos)/\n│   ├── page.tsx               # Home + selección de planos\n│   ├── descubre/page.tsx      # Plano I: Turismo\n│   ├── comercia/page.tsx      # Plano II: Negocios\n│   ├── personaliza/page.tsx   # Plano III: Comunidad\n│   └── gobierna/page.tsx      # Plano IV: Smart City\n├── globals.css                # Tema Nocturno Minero\n└── layout.tsx                 # Root layout\n\ncomponents/\n├── design-system/             # 10+ componentes base\n├── layout/                    # Header, Navbar, Sidebar\n├── hero/                      # Secciones hero\n├── 3d/                        # Cesium, Three.js\n├── map/                       # Leaflet + OpenStreetMap\n├── gamification/              # Arena, Leaderboard\n├── isabella/                  # Chat, razonamiento\n├── tourism/                   # Turismo, patrimonio\n├── marketplace/               # Listados, checkout\n├── twins/                     # Gemelo digital\n├── city/                      # IOC, incidentes\n└── ...(40+ más)\n\nlib/\n├── isabella/                  # IA Soberana\n│   ├── isa-core.ts            # Razonamiento\n│   ├── mexa-api.ts            # Firma criptográfica\n│   └── http.ts                # Exposición HTTP\n├── security/\n│   ├── trust.ts               # Trust canónica\n│   └── identity/              # API keys\n├── city/                      # Dominio ciudad\n├── twins/                     # Dominio gemelos\n├── marketplace/               # Dominio marketplace\n├── gamification/              # Dominio gamificación\n├── citemesh/                  # Malla federada\n├── gemet/                     # Grafo de conocimiento\n├── continuity/                # Continuidad\n├── archive/                   # Archivo histórico\n└── core/\n    ├── env/index.ts           # Variables tipadas\n    ├── events/                # Bus de eventos\n    ├── contracts/             # Esquemas Zod\n    └── utils/                 # Funciones compartidas\n\ndocs/\n├── ARCHITECTURE.md            # Visión técnica\n├── guia-desarrollador.md      # Setup + convenciones\n├── guia-modularizacion.md     # Cómo agregar dominios\n├── adr-*.md                   # 5 Arquitectural Decision Records\n├── c4-contexto.md             # Diagrama C4\n├── catalogo-apis.md           # Contractos de rutas\n├── continuity-plan.md         # Plan de continuidad\n├── emergency-runbook.md       # Procedimientos de emergencia\n├── reconciliation-protocol.md # Protocolo de sincronización\n├── rto-rpo-matrix.md          # Matriz de recuperación\n└── openapi-yun.yaml           # OpenAPI spec\n\ntests/\n├── isabella.test.ts\n├── city.test.ts\n├── marketplace.test.ts\n├── gamification.test.ts\n└── ...(dominio).test.ts\n\nscripts/\n├── audit-project.mjs          # Auditor de consistencia\n├── check-contracts.mjs        # Verifica route-guard\n├── check-env.mjs              # Valida variables\n├── generate-component.mjs     # Crea componentes\n├── validate-components.mjs    # Audita componentes\n└── db-migrate-*.cjs           # Migraciones\n\npublic/\n├── images/                    # Galería (Unsplash + propias)\n├── audio/                     # Narrativa (TTS generado)\n├── unity/                     # Build WebGL\n└── video-animacion/           # Sprites zombies\n```\n\n---\n\n## 🏛️ Gobernanza y Marco Legal\n\n### C.R.O.W.N. — Constitución de Realidad Ontológica Web Nativa\n\n**RFC-0001** establece la gobernanza mediante:\n\n1. **Manifiesto Constitucional** — Principios de soberanía, trasparencia, ética\n2. **Sistema Operativo Territorial** — Zero Trust, contratos semánticos\n3. **Autoridad Arquitectónica** — Edwin Oswaldo Castillo Trejo (ORCID 0009-0008-5050-1539)\n4. **Entidad Cognitiva** — Isabella Villaseñor AI™ v4.0 Enterprise\n5. **Runtime Ejecutable** — YUN Fabric (orquestación distribuida)\n\n### Autoridad Operativa\n\n- **Nodo Cero (Origen):** Real del Monte, Hidalgo, México\n- **Jurisdicción:** Municipal + Comarca Minera\n- **Federación:** Conexión eventual con Pachuca, Mineral del Chico, Huasca, Omitlán\n\n### Privacidad y Datos\n\n- **Residencia:** Todos los datos en Postgres/Redis municipales (NUNCA exportar)\n- **Encriptación:** Post-cuántica (CRYSTALS, Falcon, Kyber)\n- **Acceso:** Zero Trust (7 capas), trazable por traceId\n- **Retención:** Política de archivo con checksums (GEMET)\n\n---\n\n## 🤝 Contribuyendo\n\n### Para Desarrolladores\n\n1. **Fork** este repositorio\n2. **Crea rama:** `git checkout -b feature/nombre-descriptivo`\n3. **Sigue convenciones** (ver `AGENTS.md`)\n4. **Tests + documentación** (cobertura >80%)\n5. **Validación:** `npm run quality`\n6. **Push + PR** con descripción clara\n\n### Reportar Bugs\n\n- Issues en GitHub con label `bug`\n- Incluir pasos para reproducir\n- Versión Node.js + npm\n- Salida de `npm run quality`\n\n### Sugerir Mejoras\n\n- Discussiones en GitHub\n- RFCs formales en `docs/rfc-*.md`\n- Ratificación por arquitecto (RFC-0001)\n\n---\n\n## 📜 Licencia y Soberanía\n\n### Licencia: CROWN Sovereign\n\n```\nCRYSTALS-Dilithium-5 · MSR-P256 · Falcon-1024 · Kyber-1024\n═══════════════════════════════════════════════════════════\n\nEste proyecto está bajo licencia CROWN Sovereign (RFC-0001).\n\n✅ Uso:\n   - Municipios mexicanos (modificación + redistribución)\n   - Investigación académica (cita requerida)\n   - Ecosistema TAMV Online (federación autorizada)\n\n❌ Prohibido:\n   - Comercialización sin consentimiento de autoridad\n   - Exportación de datos fuera de jurisdicción municipal\n   - Modificación de gobernanza C.R.O.W.N.\n   - Dependencia de proveedores cloud externos\n\n🔏 Firma:\n   Autoridad: Edwin Oswaldo Castillo Trejo\n   Fecha: 2026-08-13\n   Verificación: Nodo Cero (Real del Monte, Hidalgo)\n```\n\n### Build Seal\n\nCada build producción se sella criptográficamente:\n\n```bash\nBuild Seal: MSR-P256\nChecksum: [SHA256 de código fuente]\nTimestamp: 2026-08-13T20:17:07Z\nAutoridad: Nodo Cero\n```\n\n---\n\n## 🌍 Importancia para Latinoamérica\n\n### El Contexto Regional\n\nLatinoamérica enfrenta un desafío crítico: **dependencia tecnológica colonial**.\n\n- 🚫 **95% de infraestructura digital** en manos de AWS, Azure, Google Cloud\n- 💰 **$50 mil millones anuales** fluyen fuera de la región\n- 📊 **Datos territoriales** sin control local\n- 🔓 **Vulnerabilidad geopolítica** a cambios de política de proveedores\n\n### La Propuesta de Nodo Cero\n\n**Demostrar que es posible construir un Sistema Operativo Territorial Soberano en Latinoamérica.**\n\n#### 1. **Modelo de Municipio Inteligente Soberano**\n\nNodo Cero prueba un enfoque alternativo:\n\n```\nDependencia Colonial (modelo actual):\nMunicipio → AWS/Azure → Decisiones limitadas\n\nSoberanía Territorial (modelo Nodo Cero):\nMunicipio → Infraestructura local → Control total\n```\n\n**Ventajas:**\n- RTO/RPO controlados localmente\n- Datos residen en territorio municipal\n- Decisiones no dependen de SLAs corporativos\n- Código fuente auditable (transparencia)\n\n#### 2. **Ecosistema Federado (Heptafederación YUN)**\n\nNodo Cero es el primer nodo de una red de municipios:\n\n```\nReal del Monte (Nodo Cero)\n    ↓\n  CITEMESH P2P\n    ↓\nPachuca ← Mineral del Chico ← Huasca ← Omitlán\n    ↓\nEventualmente: Redes de Municipios en:\n  • Oaxaca (pueblos mágicos)\n  • Guanajuato (patrimonio minero)\n  • Yucatán (arqueología)\n  • Colombia, Perú, Bolivia (expansión regional)\n```\n\n**Impacto:**\n- No hay intermediario global\n- Datos compartidos en territorios latinos únicamente\n- Economía digital intrarregional\n\n#### 3. **Tecnología Post-Cuántica Accesible**\n\nNodo Cero implementa criptografía post-cuántica (NIST-ratificada):\n\n- CRYSTALS-Dilithium-5 (firmas)\n- CRYSTALS-Kyber-1024 (intercambio de claves)\n- Falcon-1024 (firma compacta)\n\n**Impacto:**\n- Resistente a computadoras cuánticas (amenaza 2035-2050)\n- Latinos protegidos de obsolescencia cripto previa\n- Código abierto: transferencia de tecnología\n\n#### 4. **Preservación de Patrimonio Inmaterial**\n\nNodo Cero no es solo infraestructura, sino **guardia de identidad**:\n\n```\n✅ Historia digitalizada (12 capítulos archivados)\n✅ Gastronomía con genealogía (20+ recetas)\n✅ Mitos locales (15+ narrativas audio)\n✅ Patrimonio fotográfico (100+)\n✅ Sello criptográfico (GEMET checksums)\n```\n\n**Impacto en Latinoamérica:**\n- Previene pérdida de identidad bajo presión global\n- Modelo replicable en 500+ pueblos mágicos mexicanos\n- Extensible a patrimonio de otros países latinos\n\n#### 5. **Economía Digital Inclusiva**\n\nNodo Cero conecta:\n- 👨‍🍳 Cocineros locales → turistas globales\n- 🎨 Artesanos → mercado verificado\n- 🏨 Pequeños hoteles → reservas directas\n- 📸 Guías locales → experiencias experienciales\n\n**Sin intermediarios corporativos.**\n\n**Impacto regional:**\n- Retención de valor económico en territorio\n- Ingresos por turismo +40% (estimado)\n- Emprendimiento local incentivizado\n\n#### 6. **Gobernanza Transparente (Anti-corrupción)**\n\nTodas las decisiones municipales rastreables:\n\n```\nCasos de uso anti-corrupción:\n✅ Licitaciones públicas (smart contracts)\n✅ Adjudicación de permisos (auditable)\n✅ Gastos municipales (trazable)\n✅ Infraestructura (gemelo digital)\n```\n\n**Impacto regional:**\n- Reduce corrupción municipal (Transparencia Int. índice)\n- Modelo para gobernanza digital en Latinoamérica\n\n---\n\n## 🎯 Visión a 5 Años\n\n### Año 1 (2026) — Nodo Cero Beta\n- ✅ Arquitectura core completa\n- ✅ 3 planos funcionales (Descubre, Comercia, Personaliza)\n- ✅ Gamificación activa (100k visitantes/mes)\n- ✅ Marketplace con 50+ negocios\n\n### Año 2 (2027) — Expansión Comarca Minera\n- 3 nodos federados (Pachuca, Mineral del Chico, Huasca)\n- Smart Grid piloto en Real del Monte\n- Arena 3D con 500k jugadores mensuales\n- Marketplace de comercio intrarregional\n\n### Año 3 (2028) — Red Nacional\n- 20 municipios mexicanos operando en CITEMESH\n- Estándar TAMV Online adoptado por INEGI\n- Datos de patrimonio cultural archivados (1000+ municipios)\n- Mercado digital de $10 millones anuales\n\n### Año 5 (2030) — Expansión Latinoamericana\n- 100 municipios en 5 países\n- Gobernanza territorial soberana (modelo documentado)\n- Tecnología post-cuántica como estándar regional\n- Patrimonio latino digitalizado (10k activos culturales)\n\n---\n\n## 📞 Contacto y Recursos\n\n### Enlaces Principales\n\n- 🌐 **Website:** https://www.visitarealdelmonte.online\n- 📘 **GitHub:** https://github.com/OsoPanda1/nodo-cero\n- 📖 **Documentación Técnica:** `/docs`\n- 📧 **Email:** contacto@visitarealdelmonte.online\n- 🐦 **Twitter/X:** @NodoCeroRDM\n\n### Documentos Clave\n\n- [RFC-0001: Manifiesto C.R.O.W.N.](./RFC-0001.md)\n- [ARCHITECTURE.md: Visión Técnica Completa](./docs/ARCHITECTURE.md)\n- [Guía de Desarrollador](./docs/guia-desarrollador.md)\n- [5 Architectural Decision Records](./docs/adr-*.md)\n- [Especificación OpenAPI](./docs/openapi-yun.yaml)\n\n### Contribuyentes y Créditos\n\n**Autoridad Arquitectónica:**\n- Edwin Oswaldo Castillo Trejo (ORCID 0009-0008-5050-1539)\n- Real del Monte, Hidalgo, México\n\n**Entidad Cognitiva:**\n- Isabella Villaseñor AI™ v4.0 Enterprise\n\n**Comunidad:**\n- (Contribuyentes serán agregados aquí)\n\n---\n\n## 🔐 Seguridad y Auditoría\n\n### Reportar Vulnerabilidades\n\n⚠️ **NO publiques vulnerabilidades en issues públicas.**\n\n1. Envía email privado a: security@visitarealdelmonte.online\n2. Incluye:\n   - Descripción de la vulnerabilidad\n   - Pasos para reproducir\n   - Impacto potencial\n   - Sugerencia de parche (si tienes)\n3. Espera confirmación (24-48 horas)\n4. Coordina divulgación responsable\n\n### Auditorías Externas\n\nNodo Cero se somete a auditorías regulares:\n\n- ✅ **Criptografía:** Validación NIST (post-quantum)\n- ✅ **Código:** SonarQube + OWASP Top 10\n- ✅ **Infraestructura:** Penetration testing semestral\n- ✅ **Datos:** GDPR/CCPA compliance (donde aplique)\n\n---\n\n## 📄 Licencias de Dependencias\n\nNodo Cero usa librerías open-source bajo:\n- MIT (Next.js, React, Tailwind, Zod, Vitest)\n- Apache 2.0 (Leaflet, PostgreSQL)\n- GPL v3 (Algunas librerías de criptografía)\n\n**Ver:** `package.json` + `LICENSE` en cada dependencia\n\n---\n\n## ✨ Roadmap Público\n\n| Hito | Target | Estado |\n|------|--------|--------|\n| **MVP Arquitectura** | 2026-08-31 | 🟡 80% |\n| **Beta Pública** | 2026-09-30 | ⏳ Próximo |\n| **1000 Usuarios** | 2026-11-30 | ⏳ Plannned |\n| **Nodo Pachuca Federado** | 2027-03-31 | ⏳ Planned |\n| **Smart Grid Piloto** | 2027-06-30 | ⏳ Planned |\n| **Expansión Nacional** | 2028-12-31 | ⏳ Planned |\n\n---\n\n## 📝 Notas Finales\n\n### Filosofía del Proyecto\n\n> **\"Un pueblo mágico merece un sistema operativo mágico.\"**\n\nNodo Cero no es software corporativo. Es un acto de **soberanía digital, preservación cultural y empoderamiento local**.\n\nDesde Real del Monte, estamos demostrando que Latinoamérica puede construir tecnología de clase mundial, sin depender de Silicon Valley.\n\n### Invitación a la Comunidad\n\n👋 **¿Eres desarrollador mexicano/latino interesado en soberanía digital?**\n\n- Colabora en features\n- Propón mejoras arquitectónicas\n- Ayuda a federalizar con otros municipios\n- Traduce documentación\n\n**Juntos construimos el futuro digital de Latinoamérica.**\n\n---\n\n**Nodo Cero — Origin Node of Heptafederation YUN**\n\n🏛️ Real del Monte, Hidalgo, México  \n🗓️ Initiated 2026-08-13  \n🔐 CROWN Sovereign License  \n✨ Made in Latinoamérica, for Latinoamérica\n"
+# 🏛️ RDM Digital Hub — Nodo Cero
+
+> Sistema Operativo Territorial para turismo, patrimonio, participación comunitaria y servicios digitales locales en Real del Monte, Hidalgo, México.
+
+[![Estado](https://img.shields.io/badge/estado-en%20desarrollo-F59E0B?style=flat-square)](#estado-del-proyecto)
+[![Next.js](https://img.shields.io/badge/Next.js-App%20Router-000000?style=flat-square&logo=nextdotjs)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![Licencia](https://img.shields.io/badge/licencia-CROWN%20Sovereign-8B1E3F?style=flat-square)](#licencia)
+[![Sitio](https://img.shields.io/badge/sitio-visitarealdelmonte.online-0F766E?style=flat-square)](https://www.visitarealdelmonte.online)
+
+**Nodo Cero** es el nodo inicial de una plataforma territorial orientada a fortalecer la identidad cultural, la economía local y la gestión digital de Real del Monte. Su arquitectura prioriza modularidad, trazabilidad, seguridad y evolución gradual hacia una red federada de territorios.
+
+- 🌐 Sitio: [visitarealdelmonte.online](https://www.visitarealdelmonte.online)
+- 📚 Documentación: [`/docs`](./docs)
+- 🐙 Repositorio: [OsoPanda1/nodo-cero](https://github.com/OsoPanda1/nodo-cero)
+
+---
+
+## Tabla de contenidos
+
+- [Propósito](#propósito)
+- [Ámbitos funcionales](#ámbitos-funcionales)
+- [Arquitectura](#arquitectura)
+- [Stack tecnológico](#stack-tecnológico)
+- [Estado del proyecto](#estado-del-proyecto)
+- [Inicio rápido](#inicio-rápido)
+- [Calidad y validación](#calidad-y-validación)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Seguridad](#seguridad)
+- [Documentación](#documentación)
+- [Contribución](#contribución)
+- [Reporte de vulnerabilidades](#reporte-de-vulnerabilidades)
+- [Licencia](#licencia)
+- [Contacto](#contacto)
+
+---
+
+## Propósito
+
+Nodo Cero busca consolidar capacidades digitales territoriales en una plataforma integrada:
+
+- **Turismo cultural:** contenidos, rutas, patrimonio, gastronomía y experiencias locales.
+- **Economía local:** visibilidad para negocios y servicios verificados del territorio.
+- **Participación comunitaria:** mecanismos de reconocimiento y gamificación.
+- **Gestión territorial:** bases para incidentes, activos, infraestructura y análisis operativo.
+- **Soberanía tecnológica:** contratos explícitos, trazabilidad, seguridad por diseño y control gradual de los datos territoriales.
+
+La plataforma se desarrolla bajo una visión modular: cada dominio puede avanzar de forma independiente sin acoplar innecesariamente la interfaz, las APIs y las reglas de negocio.
+
+---
+
+## Ámbitos funcionales
+
+| Dominio | Objetivo | Estado |
+|---|---|---|
+| **Turismo y patrimonio** | Difusión de lugares, historia, gastronomía, leyendas y rutas | En desarrollo |
+| **Isabella** | Asistente cognitivo con respuestas trazables y controles de seguridad | Especificado / integración gradual |
+| **Marketplace** | Directorio y experiencias de negocios locales | Modelo y APIs en desarrollo |
+| **Gamificación** | Puntos, logros, retos y clasificación territorial | En desarrollo |
+| **Gemelo territorial** | Modelo digital para infraestructura, puntos de interés y señales operativas | Modelo de datos en desarrollo |
+| **Centro de operaciones** | Incidentes, visualización geográfica y flujos de atención | Especificado |
+| **Identidad YUN** | Credenciales, scopes, rotación y revocación de acceso | Especificado |
+| **CITEMESH** | Comunicación federada entre nodos territoriales | Investigación / diseño |
+| **GEMET** | Integridad y trazabilidad de conocimiento territorial | Investigación / diseño |
+| **Continuidad** | Journal, reconciliación y recuperación operativa | Diseño inicial |
+
+> Los módulos marcados como “especificados”, “en investigación” o “en desarrollo” no deben interpretarse como funciones disponibles en producción.
+
+---
+
+## Arquitectura
+
+La arquitectura separa la experiencia de usuario, las APIs, los dominios de negocio y los componentes transversales.
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ Experiencia                                              │
+│ Next.js · React · Tailwind · Planos territoriales        │
+├─────────────────────────────────────────────────────────┤
+│ API                                                      │
+│ Route handlers · Validación · Autorización · Observabilidad │
+├─────────────────────────────────────────────────────────┤
+│ Dominios                                                 │
+│ Turismo · Ciudad · Marketplace · Gamificación · IA       │
+├─────────────────────────────────────────────────────────┤
+│ Núcleo transversal                                       │
+│ Eventos · Contratos · Configuración · Utilidades         │
+├─────────────────────────────────────────────────────────┤
+│ Datos e integraciones                                    │
+│ PostgreSQL · Redis · Servicios externos configurables    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Principios de diseño
+
+- **Modularidad por dominio:** responsabilidades aisladas y contratos explícitos.
+- **Validación en límites:** esquemas para datos de entrada, eventos y respuestas.
+- **Seguridad por defecto:** autenticación, autorización, límites de tasa y validaciones centralizadas.
+- **Trazabilidad:** identificadores de correlación y eventos para diagnóstico.
+- **Evolución progresiva:** los componentes avanzados se incorporan cuando cuenten con implementación, pruebas y operación verificable.
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Aplicación web | Next.js con App Router |
+| Interfaz | React y TypeScript |
+| Estilos | Tailwind CSS y componentes reutilizables |
+| Validación | Zod |
+| Persistencia | PostgreSQL |
+| Caché / colas | Redis, cuando aplique |
+| Pruebas | Vitest |
+| Calidad | TypeScript, ESLint y scripts internos |
+| Despliegue | Configurable según el entorno |
+
+> Las versiones efectivas y dependencias autorizadas son las declaradas en [`package.json`](./package.json).
+
+---
+
+## Estado del proyecto
+
+**Estado general: desarrollo activo.**
+
+### Disponible o base implementada
+
+- Estructura modular del proyecto.
+- Configuración de TypeScript y herramientas de calidad.
+- Base de componentes y layouts de la experiencia web.
+- Contratos y utilidades transversales.
+- Documentación técnica inicial y decisiones arquitectónicas.
+- Scripts de verificación del repositorio.
+
+### En desarrollo
+
+- Experiencias turísticas y contenidos territoriales.
+- Mapa y visualización de puntos de interés.
+- Directorio o marketplace de negocios locales.
+- Mecánicas de gamificación.
+- APIs de dominio y persistencia.
+- Pruebas automatizadas por módulo.
+
+### Planeado
+
+- Integración operativa de Isabella.
+- Centro de operaciones territorial.
+- Gemelo digital e integraciones IoT.
+- Malla federada CITEMESH.
+- Grafo de conocimiento GEMET.
+- Estrategias avanzadas de continuidad y recuperación.
+
+Consulta el avance vigente en los issues, pull requests y documentos del repositorio.
+
+---
+
+## Inicio rápido
+
+### Requisitos
+
+- Node.js 20 o superior
+- npm 10 o superior
+- Git
+
+### Instalación
+
+```bash
+git clone https://github.com/OsoPanda1/nodo-cero.git
+cd nodo-cero
+
+npm install
+```
+
+Si el repositorio documenta una estrategia distinta de resolución de dependencias, sigue la instrucción indicada en `package.json`, `AGENTS.md` o la guía de desarrollo.
+
+### Configuración
+
+```bash
+cp .env.example .env.local
+```
+
+Completa únicamente las variables requeridas para el entorno local. **Nunca subas secretos, tokens, claves privadas ni archivos `.env.local` al repositorio.**
+
+### Desarrollo local
+
+```bash
+npm run dev
+```
+
+Abre [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Calidad y validación
+
+Antes de abrir un pull request, ejecuta los comandos disponibles en el proyecto:
+
+```bash
+npx tsc --noEmit
+npm run lint
+npm test
+```
+
+Si están definidos en `package.json`, también puedes usar:
+
+```bash
+npm run quality
+npm run audit
+npm run check:env
+npm run check:contracts
+```
+
+> Ejecuta solo scripts presentes en el `package.json` vigente. No declares métricas de cobertura, auditorías o resultados como hechos si no son reproducibles en CI.
+
+---
+
+## Estructura del repositorio
+
+```text
+app/
+├── api/                       # Route handlers y recursos HTTP
+├── (planos)/                  # Experiencias principales de la plataforma
+├── globals.css                # Estilos globales
+└── layout.tsx                 # Layout raíz
+
+components/
+├── design-system/             # Componentes reutilizables
+├── layout/                    # Navegación y estructura visual
+├── tourism/                   # Turismo y patrimonio
+├── marketplace/               # Comercio local
+├── gamification/              # Retos, puntos y logros
+├── isabella/                  # Interfaz del asistente
+├── map/                       # Mapas y geografía
+└── city/                      # Experiencias de ciudad
+
+lib/
+├── core/                      # Configuración, eventos, contratos y utilidades
+├── security/                  # Controles de seguridad e identidad
+├── isabella/                  # Lógica del asistente
+├── tourism/                   # Dominio turístico
+├── marketplace/               # Dominio comercial
+├── gamification/              # Dominio de participación
+├── city/                      # Dominio urbano
+├── twins/                     # Modelo territorial
+├── citemesh/                  # Federación de nodos
+├── gemet/                     # Conocimiento e integridad
+└── continuity/                # Continuidad operativa
+
+docs/                          # Arquitectura, ADRs, guías y contratos
+scripts/                       # Automatización y validaciones
+tests/                         # Pruebas automatizadas
+public/                        # Activos estáticos
+```
+
+La estructura puede evolucionar conforme se consoliden los dominios y sus contratos.
+
+---
+
+## Seguridad
+
+Nodo Cero adopta un enfoque de seguridad por capas. Las rutas y módulos sensibles deben centralizar controles de:
+
+- Validación de entrada y salida mediante contratos.
+- Autenticación y autorización por scopes o roles.
+- Verificación de origen cuando aplique.
+- Limitación de tasa para recursos expuestos.
+- Manejo seguro de secretos mediante variables de entorno.
+- Registro y trazabilidad de operaciones relevantes.
+- Pruebas de seguridad antes de habilitar funciones sensibles.
+
+Los mecanismos criptográficos, la federación, los sellos de compilación y las garantías post-cuánticas solo deben anunciarse como operativos cuando existan implementación revisable, pruebas reproducibles y documentación técnica verificable.
+
+---
+
+## Documentación
+
+- [Arquitectura](./docs/ARCHITECTURE.md)
+- [Guía de desarrollo](./docs/guia-desarrollador.md)
+- [Guía de modularización](./docs/guia-modularizacion.md)
+- [Decisiones arquitectónicas](./docs/)
+- [Especificación OpenAPI](./docs/openapi-yun.yaml)
+- [RFC-0001 / C.R.O.W.N.](./RFC-0001.md)
+
+Si algún enlace no existe aún, crea el documento correspondiente o elimina el enlace hasta que esté disponible.
+
+---
+
+## Contribución
+
+Las contribuciones son bienvenidas, especialmente en accesibilidad, documentación, patrimonio local, pruebas, diseño de interfaz y módulos territoriales.
+
+1. Haz un fork del repositorio.
+2. Crea una rama descriptiva:
+
+   ```bash
+   git checkout -b feature/nombre-descriptivo
+   ```
+
+3. Implementa cambios acotados y documentados.
+4. Añade o actualiza pruebas cuando corresponda.
+5. Ejecuta las validaciones disponibles.
+6. Abre un pull request con contexto, alcance y evidencia de pruebas.
+
+Revisa [`AGENTS.md`](./AGENTS.md) y la documentación del repositorio antes de contribuir.
+
+---
+
+## Reporte de vulnerabilidades
+
+**No publiques vulnerabilidades ni secretos en issues públicos.**
+
+Envía un reporte responsable a:
+
+- `security@visitarealdelmonte.online`
+
+Incluye, cuando sea posible:
+
+- Descripción clara del hallazgo.
+- Pasos para reproducirlo.
+- Impacto potencial.
+- Evidencia mínima necesaria.
+- Recomendación de mitigación, si la tienes.
+
+---
+
+## Licencia
+
+Este proyecto se distribuye bajo la **CROWN Sovereign License**. Consulta el archivo [`LICENSE`](./LICENSE) y el marco de gobernanza en [`RFC-0001.md`](./RFC-0001.md) para conocer los permisos, restricciones y condiciones aplicables.
+
+Si esos archivos aún no están presentes, no declares una licencia definitiva: añade primero un texto legal revisado y versionado.
+
+---
+
+## Contacto
+
+- Sitio web: [visitarealdelmonte.online](https://www.visitarealdelmonte.online)
+- Repositorio: [github.com/OsoPanda1/nodo-cero](https://github.com/OsoPanda1/nodo-cero)
+- Contacto general: `contacto@visitarealdelmonte.online`
+- Seguridad: `security@visitarealdelmonte.online`
+
+---
+
+<p align="center">
+  <strong>Nodo Cero</strong><br />
+  Real del Monte, Hidalgo, México<br />
+  Tecnología territorial, cultura viva y participación local.
+</p>
