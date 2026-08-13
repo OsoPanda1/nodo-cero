@@ -131,20 +131,20 @@ La aplicación separa la experiencia de usuario, las rutas HTTP, la lógica de d
 
 ```text
 ┌───────────────────────────────────────────────────────────┐
-│ Experiencia                                                │
+│ Experiencia                                               │
 │ Next.js · React · Tailwind · Componentes · Planos UX      │
 ├───────────────────────────────────────────────────────────┤
-│ Aplicación y API                                           │
-│ Route Handlers · Validación · Contratos · Respuestas HTTP  │
+│ Aplicación y API                                          │
+│ Route Handlers · Validación · Contratos · Respuestas HTTP │
 ├───────────────────────────────────────────────────────────┤
-│ Dominios                                                   │
+│ Dominios                                                  │
 │ Turismo · Ciudad · Marketplace · Gamificación · Isabella  │
 ├───────────────────────────────────────────────────────────┤
-│ Núcleo transversal                                         │
-│ Configuración · Eventos · Seguridad · Utilidades           │
+│ Núcleo transversal                                        │
+│ Configuración · Eventos · Seguridad · Utilidades          │
 ├───────────────────────────────────────────────────────────┤
-│ Datos e integraciones                                      │
-│ PostgreSQL · Prisma · Supabase · Redis · Servicios externos│
+│ Datos e integraciones                                     │
+│ PostgreSQL ·Prisma · Supabase · Redis · Servicios externos│
 └───────────────────────────────────────────────────────────┘
 ```
 
