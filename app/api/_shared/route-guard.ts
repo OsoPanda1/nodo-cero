@@ -19,7 +19,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { z } from 'zod';
-import { assertServerOnly, verifyOrigin, rateLimit } from '@/lib/security/trust';
+import { assertServerOnly, verifyOrigin, rateLimit, allowedOrigins } from '@/lib/security/trust';
 import { assertZeroTrust } from '@/lib/security/zero-trust';
 import { claimNonce } from '@/lib/security/nonce';
 import { authenticate, hasScope } from '@/lib/security/identity';
@@ -144,6 +144,28 @@ export function guardedRoute<T = Record<string, unknown>, TActor = ApiKeyPublic 
           data,
         });
       };
+
+      // 0. Preflight CORS (OPTIONS): responde antes de cualquier capa de
+      //    blindaje. Solo se permite si el Origin está en la allowlist
+      //    canónica (misma política que verifyOrigin). En Vercel no existe
+      //    el gateway nginx que hoy emite estos headers en auto-hosting.
+      if (req.method === 'OPTIONS') {
+        const origin = req.headers.get('origin');
+        const allowed = allowedOrigins();
+        const normalized = origin ? origin.replace(/\/$/, '') : null;
+        if (origin && normalized && allowed.includes(normalized)) {
+          const headers: Record<string, string> = {
+            'Access-Control-Allow-Origin': normalized,
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-RDM-API-Key, X-RDM-Nonce, X-RDM-Idempotency-Key, X-Trace-Id',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400',
+          };
+          emit('api.cors.preflight', { route, origin: normalized });
+          return new NextResponse(null, { status: 204, headers });
+        }
+        return apiErrorJson('Origen no autorizado (Zero Trust).', 403);
+      }
 
       // 1. Capa L0: Aislamiento estricto de entorno servidor (Zero Trust L0)
       const server = assertServerOnly('CROWN');
@@ -288,6 +310,20 @@ export function guardedRoute<T = Record<string, unknown>, TActor = ApiKeyPublic 
 
         response.headers.set('X-Trace-Id', traceId);
         response.headers.set('X-Response-Time-Ms', String(elapsedMs));
+
+        // CORS en respuestas (Vercel no tiene gateway nginx): refleja el
+        // origen canónico permitido. Preferimos no exponer `*` en una API
+        // con identidad soberana y cookies/credentials.
+        const reqOrigin = req.headers.get('origin');
+        if (reqOrigin) {
+          const normalized = reqOrigin.replace(/\/$/, '');
+          const allowed = allowedOrigins();
+          if (allowed.includes(normalized)) {
+            response.headers.set('Access-Control-Allow-Origin', normalized);
+            response.headers.set('Access-Control-Allow-Credentials', 'true');
+            response.headers.set('Vary', 'Origin');
+          }
+        }
 
         if (hardenHeaders) {
           response.headers.set('X-Content-Type-Options', 'nosniff');

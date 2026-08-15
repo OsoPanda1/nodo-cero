@@ -3,12 +3,12 @@ import { Analytics } from '@vercel/analytics/next';
 import { ModeProvider } from '@/lib/ui';
 import './globals.css';
 
-/* Dominio canónico del despliegue: https://visitarealdelmonte.online.
-   www.visitarealdelmonte.online responde 308 (permanent redirect) al apex
-   en el edge, así que nunca se renderiza; aún así el apex es la única URL
-   canónica para metadataBase y Open Graph. APP_URL del entorno puede
+/* Dominio canónico del despliegue: https://www.visitarealdelmonte.online.
+   visitarealdelmonte.online (apex) responde 308 (permanent redirect) al
+   canónico en el edge, así que nunca se renderiza; aún así www es la única
+   URL canónica para metadataBase y Open Graph. APP_URL del entorno puede
    sobreescribirlo (usado también por la política de orígenes). */
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || 'https://visitarealdelmonte.online';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_URL || 'https://www.visitarealdelmonte.online';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

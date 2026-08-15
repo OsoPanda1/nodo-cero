@@ -218,8 +218,8 @@ npm run quality  # auditor + env + contracts + lint + tsc + test
 
 ### Producción (Vercel)
 1. Variables de entorno en **Project Settings → Environment Variables**
-2. Dominio canónico: `visitarealdelmonte.online` (apex)
-3. `www` redirige a apex con **308 (permanent redirect)**
+2. Dominio canónico: `www.visitarealdelmonte.online`
+3. El apex (`visitarealdelmonte.online`) redirige al canónico con **308 (permanent redirect)**
 4. SSL/TLS automático + header de seguridad (CSP, HSTS, X-Frame, etc.)
 
 ## Convenciones de Código

@@ -17,7 +17,7 @@ function setNodeEnv(value: string): void {
 }
 
 /** Simula una petición Next con headers de Origin y Host. */
-function requestWith(origin?: string | null, host = 'visitarealdelmonte.online'): NextRequest {
+function requestWith(origin?: string | null, host = 'www.visitarealdelmonte.online'): NextRequest {
   const url = `https://${host}/api/ruta`;
   const headers: Record<string, string> = {};
   if (origin !== null && origin !== undefined) headers['origin'] = origin;
@@ -114,9 +114,9 @@ describe('frontera · normalizeOrigin', () => {
 });
 
 describe('frontera · verifyOrigin (producción)', () => {
-  /* El sitio canónico se sirve en visitarealdelmonte.online: el navegador
-     envía Origin igual al Host, lo que debe admitirse sin depender de la
-     allowlist (defensa CSRF estándar "Origin === Host"). */
+  /* El sitio canónico se sirve en www.visitarealdelmonte.online: el
+     navegador envía Origin igual al Host, lo que debe admitirse sin
+     depender de la allowlist (defensa CSRF estándar "Origin === Host"). */
   it('acepta el dominio canónico mismo-origen aunque la allowlist no lo incluya', () => {
     process.env.APP_URL = '';
     process.env.NEXT_PUBLIC_SITE_URL = '';
@@ -125,7 +125,7 @@ describe('frontera · verifyOrigin (producción)', () => {
     process.env.TRUSTED_HOSTS = '';
     setNodeEnv('production');
 
-    const result = verifyOrigin(requestWith('https://visitarealdelmonte.online'));
+    const result = verifyOrigin(requestWith('https://www.visitarealdelmonte.online', 'www.visitarealdelmonte.online'));
     expect(result.ok).toBe(true);
     expect(result.fallback).toBe(true);
   });
@@ -158,7 +158,7 @@ describe('frontera · verifyOrigin (producción)', () => {
     process.env.APP_URL = '';
     process.env.NEXT_PUBLIC_SITE_URL = '';
     process.env.VERCEL_URL = '';
-    process.env.CANONICAL_ORIGINS = 'https://visitarealdelmonte.online';
+    process.env.CANONICAL_ORIGINS = 'https://www.visitarealdelmonte.online';
     process.env.TRUSTED_HOSTS = '';
     setNodeEnv('production');
 
@@ -166,7 +166,7 @@ describe('frontera · verifyOrigin (producción)', () => {
     const result = verifyOrigin(
       new NextRequest('https://api.visitarealdelmonte.online/api/ruta', {
         headers: {
-          origin: 'https://visitarealdelmonte.online',
+          origin: 'https://www.visitarealdelmonte.online',
           host: 'api.visitarealdelmonte.online',
         },
       }),

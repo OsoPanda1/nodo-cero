@@ -36,12 +36,12 @@ export const envSchema = z.object({
 
   /* Frontera — política canónica de origen (anti-CSRF) */
   /* CANONICAL_ORIGINS: lista separada por comas de orígenes exactos
-     permitidos (p.ej. https://visitarealdelmonte.online).
+     permitidos (p.ej. https://www.visitarealdelmonte.online).
      TRUSTED_HOSTS: lista separada por comas de hostnames que el Nodo
      reconoce como propios cuando no hay orígenes canónicos configurados
-     (p.ej. visitarealdelmonte.online,www.visitarealdelmonte.online).
-     Dominio canónico del despliegue: https://visitarealdelmonte.online;
-     www responde 308 (permanent redirect) al apex en el edge. */
+     (p.ej. www.visitarealdelmonte.online,visitarealdelmonte.online).
+     Dominio canónico del despliegue: https://www.visitarealdelmonte.online;
+     el apex responde 308 (permanent redirect) al canónico en el edge. */
   CANONICAL_ORIGINS: z.string().optional(),
   TRUSTED_HOSTS: z.string().optional(),
 
@@ -168,7 +168,7 @@ export const envSchema = z.object({
        "RDM DIGITAL HUB" (dashboard developers.spotify.com). El flujo de
        autorización es Authorization Code con code_verifier (PKCE).
      SPOTIFY_REDIRECT_URI: URI de redirección registrada en Spotify.
-       Producción: https://visitarealdelmonte.online/api/spotify/auth/callback
+        Producción: https://www.visitarealdelmonte.online/api/spotify/auth/callback
        Desarrollo: http://localhost:3000/api/spotify/auth/callback
      SPOTIFY_SCOPES: ámbitos solicitados (por defecto, el conjunto para
        leer historial de reproducción, listas, biblioteca y controlar el

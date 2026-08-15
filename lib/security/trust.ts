@@ -272,7 +272,7 @@ export function verifyOrigin(req: NextRequest): { ok: boolean; reason?: string; 
      un navegador legítimo envía Origin igual al Host que visita; un
      atacante no puede forzar que ambos coincidan en una petición
      cross-site. Esto admite el dominio canónico del despliegue
-     (p. ej. visitarealdelmonte.online) sin depender de la allowlist. */
+     (p. ej. www.visitarealdelmonte.online) sin depender de la allowlist. */
   const self = selfOriginFromRequestHost(hostHeader);
 
   if (origin) {

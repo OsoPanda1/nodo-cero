@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 /* Spotify devuelve `code` + `state` tras el consentimiento del        */
 /* usuario. El servidor recupera el code_verifier por `state`, canjea  */
 /* el token y guarda la sesión. En producción, la URI de redirección   */
-/* registrada es https://visitarealdelmonte.online/api/spotify/auth/   */
+/* registrada es https://www.visitarealdelmonte.online/api/spotify/auth/ */
 /* callback (originRequired=false: es una navegación del navegador,    */
 /* no una llamada API con origen canónico).                            */
 /* ------------------------------------------------------------------ */
